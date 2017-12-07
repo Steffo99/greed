@@ -1,6 +1,9 @@
 import os
 import sys
 import configparser
+import telegram
+import threading
+import time
 
 # Check if a configuration file exists, create one if it doesn't and get the template version number.
 with open("config/template_config.ini") as template_file:
@@ -38,4 +41,36 @@ if template_version > int(config["Config"]["version"]):
           "Edit it with the new required data, set the is_template flag to true and restart this script.")
     sys.exit(1)
 
-print("Program goes here")
+# Create a bot instance
+bot = telegram.Bot(config["Telegram"]["token"])
+
+# Test the specified token
+try:
+    bot.get_me()
+except telegram.error.Unauthorized:
+    print("The token you have entered in the config file is invalid.\n"
+          "Fix it, then restart this script.")
+    sys.exit(1)
+
+# Create a dictionary containing the chat instances threads and the pipes from the main thread to the chat instance thread
+# {"1234": (<Thread>, <Pipe>)}
+chat_threads = {}
+
+# Current update offset; if None it will get the last 100 unparsed messages
+update_offset = None
+
+
+# Main loop of the program
+while True:
+    # Get a new batch of 100 updates and mark the last 100 parsed as read
+    updates = bot.get_updates(offset=update_offset)
+    # Parse all the updates
+    for update in updates:
+        # If the update is a message...
+        if update.message is not None:
+            ...
+        # If the update is a inline keyboard press...
+        if update.inline_query is not None:
+            ...
+    # Temporarily prevent rate limits (remove this later)
+    time.sleep(5)
