@@ -4,6 +4,7 @@ import configparser
 import telegram
 import threading
 import time
+import strings
 
 # Check if a configuration file exists, create one if it doesn't and get the template version number.
 with open("config/template_config.ini") as template_file:
@@ -52,25 +53,33 @@ except telegram.error.Unauthorized:
           "Fix it, then restart this script.")
     sys.exit(1)
 
-# Create a dictionary containing the chat instances threads and the pipes from the main thread to the chat instance thread
-# {"1234": (<Thread>, <Pipe>)}
-chat_threads = {}
+# Create a dictionary linking the chat ids to the ChatWorker objects
+# {"1234": <ChatWorker>}
+chat_workers = {}
 
 # Current update offset; if None it will get the last 100 unparsed messages
-update_offset = None
+next_update = None
 
 
 # Main loop of the program
 while True:
     # Get a new batch of 100 updates and mark the last 100 parsed as read
-    updates = bot.get_updates(offset=update_offset)
+    updates = bot.get_updates(offset=next_update)
     # Parse all the updates
     for update in updates:
         # If the update is a message...
         if update.message is not None:
-            ...
+            # Ensure the message has been sent in a private chat
+            if update.message.chat.type != "private":
+                # Notify the chat
+                bot.send_message(update.message.chat.id, strings.error_nonprivate_chat)
+                # Skip the update
+                continue
+            # TODO: add stuff here
         # If the update is a inline keyboard press...
         if update.inline_query is not None:
-            ...
+            pass
+        # Mark the update as read by increasing the update_offset
+        next_update = update.update_id + 1
     # Temporarily prevent rate limits (remove this later)
     time.sleep(5)
