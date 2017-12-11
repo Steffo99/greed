@@ -5,6 +5,7 @@ import telegram
 import threading
 import time
 import strings
+import worker
 
 # Check if a configuration file exists, create one if it doesn't and get the template version number.
 with open("config/template_config.ini") as template_file:
@@ -75,10 +76,39 @@ while True:
                 bot.send_message(update.message.chat.id, strings.error_nonprivate_chat)
                 # Skip the update
                 continue
-            # TODO: add stuff here
+            # If the message is a start command...
+            if update.message.text == "/start":
+                # Check if a worker already exists for that chat
+                old_worker = chat_workers.get(update.message.chat.id)
+                # If it exists, gracefully stop the worker
+                if old_worker:
+                    old_worker.stop()
+                # Initialize a new worker for the chat
+                new_worker = worker.ChatWorker(bot, update.message.chat)
+                # Start the worker
+                new_worker.start()
+                # Store the worker in the dictionary
+                chat_workers[update.message.chat.id] = new_worker
+                # Skip the update
+                continue
+            # Otherwise, forward the update to the corresponding worker
+            receiving_worker = chat_workers.get(update.message.chat.id)
+            # Ensure a worker exists for the chat
+            if receiving_worker is None:
+                # Suggest that the user restarts the chat with /start
+                bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat)
+            # Forward the update to the worker
+            receiving_worker.pipe.send(update)
         # If the update is a inline keyboard press...
         if update.inline_query is not None:
-            pass
+            # Forward the update to the corresponding worker
+            receiving_worker = chat_workers.get(update.message.chat.id)
+            # Ensure a worker exists for the chat
+            if receiving_worker is None:
+                # Suggest that the user restarts the chat with /start
+                bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat)
+            # Forward the update to the worker
+            receiving_worker.pipe.send(update)
         # Mark the update as read by increasing the update_offset
         next_update = update.update_id + 1
     # Temporarily prevent rate limits (remove this later)
