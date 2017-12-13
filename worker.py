@@ -1,6 +1,11 @@
 import multiprocessing
 import telegram
 import strings
+import configloader
+import sys
+
+# Load the configuration
+config = configloader.load_config()
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
@@ -31,24 +36,31 @@ class ChatWorker:
         # Wait for the process to stop
         self.process.join()
 
+# TODO: maybe move these functions to a class
 
-def receive_next_update(pipe) -> telegram.Update:
+def graceful_stop(bot: telegram.Bot, chat: telegram.Chat, pipe):
+    """Handle the graceful stop of the process."""
+    # Notify the user that the session has expired
+    bot.send_message(chat.id, strings.conversation_expired)
+    # End the process
+    sys.exit(0)
+
+def receive_next_update(bot: telegram.Bot, chat: telegram.Chat, pipe) -> telegram.Update:
     """Get the next update from a pipe.
     If no update is found, block the process until one is received.
     If a stop signal is sent, try to gracefully stop the process."""
+    # Wait until some data is present in the pipe or the wait time runs out
+    if not pipe.poll(int(config["Telegram"]["conversation_timeout"])):
+        # If the conversation times out, gracefully stop the process
+        graceful_stop(bot, chat, pipe)
     # Receive data from the pipe
     data = pipe.recv()
     # Check if the data is a stop signal instance
     if isinstance(data, StopSignal):
         # Gracefully stop the process
-        graceful_stop()
+        graceful_stop(bot, chat, pipe)
     # Return the received update
     return data
-
-
-def graceful_stop():
-    """Handle the graceful stop of the process."""
-    raise NotImplementedError()
 
 
 def conversation_handler(bot: telegram.Bot, chat: telegram.Chat, pipe):
@@ -59,5 +71,5 @@ def conversation_handler(bot: telegram.Bot, chat: telegram.Chat, pipe):
     # TODO: Send a command list or something
     while True:
         # For now, echo the sent message
-        update = receive_next_update(pipe)
-        bot.send_message(chat.id, update.message.text)
+        update = receive_next_update(bot, chat, pipe)
+        bot.send_message(chat.id, f"{multiprocessing.current_process().name} {update.message.text}")
