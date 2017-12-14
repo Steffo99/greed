@@ -33,7 +33,7 @@ def main():
     while True:
         # Get a new batch of 100 updates and mark the last 100 parsed as read
         # TODO: handle possible errors
-        updates = bot.get_updates(offset=next_update)
+        updates = bot.get_updates(offset=next_update, timeout=int(config["Telegram"]["long_polling_timeout"]))
         # Parse all the updates
         for update in updates:
             # If the update is a message...
@@ -85,9 +85,6 @@ def main():
         if len(updates):
             # Mark them as read by increasing the update_offset
             next_update = updates[-1].update_id + 1
-        # Temporarily prevent rate limits
-        # TODO: (remove this later)
-        time.sleep(5)
 
 
 # Run the main function only in the main process
