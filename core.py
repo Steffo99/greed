@@ -62,13 +62,13 @@ def main():
                 # Otherwise, forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.message.chat.id)
                 # Ensure a worker exists for the chat and is alive
-                if receiving_worker is None or not receiving_worker.process.is_alive():
+                if receiving_worker is None or not receiving_worker.thread.is_alive():
                     # Suggest that the user restarts the chat with /start
                     bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat)
                     # Skip the update
                     continue
                 # Forward the update to the worker
-                receiving_worker.pipe.send(update)
+                receiving_worker.queue.put(update)
             # If the update is a inline keyboard press...
             if update.inline_query is not None:
                 # Forward the update to the corresponding worker
@@ -80,7 +80,7 @@ def main():
                     # Skip the update
                     continue
                 # Forward the update to the worker
-                receiving_worker.pipe.send(update)
+                receiving_worker.queue.put(update)
         # If there were any updates...
         if len(updates):
             # Mark them as read by increasing the update_offset
