@@ -62,7 +62,7 @@ def main():
                 # Otherwise, forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.message.chat.id)
                 # Ensure a worker exists for the chat and is alive
-                if receiving_worker is None or not receiving_worker.thread.is_alive():
+                if receiving_worker is None or not receiving_worker.is_alive():
                     # Suggest that the user restarts the chat with /start
                     bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat)
                     # Skip the update
