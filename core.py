@@ -103,13 +103,13 @@ def main():
                 # Forward the update to the worker
                 receiving_worker.queue.put(update)
             # If the update is a inline keyboard press...
-            if update.inline_query is not None:
+            if update.callback_query is not None:
                 # Forward the update to the corresponding worker
-                receiving_worker = chat_workers.get(update.inline_query.chat.id)
+                receiving_worker = chat_workers.get(update.callback_query.chat.id)
                 # Ensure a worker exists for the chat
                 if receiving_worker is None:
                     # Suggest that the user restarts the chat with /start
-                    bot.send_message(update.inline_query.chat.id, strings.error_no_worker_for_chat)
+                    bot.send_message(update.callback_query.chat.id, strings.error_no_worker_for_chat)
                     # Skip the update
                     continue
                 # Forward the update to the worker
