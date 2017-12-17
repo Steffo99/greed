@@ -5,9 +5,6 @@ import configloader
 import sys
 import queue as queuem
 
-# Load the configuration
-config = configloader.load_config()
-
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
 
@@ -51,7 +48,7 @@ class ChatWorker(threading.Thread):
         If a stop signal is sent, try to gracefully stop the thread."""
         # Pop data from the queue
         try:
-            data = self.queue.get(timeout=int(config["Telegram"]["conversation_timeout"]))
+            data = self.queue.get(timeout=int(configloader.config["Telegram"]["conversation_timeout"]))
         except queuem.Empty:
             # If the conversation times out, gracefully stop the thread
             self._graceful_stop()
