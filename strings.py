@@ -2,6 +2,15 @@
 # Can be edited, but DON'T REMOVE THE REPLACEMENT FIELDS (words surrounded by {curly braces})
 # TODO: maybe add a preformat to all strings in this file
 
+# Currency symbol
+currency_symbol = "€"
+
+# Positioning of the currency symbol
+currency_format_string = "{symbol} {value}"
+
+# Quantity of a product in stock
+in_stock_format_string = "{quantity} disponibili"
+
 # Answer: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
