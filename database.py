@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint, CheckConstraint
 from sqlalchemy import Integer, BigInteger, String, Numeric, Text
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
@@ -12,6 +13,9 @@ engine = create_engine(configloader.config["Database"]["engine"])
 
 # Create a base class to define all the database subclasses
 TableDeclarativeBase = declarative_base(bind=engine)
+
+# Create a Session class able to initialize database sessions
+Session = sessionmaker()
 
 # Define all the database tables using the sqlalchemy declarative base
 class User(TableDeclarativeBase):
@@ -92,7 +96,7 @@ class Transaction(TableDeclarativeBase):
     # The internal transaction ID
     transaction_id = Column(BigInteger, primary_key=True)
     # The user whose credit is affected by this transaction
-    user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
     # The value of this transaction. Can be both negative and positive.
     value = Column(Numeric, nullable=False)
     # Extra notes on the transaction
@@ -109,8 +113,7 @@ class Transaction(TableDeclarativeBase):
 
     # Extra table parameters
     __tablename__ = "transactions"
-    __table_args__ = (UniqueConstraint("provider", "provider_id"),
-                      CheckConstraint("payment_email ~ '[^@]+@.+'"))  # TODO: check this regex
+    __table_args__ = (UniqueConstraint("provider", "provider_id"),)
 
     def __str__(self):
         """Return the correctly formatted transaction value"""
@@ -138,3 +141,8 @@ class Admin(TableDeclarativeBase):
 
     def __repr__(self):
         return f"<Admin {self.user_id}>"
+
+
+# If this script is ran as main, try to create all the tables in the database
+if __name__ == "__main__":
+    TableDeclarativeBase.metadata.create_all()
