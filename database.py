@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, ForeignKey
+from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint, CheckConstraint
 from sqlalchemy import Integer, BigInteger, String, Numeric, Text
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
@@ -29,7 +29,9 @@ class User(TableDeclarativeBase):
     # Extra table parameters
     __tablename__ = "users"
 
-    def __init__(self, telegram_user: telegram.User):
+    def __init__(self, telegram_user: telegram.User, **kwargs):
+        # Initialize the super
+        super().__init__(**kwargs)
         # Get the data from telegram
         self.id = telegram_user.id
         self.first_name = telegram_user.first_name
@@ -74,8 +76,8 @@ class Product(TableDeclarativeBase):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
         return f"<b>{escape(self.name)}</b>\n" \
                f"{escape(self.description)}\n" \
-               f"<i>{format(strings.in_stock_format_string, quantity=self.stock) if self.stock is not None else ''}</i>\n" \
-               f"{format(strings.currency_format_string, symbol=strings.currency_symbol, value=self.price)}"
+               f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
+               f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}"
 
     def __repr__(self):
         return f"<Product {self.name}>"
@@ -83,7 +85,7 @@ class Product(TableDeclarativeBase):
     # TODO: add get image (and set image?) method(s)
 
 
-class Transactions(TableDeclarativeBase):
+class Transaction(TableDeclarativeBase):
     """A greed wallet transaction.
     Wallet credit ISN'T calculated from these, but they can be used to recalculate it."""
 
@@ -95,5 +97,44 @@ class Transactions(TableDeclarativeBase):
     value = Column(Numeric, nullable=False)
     # Extra notes on the transaction
     notes = Column(Text)
+    # Payment provider
+    provider = Column(String)
+    # Transaction ID supplied by the payment provider
+    provider_id = Column(BigInteger)
 
-    # TODO: there still are some missing fields
+    # Extra transaction data, may be required by the payment provider in case of a dispute
+    payment_name = Column(String)
+    payment_address = Column(String)
+    payment_email = Column(String)
+
+    # Extra table parameters
+    __tablename__ = "transactions"
+    __table_args__ = (UniqueConstraint("provider", "provider_id"),
+                      CheckConstraint("payment_email ~ '[^@]+@.+'"))  # TODO: check this regex
+
+    def __str__(self):
+        """Return the correctly formatted transaction value"""
+        # Add a plus symbol if the value is positive
+        string = "+" if self.value > 0 else ""
+        # Add the correctly formatted value
+        string += strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.value)
+        # Return the created string
+        return string
+
+    def __repr__(self):
+        return f"<Transaction {self.transaction_id} - User {self.user_id} {str(self)}>"
+
+
+class Admin(TableDeclarativeBase):
+    """A greed administrator with his permissions."""
+
+    # The telegram id
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), primary_key=True)
+    # Permissions
+    # TODO: unfinished
+
+    # Extra table parameters
+    __tablename__ = "admins"
+
+    def __repr__(self):
+        return f"<Admin {self.user_id}>"
