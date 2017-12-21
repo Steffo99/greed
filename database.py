@@ -33,14 +33,14 @@ class User(TableDeclarativeBase):
     # Extra table parameters
     __tablename__ = "users"
 
-    def __init__(self, telegram_user: telegram.User, **kwargs):
+    def __init__(self, telegram_chat: telegram.Chat, **kwargs):
         # Initialize the super
         super().__init__(**kwargs)
         # Get the data from telegram
-        self.id = telegram_user.id
-        self.first_name = telegram_user.first_name
-        self.last_name = telegram_user.last_name
-        self.username = telegram_user.username
+        self.user_id = telegram_chat.id
+        self.first_name = telegram_chat.first_name
+        self.last_name = telegram_chat.last_name
+        self.username = telegram_chat.username
         # The starting wallet value is 0
         self.credit = decimal.Decimal("0")
 

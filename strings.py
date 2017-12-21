@@ -15,9 +15,25 @@ in_stock_format_string = "{quantity} disponibili"
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
 
+# Answer: to send an inline keyboard you need to send a message with it
+conversation_open_user_menu = "Allora, {username}, cosa vorresti fare?"
+
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
                        "Per riavviarne una nuova, invia il comando /start."
+
+# User menu: order
+menu_order = "🛍 Ordina"
+
+
+# User menu: order status
+menu_order_status = "❓ Stato ordini"
+
+# User menu: add credit
+menu_add_credit = "💵 Ricarica"
+
+# User menu: bot info
+menu_info = "ℹ️ Informazioni sul bot"
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
