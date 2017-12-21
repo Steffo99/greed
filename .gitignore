@@ -102,3 +102,4 @@ ENV/
 .idea/
 
 config/config.ini
+db.sqlite
