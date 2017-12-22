@@ -18,6 +18,9 @@ conversation_after_start = "Ciao!\n" \
 # Answer: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Allora, {username}, cosa vorresti fare?"
 
+# Answer: the same message as above but when the first has already been sent
+conversation_open_user_menu_multiple = "Hai bisogno di qualcos'altro?"
+
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
                        "Per riavviarne una nuova, invia il comando /start."
@@ -33,7 +36,13 @@ menu_order_status = "❓ Stato ordini"
 menu_add_credit = "💵 Ricarica"
 
 # User menu: bot info
-menu_info = "ℹ️ Informazioni sul bot"
+menu_bot_info = "ℹ️ Informazioni sul bot"
+
+# Info: informazioni sul bot
+bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
+           ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
+           ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE">Affero General Public License 3.0</a>.\n' \
+           'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."

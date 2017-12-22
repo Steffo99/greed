@@ -95,31 +95,49 @@ class ChatWorker(threading.Thread):
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
         Normal bot actions should be placed here."""
-        # Create a keyboard with the user main menu
-        keyboard = [[telegram.KeyboardButton(strings.menu_order)],
-                    [telegram.KeyboardButton(strings.menu_order_status)],
-                    [telegram.KeyboardButton(strings.menu_add_credit)],
-                    [telegram.KeyboardButton(strings.menu_info)]]
-        # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
-        self.bot.send_message(self.chat.id, strings.conversation_open_user_menu.format(username=str(self.user)),
-                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
-        # Wait for a reply from the user
-        # TODO: change this
-        selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
-                                                      strings.menu_add_credit, strings.menu_info])
-        # If the user has selected the Order option...
-        if selection == strings.menu_order:
-            ...
-        # If the user has selected the Order Status option...
-        elif selection == strings.menu_order_status:
-            ...
-        # If the user has selected the Add Credit option...
-        elif selection == strings.menu_add_credit:
-            ...
-        # If the user has selected the Bot Info option...
-        elif selection == strings.menu_info:
-            ...
+        # Loop used to returning to the menu after executing a command
+        while True:
+            # Create a keyboard with the user main menu
+            keyboard = [[telegram.KeyboardButton(strings.menu_order)],
+                        [telegram.KeyboardButton(strings.menu_order_status)],
+                        [telegram.KeyboardButton(strings.menu_add_credit)],
+                        [telegram.KeyboardButton(strings.menu_bot_info)]]
+            # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+            self.bot.send_message(self.chat.id, strings.conversation_open_user_menu.format(username=str(self.user)),
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+            # Wait for a reply from the user
+            # TODO: change this
+            selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
+                                                          strings.menu_add_credit, strings.menu_bot_info])
+            # If the user has selected the Order option...
+            if selection == strings.menu_order:
+                # Open the order menu
+                self.__order_menu()
+            # If the user has selected the Order Status option...
+            elif selection == strings.menu_order_status:
+                # Display the order(s) status
+                self.__order_status()
+            # If the user has selected the Add Credit option...
+            elif selection == strings.menu_add_credit:
+                # Display the add credit menu
+                self.__add_credit_menu()
+            # If the user has selected the Bot Info option...
+            elif selection == strings.menu_bot_info:
+                # Display information about the bot
+                self.__bot_info()
 
+    def __order_menu(self):
+        raise NotImplementedError()
+
+    def __order_status(self):
+        raise NotImplementedError()
+
+    def __add_credit_menu(self):
+        raise NotImplementedError()
+
+    def __bot_info(self):
+        """Send information about the bot."""
+        self.bot.send_message(self.chat.id, strings.bot_info, parse_mode="HTML")
 
     def __admin_menu(self):
         """Function called from the run method when the user is an administrator.
