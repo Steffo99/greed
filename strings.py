@@ -11,15 +11,18 @@ currency_format_string = "{symbol} {value}"
 # Quantity of a product in stock
 in_stock_format_string = "{quantity} disponibili"
 
-# Answer: the start command was sent and the bot should welcome the user
+# Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
 
-# Answer: to send an inline keyboard you need to send a message with it
+# Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Allora, {username}, cosa vorresti fare?"
 
-# Answer: the same message as above but when the first has already been sent
+# Conversation: the same message as above but when the first has already been sent
 conversation_open_user_menu_multiple = "Hai bisogno di qualcos'altro?"
+
+# Conversation: select a payment method
+conversation_payment_method = "Come vuoi aggiungere fondi al tuo portafoglio?"
 
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
@@ -33,10 +36,23 @@ menu_order = "🛍 Ordina"
 menu_order_status = "❓ Stato ordini"
 
 # User menu: add credit
-menu_add_credit = "💵 Ricarica"
+menu_add_credit = "💵 Aggiungi fondi"
 
 # User menu: bot info
 menu_bot_info = "ℹ️ Informazioni sul bot"
+
+# User menu: cash
+menu_cash = "💵 In contanti"
+
+# User menu: credit card
+menu_credit_card = "💳 Con una carta di credito"
+
+# User menu: cancel
+menu_cancel = "🔙 Annulla"
+
+# Payment: cash payment info
+payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
+               "Il gestore provvederà ad aggiungere credito al tuo account appena gli avrai consegnato i soldi."
 
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \

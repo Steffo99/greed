@@ -106,7 +106,6 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.conversation_open_user_menu.format(username=str(self.user)),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
-            # TODO: change this
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
                                                           strings.menu_add_credit, strings.menu_bot_info])
             # If the user has selected the Order option...
@@ -133,6 +132,41 @@ class ChatWorker(threading.Thread):
         raise NotImplementedError()
 
     def __add_credit_menu(self):
+        """Add more credit to the account."""
+        # TODO: a loop might be needed here
+        # Create a payment methods keyboard
+        keyboard = list()
+        # Add the supported payment methods to the keyboard
+        # Cash
+        keyboard.append([telegram.KeyboardButton(strings.menu_cash)])
+        # Telegram Payments
+        if configloader.config["Payment Methods"]["credit_card_token"] != "":
+            keyboard.append([telegram.KeyboardButton(strings.menu_credit_card)])
+        # Keyboard: go back to the previous menu
+        keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
+        # Send the keyboard to the user
+        self.bot.send_message(self.chat.id, strings.conversation_payment_method,
+                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+        # Wait for a reply from the user
+        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel])
+        # If the user has selected the Cash option...
+        if selection == strings.menu_cash:
+            # Go to the pay with cash function
+            self.__add_credit_cash()
+        # If the user has selected the Credit Card option...
+        elif selection == strings.menu_credit_card:
+            # Go to the pay with credit card function
+            self.__add_credit_cc()
+        # If the user has selected the Cancel option...
+        elif selection == strings.menu_add_credit:
+            # Send him back to the previous menu
+            return
+
+    def __add_credit_cash(self):
+        """Tell the user how to pay with cash at this shop"""
+        self.bot.send_message(self.chat.id, strings.payment_cash)
+
+    def __add_credit_cc(self):
         raise NotImplementedError()
 
     def __bot_info(self):
@@ -142,12 +176,12 @@ class ChatWorker(threading.Thread):
     def __admin_menu(self):
         """Function called from the run method when the user is an administrator.
         Administrative bot actions should be placed here."""
-        self.bot.send_message(self.chat.id, "Sei un Amministralol")
+        raise NotImplementedError()
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""
-        # Notify the user that the session has expired
-        self.bot.send_message(self.chat.id, strings.conversation_expired)
+        # Notify the user that the session has expired and remove the keyboard
+        self.bot.send_message(self.chat.id, strings.conversation_expired, reply_markup=telegram.ReplyKeyboardRemove())
         # Close the database session
         # End the process
         sys.exit(0)

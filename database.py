@@ -128,6 +128,12 @@ class Transaction(TableDeclarativeBase):
         return f"<Transaction {self.transaction_id} - User {self.user_id} {str(self)}>"
 
 
+# TODO
+# class Order(TableDeclarativeBase):
+#     """A product order."""
+#     pass
+
+
 class Admin(TableDeclarativeBase):
     """A greed administrator with his permissions."""
 
