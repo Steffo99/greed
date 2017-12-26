@@ -94,7 +94,7 @@ def main():
                 # Ensure a worker exists for the chat and is alive
                 if receiving_worker is None or not receiving_worker.is_alive():
                     # Suggest that the user restarts the chat with /start
-                    bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat)
+                    bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat, telegram.ReplyKeyboardRemove())
                     # Skip the update
                     continue
                 # Forward the update to the worker
