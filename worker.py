@@ -6,6 +6,8 @@ import configloader
 import sys
 import queue as queuem
 import database as db
+import re
+from decimal import Decimal
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
@@ -92,6 +94,25 @@ class ChatWorker(threading.Thread):
             # Return the message text
             return update.message.text
 
+    def __wait_for_regex(self, regex:str) -> str:
+        """Continue getting updates until the regex finds a match in a message, then return the first capture group."""
+        while True:
+            # Get the next update
+            update = self.__receive_next_update()
+            # Ensure the update contains a message
+            if update.message is None:
+                continue
+            # Ensure the message contains text
+            if update.message.text is None:
+                continue
+            # Try to match the regex with the received message
+            match = re.search(regex, update.message.text)
+            # Ensure there is a match
+            if match is None:
+                continue
+            # Return the first capture group
+            return match.group(1)
+
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
         Normal bot actions should be placed here."""
@@ -163,11 +184,33 @@ class ChatWorker(threading.Thread):
             return
 
     def __add_credit_cash(self):
-        """Tell the user how to pay with cash at this shop"""
+        """Tell the user how to pay with cash at this shop."""
         self.bot.send_message(self.chat.id, strings.payment_cash)
 
     def __add_credit_cc(self):
-        raise NotImplementedError()
+        """Ask the user how much money he wants to add to his wallet."""
+        # Loop used to continue asking if there's an error during the input
+        while True:
+            # Create a keyboard to be sent later
+            keyboard = [[telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="10"))],
+                        [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="25"))],
+                        [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="50"))],
+                        [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="100"))]]
+            # Send the message and the keyboard
+            self.bot.send_message(self.chat.id, strings.payment_cc_amount,
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+            # Wait until a valid amount is sent
+            # TODO: check and debug the regex
+            selection = Decimal(self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?)").replace(",", "."))
+            # Ensure the amount is within the range
+            if selection > Decimal(configloader.config["Payments"]["max_amount"]):
+                self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["max_amount"])))
+                continue
+            elif selection < Decimal(configloader.config["Payments"]["min_amount"]):
+                self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["min_amount"])))
+                continue
+            # The amount is valid, send the invoice
+            print(selection)
 
     def __bot_info(self):
         """Send information about the bot."""

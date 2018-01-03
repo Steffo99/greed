@@ -54,6 +54,9 @@ menu_cancel = "🔙 Annulla"
 payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
                "Il gestore provvederà ad aggiungere credito al tuo account appena gli avrai consegnato i soldi."
 
+# Payment: invoice amount
+payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?"
+
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
@@ -66,3 +69,9 @@ error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
 # Error: a message was sent in a chat, but no worker exists for that chat. Suggest the creation of a new worker with /start
 error_no_worker_for_chat = "⚠️ La conversazione con il bot è interrotta.\n" \
                            "Per riavviarla, manda il comando /start al bot."
+
+# Error: add funds amount over max
+error_payment_amount_over_max = "⚠️ Il massimo di fondi che possono essere aggiunti in una singola transazione è {max_amount}."
+
+# Error: add funds amount under min
+error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere aggiunti in una singola transazione è {min_amount}."
