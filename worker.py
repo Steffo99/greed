@@ -210,7 +210,16 @@ class ChatWorker(threading.Thread):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["min_amount"])))
                 continue
             # The amount is valid, send the invoice
-            print(selection)
+            self.bot.send_invoice(self.chat.id,
+                                  title=strings.payment_invoice_title,
+                                  description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=selection)),
+                                  payload="temppayload",  # TODO: change this
+                                  provider_token=configloader.config["Payment Methods"]["credit_card_token"],
+                                  start_parameter="tempdeeplink",  # TODO: change this
+                                  currency=configloader.config["Payments"]["currency"],
+                                  prices=[telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))])
+            # TODO: what should happen now?
+            break
 
     def __bot_info(self):
         """Send information about the bot."""

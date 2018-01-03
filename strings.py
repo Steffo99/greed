@@ -57,6 +57,15 @@ payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
 # Payment: invoice amount
 payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?"
 
+# Payment: add funds invoice title
+payment_invoice_title = "Aggiunta di fondi"
+
+# Payment: add funds invoice description
+payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio."
+
+# Payment: label of the labeled price on the invoice
+payment_invoice_label = "Ricarica"
+
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
