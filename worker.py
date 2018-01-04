@@ -32,6 +32,8 @@ class ChatWorker(threading.Thread):
         self.admin = self.session.query(db.Admin).filter(db.Admin.user_id == self.chat.id).one_or_none()
         # The sending pipe is stored in the ChatWorker class, allowing the forwarding of messages to the chat process
         self.queue = queuem.Queue()
+        # The current active invoice payload; reject all invoices with a different payload
+        self.invoice_payload = None
 
     def run(self):
         """The conversation code."""
@@ -113,6 +115,18 @@ class ChatWorker(threading.Thread):
             # Return the first capture group
             return match.group(1)
 
+    def __wait_for_precheckoutquery(self) -> telegram.PreCheckoutQuery:
+        """Continue getting updates until a precheckoutquery is received."""
+        while True:
+            # Get the next update
+            update = self.__receive_next_update()
+            # Ensure the update contains a precheckoutquery
+            if update.pre_checkout_query is None:
+                continue
+            # TODO: something payload
+            # Return the precheckoutquery
+            return update.pre_checkout_query
+
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
         Normal bot actions should be placed here."""
@@ -189,13 +203,13 @@ class ChatWorker(threading.Thread):
 
     def __add_credit_cc(self):
         """Ask the user how much money he wants to add to his wallet."""
+        # Create a keyboard to be sent later
+        keyboard = [[telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="10"))],
+                    [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="25"))],
+                    [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="50"))],
+                    [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="100"))]]
         # Loop used to continue asking if there's an error during the input
         while True:
-            # Create a keyboard to be sent later
-            keyboard = [[telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="10"))],
-                        [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="25"))],
-                        [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="50"))],
-                        [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="100"))]]
             # Send the message and the keyboard
             self.bot.send_message(self.chat.id, strings.payment_cc_amount,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
@@ -209,17 +223,18 @@ class ChatWorker(threading.Thread):
             elif selection < Decimal(configloader.config["Payments"]["min_amount"]):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["min_amount"])))
                 continue
-            # The amount is valid, send the invoice
-            self.bot.send_invoice(self.chat.id,
-                                  title=strings.payment_invoice_title,
-                                  description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=selection)),
-                                  payload="temppayload",  # TODO: change this
-                                  provider_token=configloader.config["Payment Methods"]["credit_card_token"],
-                                  start_parameter="tempdeeplink",  # TODO: change this
-                                  currency=configloader.config["Payments"]["currency"],
-                                  prices=[telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))])
-            # TODO: what should happen now?
             break
+        # The amount is valid, send the invoice
+        self.bot.send_invoice(self.chat.id,
+                              title=strings.payment_invoice_title,
+                              description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=selection)),
+                              payload="temppayload",  # TODO: how should I use the payload?
+                              provider_token=configloader.config["Payment Methods"]["credit_card_token"],
+                              start_parameter="tempdeeplink",  # TODO: no idea on how deeplinks should work
+                              currency=configloader.config["Payments"]["currency"],
+                              prices=[telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))])
+        # Wait for the invoice
+        precheckoutquery = self.__wait_for_precheckoutquery()
 
     def __bot_info(self):
         """Send information about the bot."""
