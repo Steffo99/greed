@@ -84,3 +84,6 @@ error_payment_amount_over_max = "⚠️ Il massimo di fondi che possono essere a
 
 # Error: add funds amount under min
 error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere aggiunti in una singola transazione è {min_amount}."
+
+# Error: the invoice has expired and can't be paid
+error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullato. Se vuoi ancora aggiungere fondi, usa l'opzione Aggiungi fondi del menu."

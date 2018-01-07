@@ -111,6 +111,21 @@ def main():
                     continue
                 # Forward the update to the worker
                 receiving_worker.queue.put(update)
+            # If the update is a precheckoutquery, ensure it hasn't expired before forwarding it
+            if update.pre_checkout_query is not None:
+                # Forward the update to the corresponding worker
+                receiving_worker = chat_workers.get(update.pre_checkout_query.from_user.id)
+                # Check if it's the active invoice for this chat
+                if receiving_worker is None or update.pre_checkout_query.payload != receiving_worker.invoice_payload:
+                    # Notify the user that the invoice has expired
+                    try:
+                        bot.answer_pre_checkout_query(update.pre_checkout_query.id, ok=False, error_message=strings.error_invoice_expired)
+                    except telegram.error.BadRequest:
+                        print(f"ERROR: pre_checkout_query expired before an answer could be sent")
+                    # Go to the next update
+                    continue
+                # Forward the update to the worker
+                receiving_worker.queue.put(update)
         # If there were any updates...
         if len(updates):
             # Mark them as read by increasing the update_offset
