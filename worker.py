@@ -1,5 +1,7 @@
 import threading
 import typing
+import uuid
+
 import telegram
 import strings
 import configloader
@@ -28,8 +30,8 @@ class ChatWorker(threading.Thread):
         # Open a new database session
         self.session = db.Session()
         # Get the user db data from the users and admin tables
-        self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
-        self.admin = self.session.query(db.Admin).filter(db.Admin.user_id == self.chat.id).one_or_none()
+        self.user = None
+        self.admin = None
         # The sending pipe is stored in the ChatWorker class, allowing the forwarding of messages to the chat process
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
@@ -40,6 +42,9 @@ class ChatWorker(threading.Thread):
         # TODO: catch all the possible exceptions
         # Welcome the user to the bot
         self.bot.send_message(self.chat.id, strings.conversation_after_start)
+        # Get the user db data from the users and admin tables
+        self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
+        self.admin = self.session.query(db.Admin).filter(db.Admin.user_id == self.chat.id).one_or_none()
         # If the user isn't registered, create a new record and add it to the db
         if self.user is None:
             # Create the new record
@@ -116,16 +121,30 @@ class ChatWorker(threading.Thread):
             return match.group(1)
 
     def __wait_for_precheckoutquery(self) -> telegram.PreCheckoutQuery:
-        """Continue getting updates until a precheckoutquery is received."""
+        """Continue getting updates until a precheckoutquery is received.
+        The payload is checked by the core before forwarding the message."""
         while True:
             # Get the next update
             update = self.__receive_next_update()
             # Ensure the update contains a precheckoutquery
             if update.pre_checkout_query is None:
                 continue
-            # TODO: something payload
             # Return the precheckoutquery
             return update.pre_checkout_query
+
+    def __wait_for_successfulpayment(self) -> telegram.SuccessfulPayment:
+        """Continue getting updates until a successfulpayment is received."""
+        while True:
+            # Get the next update
+            update = self.__receive_next_update()
+            # Ensure the update contains a message
+            if update.message is None:
+                continue
+            # Ensure the message is a successfulpayment
+            if update.message.successful_payment is None:
+                continue
+            # Return the successfulpayment
+            return update.message.successful_payment
 
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
@@ -175,7 +194,7 @@ class ChatWorker(threading.Thread):
         # Cash
         keyboard.append([telegram.KeyboardButton(strings.menu_cash)])
         # Telegram Payments
-        if configloader.config["Payment Methods"]["credit_card_token"] != "":
+        if configloader.config["Credit Card"]["credit_card_token"] != "":
             keyboard.append([telegram.KeyboardButton(strings.menu_credit_card)])
         # Keyboard: go back to the previous menu
         keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
@@ -224,17 +243,42 @@ class ChatWorker(threading.Thread):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["min_amount"])))
                 continue
             break
+        # Set the invoice active invoice payload
+        self.invoice_payload = str(uuid.uuid4())
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
                               description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=selection)),
-                              payload="temppayload",  # TODO: how should I use the payload?
-                              provider_token=configloader.config["Payment Methods"]["credit_card_token"],
+                              payload=self.invoice_payload,
+                              provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",  # TODO: no idea on how deeplinks should work
                               currency=configloader.config["Payments"]["currency"],
-                              prices=[telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))])
+                              prices=[telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))],
+                              need_name=configloader.config["Credit Card"]["name_required"] == "yes",
+                              need_email=configloader.config["Credit Card"]["email_required"] == "yes",
+                              need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes")
         # Wait for the invoice
         precheckoutquery = self.__wait_for_precheckoutquery()
+        # TODO: ensure the bot doesn't die here!
+        # Accept the checkout
+        self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=True)
+        # Wait for the payment
+        successfulpayment = self.__wait_for_successfulpayment()
+        # Create a new database transaction
+        transaction = db.Transaction(user=self.user,
+                                     value=successfulpayment.total_amount,
+                                     provider="Credit Card",
+                                     telegram_charge_id=successfulpayment.telegram_payment_charge_id,
+                                     provider_charge_id=successfulpayment.provider_payment_charge_id)
+        if successfulpayment.order_info is not None:
+            transaction.payment_name = successfulpayment.order_info.name
+            transaction.payment_email = successfulpayment.order_info.email
+            transaction.payment_phone = successfulpayment.order_info.phone_number
+        # Add the credit to the user account
+        self.user.credit += successfulpayment.total_amount
+        # Add and commit the transaction
+        self.session.add(transaction)
+        self.session.commit()
 
     def __bot_info(self):
         """Send information about the bot."""

@@ -31,7 +31,6 @@ conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo
 # User menu: order
 menu_order = "🛍 Ordina"
 
-
 # User menu: order status
 menu_order_status = "❓ Stato ordini"
 

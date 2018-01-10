@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint, CheckConstraint
 from sqlalchemy import Integer, BigInteger, String, Numeric, Text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
@@ -28,7 +28,7 @@ class User(TableDeclarativeBase):
     username = Column(String)
 
     # Current wallet credit
-    credit = Column(Numeric, nullable=False)
+    credit = Column(Integer, nullable=False)
 
     # Extra table parameters
     __tablename__ = "users"
@@ -65,7 +65,7 @@ class Product(TableDeclarativeBase):
     # Product description
     description = Column(Text)
     # Product price, if null product is not for sale
-    price = Column(Numeric)
+    price = Column(Integer)
     # Image filename
     image = Column(String)
     # Stock quantity, if null product has infinite stock
@@ -94,26 +94,32 @@ class Transaction(TableDeclarativeBase):
     Wallet credit ISN'T calculated from these, but they can be used to recalculate it."""
 
     # The internal transaction ID
-    transaction_id = Column(BigInteger, primary_key=True)
+    transaction_id = Column(Integer, primary_key=True)
     # The user whose credit is affected by this transaction
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+    user = relationship("User")
     # The value of this transaction. Can be both negative and positive.
-    value = Column(Numeric, nullable=False)
+    value = Column(Integer, nullable=False)
     # Extra notes on the transaction
     notes = Column(Text)
+
     # Payment provider
     provider = Column(String)
+    # Transaction ID supplied by Telegram
+    telegram_charge_id = Column(String)
     # Transaction ID supplied by the payment provider
-    provider_id = Column(BigInteger)
-
+    provider_charge_id = Column(String)
     # Extra transaction data, may be required by the payment provider in case of a dispute
     payment_name = Column(String)
-    payment_address = Column(String)
+    payment_phone = Column(String)
     payment_email = Column(String)
+
+    # Order ID
+    order_id = Column(Integer)
 
     # Extra table parameters
     __tablename__ = "transactions"
-    __table_args__ = (UniqueConstraint("provider", "provider_id"),)
+    __table_args__ = (UniqueConstraint("provider", "provider_charge_id"),)
 
     def __str__(self):
         """Return the correctly formatted transaction value"""
@@ -128,17 +134,12 @@ class Transaction(TableDeclarativeBase):
         return f"<Transaction {self.transaction_id} - User {self.user_id} {str(self)}>"
 
 
-# TODO
-# class Order(TableDeclarativeBase):
-#     """A product order."""
-#     pass
-
-
 class Admin(TableDeclarativeBase):
     """A greed administrator with his permissions."""
 
     # The telegram id
     user_id = Column(BigInteger, ForeignKey("users.user_id"), primary_key=True)
+    user = relationship("User")
     # Permissions
     # TODO: unfinished
 
