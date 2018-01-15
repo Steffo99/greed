@@ -245,6 +245,13 @@ class ChatWorker(threading.Thread):
             break
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
+        # Create the price array
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))]
+        # If the user has to pay a fee when using the credit card, add it to the prices list
+        fee_percentage = Decimal(configloader.config["Credit Card"]["fee_percentage"])
+        fee_fixed = Decimal(configloader.config["Credit Card"]["fee_fixed"])
+        total_fee = (selection * fee_percentage + fee_fixed).quantize(Decimal("1.00"))
+        prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
@@ -253,7 +260,7 @@ class ChatWorker(threading.Thread):
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",  # TODO: no idea on how deeplinks should work
                               currency=configloader.config["Payments"]["currency"],
-                              prices=[telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))],
+                              prices=prices,
                               need_name=configloader.config["Credit Card"]["name_required"] == "yes",
                               need_email=configloader.config["Credit Card"]["email_required"] == "yes",
                               need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes")
@@ -266,7 +273,7 @@ class ChatWorker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment()
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=successfulpayment.total_amount,
+                                     value=successfulpayment.total_amount - int(total_fee * (10 ** int(configloader.config["Payments"]["currency_exp"]))),
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
@@ -275,7 +282,7 @@ class ChatWorker(threading.Thread):
             transaction.payment_email = successfulpayment.order_info.email
             transaction.payment_phone = successfulpayment.order_info.phone_number
         # Add the credit to the user account
-        self.user.credit += successfulpayment.total_amount
+        self.user.credit += (successfulpayment.total_amount - int(total_fee * (10 ** int(configloader.config["Payments"]["currency_exp"]))))
         # Add and commit the transaction
         self.session.add(transaction)
         self.session.commit()

@@ -65,6 +65,9 @@ payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount
 # Payment: label of the labeled price on the invoice
 payment_invoice_label = "Ricarica"
 
+# Payment: label of the labeled price on the invoice
+payment_invoice_fee_label = "Carta di credito"
+
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \

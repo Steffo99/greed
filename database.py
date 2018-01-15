@@ -42,7 +42,7 @@ class User(TableDeclarativeBase):
         self.last_name = telegram_chat.last_name
         self.username = telegram_chat.username
         # The starting wallet value is 0
-        self.credit = decimal.Decimal("0")
+        self.credit = 0
 
     def __str__(self):
         """Describe the user in the best way possible given the available data."""
