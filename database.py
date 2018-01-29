@@ -59,8 +59,10 @@ class User(TableDeclarativeBase):
 class Product(TableDeclarativeBase):
     """A purchasable product."""
 
+    # Product id
+    id = Column(Integer, primary_key=True)
     # Product name
-    name = Column(String, primary_key=True)
+    name = Column(String)
     # Product description
     description = Column(Text)
     # Product price, if null product is not for sale
