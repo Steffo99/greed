@@ -155,7 +155,7 @@ class ChatWorker(threading.Thread):
                         [telegram.KeyboardButton(strings.menu_add_credit)],
                         [telegram.KeyboardButton(strings.menu_bot_info)]]
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
-            self.bot.send_message(self.chat.id, strings.conversation_open_user_menu.format(username=str(self.user)),
+            self.bot.send_message(self.chat.id, strings.conversation_open_user_menu,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
@@ -219,7 +219,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.payment_cash)
 
     def __add_credit_cc(self):
-        """Ask the user how much money he wants to add to his wallet."""
+        """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
         keyboard = [[telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="10"))],
                     [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="25"))],
@@ -296,6 +296,92 @@ class ChatWorker(threading.Thread):
     def __admin_menu(self):
         """Function called from the run method when the user is an administrator.
         Administrative bot actions should be placed here."""
+        # Loop used to return to the menu after executing a command
+        while True:
+            # Create a keyboard with the admin main menu
+            keyboard = [[telegram.KeyboardButton(strings.menu_products)],
+                        [telegram.KeyboardButton(strings.menu_orders)],
+                        [telegram.KeyboardButton(strings.menu_user_mode)]]
+            # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+            self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+            # Wait for a reply from the user
+            selection = self.__wait_for_specific_message([strings.menu_products, strings.menu_orders,
+                                                          strings.menu_user_mode])
+            # If the user has selected the Products option...
+            if selection == strings.menu_products:
+                # Open the products menu
+                self.__products_menu()
+            # If the user has selected the Orders option...
+            elif selection == strings.menu_orders:
+                # Open the orders menu
+                self.__orders_menu()
+            # If the user has selected the User mode option...
+            elif selection == strings.menu_user_mode:
+                # Start the bot in user mode
+                self.__user_menu()
+
+    def __products_menu(self):
+        """Display the admin menu to select a product to edit."""
+        # Get the products list from the db
+        products = self.session.query(db.Product).all()
+        # Create a list of product names
+        product_names = [product.name for product in products]
+        # Insert at the start of the list the add product option
+        product_names.insert(0, strings.menu_add_product)
+        # Create a keyboard using the product names
+        keyboard = [[telegram.KeyboardButton(product_name)] for product_name in product_names]
+        # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+        self.bot.send_message(self.chat.id, strings.conversation_admin_select_product,
+                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+        # Wait for a reply from the user
+        selection = self.__wait_for_specific_message(product_names)
+        # If the user has selected the Add Product option...
+        if selection == strings.menu_add_product:
+            # Open the add product menu
+            self.__add_product_menu()
+        # If the user has selected a product
+        else:
+            # Open the edit menu for that specific product
+            self.__edit_product_menu(selection)
+
+    def __add_product_menu(self):
+        """Add a product to the database."""
+        # Ask for the product name until a valid product name is specified
+        while True:
+            # Ask the question to the user
+            self.bot.send_message(self.chat.id, strings.ask_product_name)
+            # Wait for an answer
+            name = self.__wait_for_regex(r"(.*)")
+            # Ensure a product with that name doesn't already exist
+            if self.session.query(db.Product).filter_by(name=name).one_or_none() is None:
+                # Exit the loop
+                break
+            self.bot.send_message(self.chat.id, strings.error_duplicate_name)
+        # Ask for the product description
+        self.bot.send_message(self.chat.id, strings.ask_product_description)
+        # Wait for an answer
+        description = self.__wait_for_regex(r"(.*)")
+        # Ask for the product price
+        self.bot.send_message(self.chat.id, strings.ask_product_price)
+        # Wait for an answer
+        price = int(self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?)").replace(".", "").replace(",", "")) * (
+                    10 ** int(configloader.config["Payments"]["currency_exp"]))
+        # TODO: ask for product image
+        # Create the db record for the product
+        product = db.Product(name=name,
+                             description=description,
+                             price=price)
+        # Add the record to the session, then commit
+        self.session.add(product)
+        self.session.commit()
+        # Notify the user
+        self.bot.send_message(self.chat.id, strings.success_product_added)
+
+    def __edit_product_menu(self, name: str):
+        raise NotImplementedError()
+
+    def __orders_menu(self):
         raise NotImplementedError()
 
     def __graceful_stop(self):

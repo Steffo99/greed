@@ -16,13 +16,20 @@ conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
 
 # Conversation: to send an inline keyboard you need to send a message with it
-conversation_open_user_menu = "Allora, {username}, cosa vorresti fare?"
+conversation_open_user_menu = "Cosa vorresti fare?"
 
 # Conversation: the same message as above but when the first has already been sent
 conversation_open_user_menu_multiple = "Hai bisogno di qualcos'altro?"
 
+# Conversation: like above, but for administrators
+conversation_open_admin_menu = "Sei un amministratore di greed!\n" \
+                               "Cosa vorresti fare?"
+
 # Conversation: select a payment method
 conversation_payment_method = "Come vuoi aggiungere fondi al tuo portafoglio?"
+
+# Conversation: select a product to edit
+conversation_admin_select_product = "Che prodotto vuoi modificare?"
 
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
@@ -46,8 +53,29 @@ menu_cash = "💵 In contanti"
 # User menu: credit card
 menu_credit_card = "💳 Con una carta di credito"
 
-# User menu: cancel
+# Admin menu: products
+menu_products = "📝️ Prodotti"
+
+# Admin menu: orders
+menu_orders = "📦 Ordini"
+
+# Admin menu: go to user mode
+menu_user_mode = "👤 Passa alla modalità utente"
+
+# Admin menu: add product
+menu_add_product = "✨ Nuovo prodotto"
+
+# Menu: cancel
 menu_cancel = "🔙 Annulla"
+
+# Add product: name?
+ask_product_name = "Come si deve chiamare il prodotto?"
+
+# Add product: description?
+ask_product_description = "Quale deve essere la descrizione del prodotto?"
+
+# Add product: price?
+ask_product_price = "Quanto deve costare il prodotto?"
 
 # Payment: cash payment info
 payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
@@ -74,6 +102,9 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
            ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE">Affero General Public License 3.0</a>.\n' \
            'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
 
+# Success: product has been added to the database
+success_product_added = "✅ Il prodotto è stato aggiunto con successo!"
+
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
 
@@ -89,3 +120,8 @@ error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere a
 
 # Error: the invoice has expired and can't be paid
 error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullato. Se vuoi ancora aggiungere fondi, usa l'opzione Aggiungi fondi del menu."
+
+# Error: a product with that name already exists
+error_duplicate_name = "️⚠ Esiste già un prodotto con questo nome."
+
+
