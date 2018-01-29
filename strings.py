@@ -66,7 +66,7 @@ payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount
 payment_invoice_label = "Ricarica"
 
 # Payment: label of the labeled price on the invoice
-payment_invoice_fee_label = "Carta di credito"
+payment_invoice_fee_label = "Supplemento carta"
 
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \

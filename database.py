@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
-import decimal
 import strings
 from html import escape
 

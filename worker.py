@@ -1,7 +1,6 @@
 import threading
 import typing
 import uuid
-
 import telegram
 import strings
 import configloader
@@ -9,7 +8,6 @@ import sys
 import queue as queuem
 import database as db
 import re
-from decimal import Decimal
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
@@ -234,28 +232,32 @@ class ChatWorker(threading.Thread):
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait until a valid amount is sent
             # TODO: check and debug the regex
-            selection = Decimal(self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?)").replace(",", "."))
+            selection = int(self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?)").replace(".", "").replace(",", "")) * (10 ** int(configloader.config["Payments"]["currency_exp"]))
             # Ensure the amount is within the range
-            if selection > Decimal(configloader.config["Payments"]["max_amount"]):
+            if selection > int(configloader.config["Payments"]["max_amount"]):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["max_amount"])))
                 continue
-            elif selection < Decimal(configloader.config["Payments"]["min_amount"]):
+            elif selection < int(configloader.config["Payments"]["min_amount"]):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["min_amount"])))
                 continue
             break
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
         # Create the price array
-        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(selection * (10 ** int(configloader.config["Payments"]["currency_exp"]))))]
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=selection)]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = Decimal(configloader.config["Credit Card"]["fee_percentage"])
-        fee_fixed = Decimal(configloader.config["Credit Card"]["fee_fixed"])
-        total_fee = (selection * fee_percentage + fee_fixed).quantize(Decimal("1.00"))
-        prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
+        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
+        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
+        total_fee = int(selection * fee_percentage) + fee_fixed
+        if total_fee > 0:
+            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
+        else:
+            # Otherwise, set the fee to 0 to ensure no accidental discounts are applied
+            total_fee = 0
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
-                              description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=selection)),
+                              description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=selection / (10 ** int(configloader.config["Payments"]["currency_exp"])))),
                               payload=self.invoice_payload,
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",  # TODO: no idea on how deeplinks should work
@@ -273,7 +275,7 @@ class ChatWorker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment()
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=successfulpayment.total_amount - int(total_fee * (10 ** int(configloader.config["Payments"]["currency_exp"]))),
+                                     value=successfulpayment.total_amount - int(total_fee),
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
@@ -282,7 +284,7 @@ class ChatWorker(threading.Thread):
             transaction.payment_email = successfulpayment.order_info.email
             transaction.payment_phone = successfulpayment.order_info.phone_number
         # Add the credit to the user account
-        self.user.credit += (successfulpayment.total_amount - int(total_fee * (10 ** int(configloader.config["Payments"]["currency_exp"]))))
+        self.user.credit += successfulpayment.total_amount - total_fee
         # Add and commit the transaction
         self.session.add(transaction)
         self.session.commit()
