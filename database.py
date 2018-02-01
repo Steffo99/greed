@@ -1,10 +1,11 @@
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint, CheckConstraint
-from sqlalchemy import Integer, BigInteger, String, Numeric, Text
+from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
 import strings
+import requests
 from html import escape
 
 # Create a (lazy) database engine
@@ -67,8 +68,8 @@ class Product(TableDeclarativeBase):
     description = Column(Text)
     # Product price, if null product is not for sale
     price = Column(Integer)
-    # Image filename
-    image = Column(String)
+    # Image data
+    image = Column(LargeBinary)
     # Stock quantity, if null product has infinite stock
     stock = Column(Integer)
 
@@ -79,15 +80,29 @@ class Product(TableDeclarativeBase):
 
     def __str__(self):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
-        return f"<b>{escape(self.name)}</b>\n" \
-               f"{escape(self.description)}\n" \
-               f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
+        return f"{escape(self.name)}\n" \
+               f"{escape(self.description)}\n\n" \
+               f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
                f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}"
 
     def __repr__(self):
         return f"<Product {self.name}>"
 
-    # TODO: add get image (and set image?) method(s)
+    def send_as_message(self, chat_id: int) -> dict:
+        """Send a message containing the product data."""
+        r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
+                          files={"photo": self.image},
+                          params={"chat_id": chat_id,
+                                  "caption": str(self)})
+        return r
+
+    def set_image(self, file: telegram.File):
+        """Download an image from Telegram and store it in the image column.
+        This is a slow blocking function. Try to avoid calling it directly, use a thread if possible."""
+        # Download the photo through a get request
+        r = requests.get(file.file_path)
+        # Store the photo in the database record
+        self.image = r.content
 
 
 class Transaction(TableDeclarativeBase):

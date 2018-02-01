@@ -8,6 +8,8 @@ import sys
 import queue as queuem
 import database as db
 import re
+import requests
+from html import escape
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
@@ -143,6 +145,20 @@ class ChatWorker(threading.Thread):
                 continue
             # Return the successfulpayment
             return update.message.successful_payment
+
+    def __wait_for_photo(self) -> typing.List[telegram.PhotoSize]:
+        """Continue getting updates until a photo is received, then download and return it."""
+        while True:
+            # Get the next update
+            update = self.__receive_next_update()
+            # Ensure the update contains a message
+            if update.message is None:
+                continue
+            # Ensure the message contains a photo
+            if update.message.photo is None:
+                continue
+            # Return the photo array
+            return update.message.photo
 
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
@@ -339,47 +355,85 @@ class ChatWorker(threading.Thread):
         # If the user has selected the Add Product option...
         if selection == strings.menu_add_product:
             # Open the add product menu
-            self.__add_product_menu()
+            self.__edit_product_menu()
         # If the user has selected a product
         else:
+            # Find the selected product
+            product = self.session.query(db.Product).filter_by(name=selection).one()
             # Open the edit menu for that specific product
-            self.__edit_product_menu(selection)
+            self.__edit_product_menu(product=product)
 
-    def __add_product_menu(self):
-        """Add a product to the database."""
+    def __edit_product_menu(self, product: typing.Optional[db.Product]=None):
+        """Add a product to the database or edit an existing one."""
         # Ask for the product name until a valid product name is specified
         while True:
             # Ask the question to the user
             self.bot.send_message(self.chat.id, strings.ask_product_name)
+            # Display the current name if you're editing an existing product
+            if product:
+                self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.name)), parse_mode="HTML")
             # Wait for an answer
             name = self.__wait_for_regex(r"(.*)")
             # Ensure a product with that name doesn't already exist
-            if self.session.query(db.Product).filter_by(name=name).one_or_none() is None:
+            if self.session.query(db.Product).filter_by(name=name).one_or_none() in [None, product]:
                 # Exit the loop
                 break
             self.bot.send_message(self.chat.id, strings.error_duplicate_name)
         # Ask for the product description
         self.bot.send_message(self.chat.id, strings.ask_product_description)
+        # Display the current description if you're editing an existing product
+        if product:
+            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.description)), parse_mode="HTML")
         # Wait for an answer
         description = self.__wait_for_regex(r"(.*)")
         # Ask for the product price
         self.bot.send_message(self.chat.id, strings.ask_product_price)
+        # Display the current name if you're editing an existing product
+        if product:
+            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(strings.currency_format_string.format(symbol=strings.currency_symbol, value=(product.price / (10 ** int(configloader.config["Payments"]["currency_exp"]))))) if product.price is not None else 'Non in vendita'), parse_mode="HTML")
         # Wait for an answer
-        price = int(self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?)").replace(".", "").replace(",", "")) * (
-                    10 ** int(configloader.config["Payments"]["currency_exp"]))
-        # TODO: ask for product image
-        # Create the db record for the product
-        product = db.Product(name=name,
-                             description=description,
-                             price=price)
-        # Add the record to the session, then commit
-        self.session.add(product)
+        price = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?|[Ss][Kk][Ii][Pp])")
+        # If the price is skipped
+        if price.lower() == "skip":
+            price = None
+        else:
+            price = int(price.replace(".", "").replace(",", "")) * (10 ** int(configloader.config["Payments"]["currency_exp"]))
+        # Ask for the product image
+        self.bot.send_message(self.chat.id, strings.ask_product_image)
+        # Wait for an answer
+        photo_list = self.__wait_for_photo()
+        # If a new product is being added...
+        if not product:
+            # Create the db record for the product
+            product = db.Product(name=name,
+                                 description=description,
+                                 price=price)
+            # Add the record to the database
+            self.session.add(product)
+        # If a product is being edited...
+        else:
+            # Edit the record with the new values
+            product.name = name
+            product.description = description
+            product.price = price
+        # Find the largest photo id
+        largest_photo = photo_list[0]
+        for photo in photo_list[1:]:
+            if photo.width > largest_photo.width:
+                largest_photo = photo
+        # Get the file object associated with the photo
+        photo_file = self.bot.get_file(largest_photo.file_id)
+        # Notify the user that the bot is downloading the image and might be inactive for a while
+        self.bot.send_message(self.chat.id, strings.downloading_image)
+        self.bot.send_chat_action(self.chat.id, action="upload_photo")
+        # Set the image for that product
+        product.set_image(photo_file)
         self.session.commit()
         # Notify the user
-        self.bot.send_message(self.chat.id, strings.success_product_added)
-
-    def __edit_product_menu(self, name: str):
-        raise NotImplementedError()
+        if product:
+            self.bot.send_message(self.chat.id, strings.success_product_edited)
+        else:
+            self.bot.send_message(self.chat.id, strings.success_product_added)
 
     def __orders_menu(self):
         raise NotImplementedError()

@@ -75,7 +75,20 @@ ask_product_name = "Come si deve chiamare il prodotto?"
 ask_product_description = "Quale deve essere la descrizione del prodotto?"
 
 # Add product: price?
-ask_product_price = "Quanto deve costare il prodotto?"
+ask_product_price = "Quanto deve costare il prodotto?\n" \
+                    "Scrivi <code>skip</code> se vuoi che il prodotto non sia ancora in vendita."
+
+# Add product: image?
+ask_product_image = "Che immagine vuoi che abbia il prodotto?"
+
+# Thread has started downloading an image and might be unresponsive
+downloading_image = "Sto scaricando la tua foto!\n" \
+                    "Potrei metterci un po'... Abbi pazienza!\n" \
+                    "Non sarò in grado di risponderti durante il download."
+
+# Edit product: current value
+edit_current_value = "Il valore attuale è:\n" \
+                     "<pre>{value}</pre>"
 
 # Payment: cash payment info
 payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
@@ -104,6 +117,9 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
 
 # Success: product has been added to the database
 success_product_added = "✅ Il prodotto è stato aggiunto con successo!"
+
+# Success: product has been added to the database
+success_product_edited = "✅ Il prodotto è stato modificato con successo!"
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
