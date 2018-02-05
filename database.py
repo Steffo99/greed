@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
-from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime
+from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
@@ -70,6 +70,8 @@ class Product(TableDeclarativeBase):
     price = Column(Integer)
     # Image data
     image = Column(LargeBinary)
+    # Product is an option (example: express shipping)
+    boolean_product = Column(Boolean, nullable=False)
     # Stock quantity, if null product has infinite stock
     stock = Column(Integer)
 

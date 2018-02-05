@@ -8,7 +8,6 @@ import sys
 import queue as queuem
 import database as db
 import re
-import datetime
 from html import escape
 
 class StopSignal:
@@ -195,76 +194,75 @@ class ChatWorker(threading.Thread):
 
     def __order_menu(self):
         """User menu to order products from the shop."""
-        # Create a list with the requested items
-        order_items = []
-        # Get the products list from the db
-        products = self.session.query(db.Product).all()
-        # TODO: this should be changed
-        # Loop exit reason
-        exit_reason = None
-        # Ask for a list of products to order
-        while True:
-            # Create a list of product names
-            product_names = [product.name for product in products]
-            # Add a Cancel button at the end of the keyboard
-            product_names.append(strings.menu_cancel)
-            # If at least 1 product has been ordered, add a Done button at the start of the keyboard
-            if len(order_items) > 0:
-                product_names.insert(0, strings.menu_done)
-            # Create a keyboard using the product names
-            keyboard = [[telegram.KeyboardButton(product_name)] for product_name in product_names]
-            # Wait for an answer
-            selection = self.__wait_for_specific_message(product_names)
-            # If the user selected the Cancel option...
-            if selection == strings.menu_cancel:
-                exit_reason = "Cancel"
-                break
-            # If the user selected the Done option...
-            elif selection == strings.menu_done:
-                exit_reason = "Done"
-                break
-            # If the user selected a product...
-            else:
-                # Find the selected product
-                product = self.session.query(db.Product).filter_by(name=selection).one()
-                # Add the product to the order_items list
-                order_items.append(product)
-        # Ask for extra notes
-        self.bot.send_message(self.chat.id, strings.conversation_extra_notes)
-        # Wait for an answer
-        notes = self.__wait_for_regex("(.+)")
-        # Create the confirmation message and find the total cost
-        total_cost = 0
-        product_list_string = ""
-        for item in order_items:
-            # Add to the string and the cost
-            product_list_string += f"{str(item)}\n"
-            total_cost += item.price
-        # Send the confirmation message
-        self.bot.send_message(self.chat.id, strings.conversation_confirm_cart.format(product_list=product_list_string, total_cost=strings.currency_format_string.format(symbol=strings.currency_symbol, value=(total_cost / (10 ** int(configloader.config["Payments"]["currency_exp"]))))))
-        # TODO: wait for an answer
-        # TODO: create a new transaction
-        # TODO: test the code
-        # TODO: everything
-        # Create the order record and add it to the session
-        order = db.Order(user=self.user,
-                         creation_date=datetime.datetime.now(),
-                         notes=notes)
-        self.session.add(order)
-        # Commit the session so the order record gets an id
-        self.session.commit()
-        # Create the orderitems for the selected products
-        for item in order_items:
-            item_record = db.OrderItem(product=item,
-                                       order_id=order.order_id)
-            # Add the created item to the session
-            self.session.add(item_record)
-        # Commit the session
-        self.session.commit()
-        # Send a confirmation to the user
-        self.bot.send_message(self.chat.id, strings.success_order_created)
-
-
+        raise NotImplementedError()
+        # # Create a list with the requested items
+        # order_items = []
+        # # Get the products list from the db
+        # products = self.session.query(db.Product).all()
+        # # TODO: this should be changed
+        # # Loop exit reason
+        # exit_reason = None
+        # # Ask for a list of products to order
+        # while True:
+        #     # Create a list of product names
+        #     product_names = [product.name for product in products]
+        #     # Add a Cancel button at the end of the keyboard
+        #     product_names.append(strings.menu_cancel)
+        #     # If at least 1 product has been ordered, add a Done button at the start of the keyboard
+        #     if len(order_items) > 0:
+        #         product_names.insert(0, strings.menu_done)
+        #     # Create a keyboard using the product names
+        #     keyboard = [[telegram.KeyboardButton(product_name)] for product_name in product_names]
+        #     # Wait for an answer
+        #     selection = self.__wait_for_specific_message(product_names)
+        #     # If the user selected the Cancel option...
+        #     if selection == strings.menu_cancel:
+        #         exit_reason = "Cancel"
+        #         break
+        #     # If the user selected the Done option...
+        #     elif selection == strings.menu_done:
+        #         exit_reason = "Done"
+        #         break
+        #     # If the user selected a product...
+        #     else:
+        #         # Find the selected product
+        #         product = self.session.query(db.Product).filter_by(name=selection).one()
+        #         # Add the product to the order_items list
+        #         order_items.append(product)
+        # # Ask for extra notes
+        # self.bot.send_message(self.chat.id, strings.conversation_extra_notes)
+        # # Wait for an answer
+        # notes = self.__wait_for_regex("(.+)")
+        # # Create the confirmation message and find the total cost
+        # total_cost = 0
+        # product_list_string = ""
+        # for item in order_items:
+        #     # Add to the string and the cost
+        #     product_list_string += f"{str(item)}\n"
+        #     total_cost += item.price
+        # # Send the confirmation message
+        # self.bot.send_message(self.chat.id, strings.conversation_confirm_cart.format(product_list=product_list_string, total_cost=strings.currency_format_string.format(symbol=strings.currency_symbol, value=(total_cost / (10 ** int(configloader.config["Payments"]["currency_exp"]))))))
+        # # TODO: wait for an answer
+        # # TODO: create a new transaction
+        # # TODO: test the code
+        # # TODO: everything
+        # # Create the order record and add it to the session
+        # order = db.Order(user=self.user,
+        #                  creation_date=datetime.datetime.now(),
+        #                  notes=notes)
+        # self.session.add(order)
+        # # Commit the session so the order record gets an id
+        # self.session.commit()
+        # # Create the orderitems for the selected products
+        # for item in order_items:
+        #     item_record = db.OrderItem(product=item,
+        #                                order_id=order.order_id)
+        #     # Add the created item to the session
+        #     self.session.add(item_record)
+        # # Commit the session
+        # self.session.commit()
+        # # Send a confirmation to the user
+        # self.bot.send_message(self.chat.id, strings.success_order_created)
 
     def __order_status(self):
         raise NotImplementedError()
@@ -472,12 +470,15 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.ask_product_image)
         # Wait for an answer
         photo_list = self.__wait_for_photo()
+        # TODO: ask for boolean status
         # If a new product is being added...
         if not product:
             # Create the db record for the product
+            # TODO: add the boolean status
             product = db.Product(name=name,
                                  description=description,
-                                 price=price)
+                                 price=price,
+                                 boolean_product=False)
             # Add the record to the database
             self.session.add(product)
         # If a product is being edited...
