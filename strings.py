@@ -31,6 +31,16 @@ conversation_payment_method = "Come vuoi aggiungere fondi al tuo portafoglio?"
 # Conversation: select a product to edit
 conversation_admin_select_product = "Che prodotto vuoi modificare?"
 
+# Conversation: add extra notes to the order
+conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
+
+# Conversation: confirm the cart contents
+conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
+                            "{product_list}\n" \
+                            "\n" \
+                            "Totale: {total_cost}\n" \
+                            "Procedere?"
+
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
                        "Per riavviarne una nuova, invia il comando /start."
@@ -67,6 +77,9 @@ menu_add_product = "✨ Nuovo prodotto"
 
 # Menu: cancel
 menu_cancel = "🔙 Annulla"
+
+# Menu: done
+menu_done = "✅️ Fatto"
 
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
@@ -139,5 +152,3 @@ error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullat
 
 # Error: a product with that name already exists
 error_duplicate_name = "️⚠ Esiste già un prodotto con questo nome."
-
-

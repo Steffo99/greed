@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint, CheckConstraint
-from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary
+from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
+from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
@@ -74,12 +74,14 @@ class Product(TableDeclarativeBase):
     stock = Column(Integer)
 
     # Extra table parameters
-    __tablename__ = "product"
+    __tablename__ = "products"
 
     # No __init__ is needed, the default one is sufficient
 
-    def __str__(self):
+    def __str__(self, one_row=False):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
+        if one_row:
+            return f"{escape(self.name)} - {strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}"
         return f"{escape(self.name)}\n" \
                f"{escape(self.description)}\n\n" \
                f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
@@ -88,7 +90,7 @@ class Product(TableDeclarativeBase):
     def __repr__(self):
         return f"<Product {self.name}>"
 
-    def send_as_message(self, chat_id: int) -> dict:
+    def send_as_message(self, chat_id: int) -> requests.Response:
         """Send a message containing the product data."""
         r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
                           files={"photo": self.image},
@@ -147,7 +149,7 @@ class Transaction(TableDeclarativeBase):
         return string
 
     def __repr__(self):
-        return f"<Transaction {self.transaction_id} - User {self.user_id} {str(self)}>"
+        return f"<Transaction {self.transaction_id} for User {self.user_id} {str(self)}>"
 
 
 class Admin(TableDeclarativeBase):
@@ -164,6 +166,49 @@ class Admin(TableDeclarativeBase):
 
     def __repr__(self):
         return f"<Admin {self.user_id}>"
+
+
+class Order(TableDeclarativeBase):
+    """An order which has been placed by an user.
+    It may include multiple products, available in the OrderItem table."""
+
+    # The unique order id
+    order_id = Column(Integer, primary_key=True)
+    # The user who placed the order
+    user_id = Column(BigInteger, ForeignKey("users.user_id"))
+    user = relationship("User")
+    # Date of creation
+    creation_date = Column(DateTime, nullable=False)
+    # Date of delivery, None if the item hasn't been delivered yet
+    delivery_date = Column(DateTime)
+    # List of items in the order
+    items = relationship("OrderItem")
+    # Extra details specified by the purchasing user
+    notes = Column(Text)
+
+    # Extra table parameters
+    __tablename__ = "orders"
+
+    def __repr__(self):
+        return f"<Order {self.order_id} placed by User {self.user_id}>"
+
+
+class OrderItem(TableDeclarativeBase):
+    """A product that has been purchased as part of an order."""
+
+    # The unique item id
+    item_id = Column(Integer, primary_key=True)
+    # The product that is being ordered
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    product = relationship("Product")
+    # The order in which this item is being purchased
+    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
+
+    # Extra table parameters
+    __tablename__ = "orderitems"
+
+    def __repr__(self):
+        return f"<OrderItem {self.item_id}>"
 
 
 # If this script is ran as main, try to create all the tables in the database
