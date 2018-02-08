@@ -75,7 +75,7 @@ def main():
                     # Skip the update
                     continue
                 # If the message is a start command...
-                if update.message.text is not None and update.message.text == "/start":
+                if isinstance(update.message.text, str) and update.message.text == "/start":
                     # Check if a worker already exists for that chat
                     old_worker = chat_workers.get(update.message.chat.id)
                     # If it exists, gracefully stop the worker
@@ -100,19 +100,26 @@ def main():
                 # Forward the update to the worker
                 receiving_worker.queue.put(update)
             # If the update is a inline keyboard press...
-            if update.callback_query is not None:
+            if isinstance(update.callback_query, telegram.CallbackQuery):
                 # Forward the update to the corresponding worker
-                receiving_worker = chat_workers.get(update.callback_query.chat.id)
+                receiving_worker = chat_workers.get(update.callback_query.from_user.id)
                 # Ensure a worker exists for the chat
                 if receiving_worker is None:
                     # Suggest that the user restarts the chat with /start
-                    bot.send_message(update.callback_query.chat.id, strings.error_no_worker_for_chat)
+                    bot.send_message(update.callback_query.from_user.id, strings.error_no_worker_for_chat)
                     # Skip the update
                     continue
-                # Forward the update to the worker
-                receiving_worker.queue.put(update)
+                # Check if the pressed inline key is a cancel button
+                if update.callback_query.data == "cmd_cancel":
+                    # Forward a CancelSignal to the worker
+                    receiving_worker.queue.put(worker.CancelSignal())
+                    # Notify the Telegram client that the inline keyboard press has been received
+                    bot.answer_callback_query(update.callback_query.id)
+                else:
+                    # Forward the update to the worker
+                    receiving_worker.queue.put(update)
             # If the update is a precheckoutquery, ensure it hasn't expired before forwarding it
-            if update.pre_checkout_query is not None:
+            if isinstance(update.pre_checkout_query, telegram.PreCheckoutQuery):
                 # Forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.pre_checkout_query.from_user.id)
                 # Check if it's the active invoice for this chat

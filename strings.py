@@ -78,8 +78,14 @@ menu_add_product = "✨ Nuovo prodotto"
 # Menu: cancel
 menu_cancel = "🔙 Annulla"
 
+# Menu: skip
+menu_skip = "⏭ Salta"
+
 # Menu: done
 menu_done = "✅️ Fatto"
+
+# Menu: pay invoice
+menu_pay = "💳 Paga"
 
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
