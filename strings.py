@@ -95,7 +95,7 @@ ask_product_description = "Quale deve essere la descrizione del prodotto?"
 
 # Add product: price?
 ask_product_price = "Quanto deve costare il prodotto?\n" \
-                    "Scrivi <code>skip</code> se vuoi che il prodotto non sia ancora in vendita."
+                    "Scrivi <code>X</code> se vuoi che il prodotto non sia ancora in vendita."
 
 # Add product: image?
 ask_product_image = "Che immagine vuoi che abbia il prodotto?"
@@ -134,11 +134,8 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
            ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE">Affero General Public License 3.0</a>.\n' \
            'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
 
-# Success: product has been added to the database
-success_product_added = "✅ Il prodotto è stato aggiunto con successo!"
-
-# Success: product has been added to the database
-success_product_edited = "✅ Il prodotto è stato modificato con successo!"
+# Success: product has been added/edited to the database
+success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con successo!"
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."

@@ -374,7 +374,7 @@ class ChatWorker(threading.Thread):
             # Otherwise, set the fee to 0 to ensure no accidental discounts are applied
             total_fee = 0
         # Create the invoice keyboard
-        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay)],
+        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
                                                          [telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cmd_cancel")]])
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
@@ -504,7 +504,7 @@ class ChatWorker(threading.Thread):
         # Wait for an answer
         description = self.__wait_for_regex(r"(.*)", cancellable=bool(product))
         # Ask for the product price
-        self.bot.send_message(self.chat.id, strings.ask_product_price)
+        self.bot.send_message(self.chat.id, strings.ask_product_price, parse_mode="HTML")
         # Display the current name if you're editing an existing product
         if product:
             self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(strings.currency_format_string.format(symbol=strings.currency_symbol, value=(product.price / (10 ** int(configloader.config["Payments"]["currency_exp"]))))) if product.price is not None else 'Non in vendita'), parse_mode="HTML", reply_markup=cancel)
@@ -555,10 +555,7 @@ class ChatWorker(threading.Thread):
         # Commit the session changes
         self.session.commit()
         # Notify the user
-        if product:
-            self.bot.send_message(self.chat.id, strings.success_product_edited)
-        else:
-            self.bot.send_message(self.chat.id, strings.success_product_added)
+        self.bot.send_message(self.chat.id, strings.success_product_edited)
 
     def __orders_menu(self):
         raise NotImplementedError()

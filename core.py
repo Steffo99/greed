@@ -29,6 +29,9 @@ def main():
     # TimedOut / NetworkError counter, increases by 1 every time get_updates fails and resets to 0 when it succedes
     timed_out_counter = 0
 
+    # Notify on the console that the bot is starting
+    print("greed-bot is now starting!")
+
     # Main loop of the program
     while True:
         # Get a new batch of 100 updates and mark the last 100 parsed as read
