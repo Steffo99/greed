@@ -80,25 +80,36 @@ class Product(TableDeclarativeBase):
 
     # No __init__ is needed, the default one is sufficient
 
-    def __str__(self, one_row=False):
+    def __str__(self):
+        return self.text()
+
+    def text(self, one_row:bool=False, cart_qty:int=None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
         if one_row:
             return f"{escape(self.name)} - {strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}"
-        return f"{escape(self.name)}\n" \
-               f"{escape(self.description)}\n\n" \
-               f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
-               f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}"
+        return f"<b>{escape(self.name)}</b>\n" \
+               f"{escape(self.description)}\n" \
+               f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
+               f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}\n" \
+               f"<b>{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}</b>"
 
     def __repr__(self):
         return f"<Product {self.name}>"
 
-    def send_as_message(self, chat_id: int) -> requests.Response:
+    def send_as_message(self, chat_id: int) -> dict:
         """Send a message containing the product data."""
-        r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
-                          files={"photo": self.image},
-                          params={"chat_id": chat_id,
-                                  "caption": str(self)})
-        return r
+        if self.image is None:
+            r = requests.get(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendMessage",
+                           params={"chat_id": chat_id,
+                                   "text": str(self),
+                                   "parse_mode": "HTML"})
+        else:
+            r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
+                              files={"photo": self.image},
+                              params={"chat_id": chat_id,
+                                      "caption": str(self),
+                                      "parse_mode": "HTML"})
+        return r.json()
 
     def set_image(self, file: telegram.File):
         """Download an image from Telegram and store it in the image column.

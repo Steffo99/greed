@@ -11,6 +11,9 @@ currency_format_string = "{symbol} {value}"
 # Quantity of a product in stock
 in_stock_format_string = "{quantity} disponibili"
 
+# Copies of a product in cart
+in_cart_format_string = "{quantity} nel carrello"
+
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
@@ -33,6 +36,9 @@ conversation_admin_select_product = "Che prodotto vuoi modificare?"
 
 # Conversation: add extra notes to the order
 conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
+
+# Conversation: click below to pay for the purchase
+conversation_cart_actions = "Quando hai finito di aggiungere prodotti al carrello, clicca uno dei pulsanti qui sotto!"
 
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
@@ -86,6 +92,12 @@ menu_done = "✅️ Fatto"
 
 # Menu: pay invoice
 menu_pay = "💳 Paga"
+
+# Menu: add to cart
+menu_add_to_cart = "➕ Aggiungi"
+
+# Menu: remove from cart
+menu_remove_from_cart = "➖ Rimuovi"
 
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
