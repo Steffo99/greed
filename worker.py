@@ -1,6 +1,8 @@
 import threading
 import typing
 import uuid
+
+import datetime
 import telegram
 import strings
 import configloader
@@ -305,7 +307,7 @@ class ChatWorker(threading.Thread):
                         final_inline_list.append([telegram.InlineKeyboardButton(strings.menu_done, callback_data="cart_done")])
                         break
                 final_inline_keyboard = telegram.InlineKeyboardMarkup(final_inline_list)
-                # Edit both the product and the final message
+                # Edit the product message
                 if product.image is None:
                     self.bot.edit_message_text(chat_id=self.chat.id, message_id=callback.message.message_id,
                                                text=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
@@ -318,6 +320,50 @@ class ChatWorker(threading.Thread):
                 except telegram.error.BadRequest:
                     # Telegram returns an error if the message is not edited
                     pass
+            # If the done button has been pressed...
+            elif callback.data == "cart_done":
+                # End the loop
+                break
+        # Create an inline keyboard with a single skip button
+        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip, callback_data="cmd_cancel")]])
+        # Ask if the user wants to add notes to the order
+        self.bot.send_message(self.chat.id, strings.ask_order_notes, reply_markup=cancel)
+        # Wait for user input
+        notes = self.__wait_for_regex(r"(.*)", cancellable=True)
+        # Create a new Order
+        order = db.Order(user=self.user,
+                         creation_date=datetime.datetime.now(),
+                         notes=notes if not isinstance(notes, CancelSignal) else "")
+        # Add the record to the session and get an ID
+        self.session.add(order)
+        self.session.flush()
+        # For each product added to the cart, create a new OrderItem and get the total value
+        value = 0
+        for product in cart:
+            # Add the price multiplied by the quantity to the total price
+            value -= cart[product][0].price * cart[product][1]
+            # Create {quantity} new OrderItems
+            for i in range(0, cart[product][1]):
+                orderitem = db.OrderItem(product=cart[product][0],
+                                         order_id=order.order_id)
+                self.session.add(orderitem)
+        # Ensure the user has enough credit to make the purchase
+        if self.user.credit + value < 0:
+            self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
+            # Rollback all the changes
+            self.session.rollback()
+            return
+        # Create a new transaction and add it to the session
+        transaction = db.Transaction(user=self.user,
+                                     value=value)
+        self.session.add(transaction)
+        # Subtract credit from the user
+        self.user.credit += value
+        # Commit all the changes
+        self.session.commit()
+        # Notify the user of the order result
+        self.bot.send_message(self.chat.id, strings.success_order_created)
+
 
     def __order_status(self):
         raise NotImplementedError()
@@ -374,14 +420,14 @@ class ChatWorker(threading.Thread):
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait until a valid amount is sent
             # TODO: check and debug the regex
-            selection = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?|" + strings.menu_cancel + r")")
+            selection = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]+)?|" + strings.menu_cancel + r")")
             # If the user cancelled the action
             if selection == strings.menu_cancel:
                 # Exit the loop
                 cancelled = True
                 continue
             # Convert the amount to an integer
-            value = int(selection.replace(".", "").replace(",", "")) * (10 ** int(configloader.config["Payments"]["currency_exp"]))
+            value = int(float(selection.replace(",", ".")) * (10 ** int(configloader.config["Payments"]["currency_exp"])))
             # Ensure the amount is within the range
             if value > int(configloader.config["Payments"]["max_amount"]):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["max_amount"])))
@@ -550,7 +596,7 @@ class ChatWorker(threading.Thread):
         elif price.lower() == "x":
             price = None
         else:
-            price = int(price.replace(".", "").replace(",", "")) * (10 ** int(configloader.config["Payments"]["currency_exp"]))
+            price = int(float(price.replace(",", ".")) * (10 ** int(configloader.config["Payments"]["currency_exp"])))
         # Ask for the product image
         self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
         # Wait for an answer

@@ -112,6 +112,10 @@ ask_product_price = "Quanto deve costare il prodotto?\n" \
 # Add product: image?
 ask_product_image = "Che immagine vuoi che abbia il prodotto?"
 
+# Order product: notes?
+ask_order_notes = "Vuoi lasciare un messaggio insieme all'ordine?\n" \
+                  "Sarà visibile al negoziante."
+
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \
                     "Potrei metterci un po'... Abbi pazienza!\n" \
@@ -149,6 +153,9 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
 # Success: product has been added/edited to the database
 success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con successo!"
 
+# Success: order has been created
+success_order_created = "✅ L'ordine è stato inviato con successo!"
+
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
 
@@ -167,3 +174,6 @@ error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullat
 
 # Error: a product with that name already exists
 error_duplicate_name = "️⚠ Esiste già un prodotto con questo nome."
+
+# Error: not enough credit to order
+error_not_enough_credit = "⚠ Non hai credito sufficiente per effettuare l'ordine."

@@ -86,11 +86,11 @@ class Product(TableDeclarativeBase):
     def text(self, one_row:bool=False, cart_qty:int=None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
         if one_row:
-            return f"{escape(self.name)} - {strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}"
+            return f"{escape(self.name)} - {strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price / (10 ** int(configloader.config['Payments']['currency_exp'])))}"
         return f"<b>{escape(self.name)}</b>\n" \
                f"{escape(self.description)}\n" \
                f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
-               f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price)}\n" \
+               f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price / (10 ** int(configloader.config['Payments']['currency_exp'])))}\n" \
                f"<b>{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}</b>"
 
     def __repr__(self):
