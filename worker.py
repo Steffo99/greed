@@ -1,7 +1,6 @@
 import threading
 import typing
 import uuid
-
 import datetime
 import telegram
 import strings
@@ -10,6 +9,7 @@ import sys
 import queue as queuem
 import database as db
 import re
+from utils import Price
 from html import escape
 
 class StopSignal:
@@ -232,7 +232,7 @@ class ChatWorker(threading.Thread):
         products = self.session.query(db.Product).all()
         # Create a dict to be used as 'cart'
         # The key is the message id of the product list
-        cart = {}  # type: typing.Dict[typing.List[db.Product, int]]
+        cart: typing.Dict[typing.List[db.Product, int]] = {}
         # Initialize the products list
         for product in products:
             # If the product is not for sale, don't display it
@@ -279,13 +279,16 @@ class ChatWorker(threading.Thread):
                                                text=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                                  caption=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
-                try:
-                    self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
-                                               text=strings.conversation_cart_actions, reply_markup=final_inline_keyboard)
-                except telegram.error.BadRequest:
-                    # Telegram returns an error if the message is not edited
-                    pass
+                                                  caption=product.text(style="image", cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
+                # Create the cart summary
+                product_list = ""
+                total_cost = Price(0)
+                for product_id in cart:
+                    if cart[product_id][1] > 0:
+                        product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
+                        total_cost += cart[product_id][0].price * cart[product_id][1]
+                self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
+                                           text=strings.conversation_confirm_cart.format(product_list=product_list, total_cost=str(total_cost), reply_markup=final_inline_keyboard))
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
                 # Get the selected product
@@ -313,13 +316,18 @@ class ChatWorker(threading.Thread):
                                                text=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                                  caption=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
-                try:
-                    self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
-                                               text=strings.conversation_cart_actions, reply_markup=final_inline_keyboard)
-                except telegram.error.BadRequest:
-                    # Telegram returns an error if the message is not edited
-                    pass
+                                                  caption=product.text(style="image", cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
+                # Create the cart summary
+                product_list = ""
+                total_cost = Price(0)
+                for product_id in cart:
+                    if cart[product_id][1] > 0:
+                        product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
+                        total_cost += cart[product_id][0].price * cart[product_id][1]
+                self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
+                                           text=strings.conversation_confirm_cart.format(product_list=product_list,
+                                                                                         total_cost=str(total_cost),
+                                                                                         reply_markup=final_inline_keyboard))
             # If the done button has been pressed...
             elif callback.data == "cart_done":
                 # End the loop
@@ -364,7 +372,6 @@ class ChatWorker(threading.Thread):
         # Notify the user of the order result
         self.bot.send_message(self.chat.id, strings.success_order_created)
 
-
     def __order_status(self):
         raise NotImplementedError()
 
@@ -406,10 +413,10 @@ class ChatWorker(threading.Thread):
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="10"))],
-                    [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="25"))],
-                    [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="50"))],
-                    [telegram.KeyboardButton(strings.currency_format_string.format(symbol=strings.currency_symbol, value="100"))],
+        keyboard = [[telegram.KeyboardButton(str(Price("10.00")))],
+                    [telegram.KeyboardButton(str(Price("25.00")))],
+                    [telegram.KeyboardButton(str(Price("50.00")))],
+                    [telegram.KeyboardButton(str(Price("100.00")))],
                     [telegram.KeyboardButton(strings.menu_cancel)]]
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
@@ -427,13 +434,13 @@ class ChatWorker(threading.Thread):
                 cancelled = True
                 continue
             # Convert the amount to an integer
-            value = int(float(selection.replace(",", ".")) * (10 ** int(configloader.config["Payments"]["currency_exp"])))
+            value = Price(selection)
             # Ensure the amount is within the range
             if value > int(configloader.config["Payments"]["max_amount"]):
-                self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["max_amount"])))
+                self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=Price(configloader.config["Payments"]["max_amount"])))
                 continue
             elif value < int(configloader.config["Payments"]["min_amount"]):
-                self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=configloader.config["Payments"]["min_amount"])))
+                self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=Price(configloader.config["Payments"]["min_amount"])))
                 continue
             break
         # If the user cancelled the action...
@@ -443,11 +450,11 @@ class ChatWorker(threading.Thread):
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
         # Create the price array
-        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=value)]
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
-        total_fee = int(value * fee_percentage) + fee_fixed
+        fee_percentage = Price(configloader.config["Credit Card"]["fee_percentage"]) // 100
+        fee_fixed = Price(configloader.config["Credit Card"]["fee_fixed"])
+        total_fee = value * fee_percentage + fee_fixed
         if total_fee > 0:
             prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
         else:
@@ -459,7 +466,7 @@ class ChatWorker(threading.Thread):
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
-                              description=strings.payment_invoice_description.format(amount=strings.currency_format_string.format(symbol=strings.currency_symbol, value=value / (10 ** int(configloader.config["Payments"]["currency_exp"])))),
+                              description=strings.payment_invoice_description.format(amount=str(value)),
                               payload=self.invoice_payload,
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",  # TODO: no idea on how deeplinks should work
@@ -490,7 +497,7 @@ class ChatWorker(threading.Thread):
             transaction.payment_email = successfulpayment.order_info.email
             transaction.payment_phone = successfulpayment.order_info.phone_number
         # Add the credit to the user account
-        self.user.credit += successfulpayment.total_amount - total_fee
+        self.user.credit += successfulpayment.total_amount - int(total_fee)
         # Add and commit the transaction
         self.session.add(transaction)
         self.session.commit()
@@ -587,7 +594,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.ask_product_price, parse_mode="HTML")
         # Display the current name if you're editing an existing product
         if product:
-            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(strings.currency_format_string.format(symbol=strings.currency_symbol, value=(product.price / (10 ** int(configloader.config["Payments"]["currency_exp"]))))) if product.price is not None else 'Non in vendita'), parse_mode="HTML", reply_markup=cancel)
+            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(str(Price(product.price)) if product.price is not None else 'Non in vendita')), parse_mode="HTML", reply_markup=cancel)
         # Wait for an answer
         price = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?|[Xx])", cancellable=True)
         # If the price is skipped
@@ -596,19 +603,17 @@ class ChatWorker(threading.Thread):
         elif price.lower() == "x":
             price = None
         else:
-            price = int(float(price.replace(",", ".")) * (10 ** int(configloader.config["Payments"]["currency_exp"])))
+            price = Price(price)
         # Ask for the product image
         self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
         # Wait for an answer
         photo_list = self.__wait_for_photo(cancellable=True)
-        # TODO: ask for boolean status
         # If a new product is being added...
         if not product:
             # Create the db record for the product
-            # TODO: add the boolean status
             product = db.Product(name=name,
                                  description=description,
-                                 price=price,
+                                 price=int(price),
                                  boolean_product=False)
             # Add the record to the database
             self.session.add(product)

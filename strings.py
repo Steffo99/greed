@@ -42,7 +42,7 @@ conversation_cart_actions = "Quando hai finito di aggiungere prodotti al carrell
 
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
-                            "{product_list}\n" \
+                            "{product_list}" \
                             "\n" \
                             "Totale: {total_cost}\n" \
                             "Procedere?"

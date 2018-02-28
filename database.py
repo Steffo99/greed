@@ -7,6 +7,7 @@ import telegram
 import strings
 import requests
 from html import escape
+from utils import Price
 
 # Create a (lazy) database engine
 engine = create_engine(configloader.config["Database"]["engine"])
@@ -83,15 +84,24 @@ class Product(TableDeclarativeBase):
     def __str__(self):
         return self.text()
 
-    def text(self, one_row:bool=False, cart_qty:int=None):
+    def text(self, style:str="full", cart_qty:int=None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
-        if one_row:
-            return f"{escape(self.name)} - {strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price / (10 ** int(configloader.config['Payments']['currency_exp'])))}"
-        return f"<b>{escape(self.name)}</b>\n" \
-               f"{escape(self.description)}\n" \
-               f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
-               f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price / (10 ** int(configloader.config['Payments']['currency_exp'])))}\n" \
-               f"<b>{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}</b>"
+        if style == "short":
+            return f"{cart_qty}x {escape(self.name)} - {str(Price(self.price) * cart_qty)}"
+        elif style == "full":
+            return f"<b>{escape(self.name)}</b>\n" \
+                   f"{escape(self.description)}\n" \
+                   f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
+                   f"{str(Price(self.price))}\n" \
+                   f"<b>{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}</b>"
+        elif style == "image":
+            return f"{escape(self.name)}\n" \
+                   f"{escape(self.description)}\n" \
+                   f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
+                   f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price / (10 ** int(configloader.config['Payments']['currency_exp'])))}\n" \
+                   f"{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}"
+        else:
+            raise ValueError("style is not an accepted value")
 
     def __repr__(self):
         return f"<Product {self.name}>"
@@ -101,13 +111,13 @@ class Product(TableDeclarativeBase):
         if self.image is None:
             r = requests.get(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendMessage",
                            params={"chat_id": chat_id,
-                                   "text": str(self),
+                                   "text": self.text(),
                                    "parse_mode": "HTML"})
         else:
             r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
                               files={"photo": self.image},
                               params={"chat_id": chat_id,
-                                      "caption": str(self),
+                                      "caption": self.text(style="image"),
                                       "parse_mode": "HTML"})
         return r.json()
 
