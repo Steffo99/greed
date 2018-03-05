@@ -288,7 +288,7 @@ class ChatWorker(threading.Thread):
                         product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
                         total_cost += cart[product_id][0].price * cart[product_id][1]
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=product_list, total_cost=str(total_cost), reply_markup=final_inline_keyboard))
+                                           text=strings.conversation_confirm_cart.format(product_list=product_list, total_cost=str(total_cost)), reply_markup=final_inline_keyboard)
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
                 # Get the selected product
@@ -326,8 +326,8 @@ class ChatWorker(threading.Thread):
                         total_cost += cart[product_id][0].price * cart[product_id][1]
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
                                            text=strings.conversation_confirm_cart.format(product_list=product_list,
-                                                                                         total_cost=str(total_cost),
-                                                                                         reply_markup=final_inline_keyboard))
+                                                                                         total_cost=str(total_cost)),
+                                           reply_markup=final_inline_keyboard)
             # If the done button has been pressed...
             elif callback.data == "cart_done":
                 # End the loop
