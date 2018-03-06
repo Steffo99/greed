@@ -71,8 +71,8 @@ class Product(TableDeclarativeBase):
     price = Column(Integer)
     # Image data
     image = Column(LargeBinary)
-    # Product is an option (example: express shipping)
-    boolean_product = Column(Boolean, nullable=False)
+    # Product has been deleted
+    deleted = Column(Boolean, nullable=False)
     # Stock quantity, if null product has infinite stock
     stock = Column(Integer)
 
@@ -98,7 +98,7 @@ class Product(TableDeclarativeBase):
             return f"{escape(self.name)}\n" \
                    f"{escape(self.description)}\n" \
                    f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
-                   f"{strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.price / (10 ** int(configloader.config['Payments']['currency_exp'])))}\n" \
+                   f"{str(Price(self.price))}\n" \
                    f"{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}"
         else:
             raise ValueError("style is not an accepted value")

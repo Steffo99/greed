@@ -12,7 +12,7 @@ class Price:
             self.value = int(value * (10 ** int(config["Payments"]["currency_exp"])))
         elif isinstance(value, str):
             # Remove decimal points, then cast to int
-            self.value = int(value.replace(".", "").replace(",", ""))
+            self.value = int(float(value.replace(",", ".")) * (10 ** int(config["Payments"]["currency_exp"])))
         elif isinstance(value, Price):
             # Copy self
             self.value = value.value

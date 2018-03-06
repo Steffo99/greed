@@ -229,7 +229,7 @@ class ChatWorker(threading.Thread):
     def __order_menu(self):
         """User menu to order products from the shop."""
         # Get the products list from the db
-        products = self.session.query(db.Product).all()
+        products = self.session.query(db.Product).filter_by(deleted=False).all()
         # Create a dict to be used as 'cart'
         # The key is the message id of the product list
         cart: typing.Dict[typing.List[db.Product, int]] = {}
@@ -246,9 +246,9 @@ class ChatWorker(threading.Thread):
             inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add")]])
             # Edit the sent message and add the inline keyboard
             if product.image is None:
-                self.bot.edit_message_text(chat_id=self.chat.id, message_id=message['result']['message_id'], text=str(product), parse_mode="HTML", reply_markup=inline_keyboard)
+                self.bot.edit_message_text(chat_id=self.chat.id, message_id=message['result']['message_id'], text=product.text(), parse_mode="HTML", reply_markup=inline_keyboard)
             else:
-                self.bot.edit_message_caption(chat_id=self.chat.id, message_id=message['result']['message_id'], caption=str(product), parse_mode="HTML", reply_markup=inline_keyboard)
+                self.bot.edit_message_caption(chat_id=self.chat.id, message_id=message['result']['message_id'], caption=product.text(style="image"), parse_mode="HTML", reply_markup=inline_keyboard)
         # Create the keyboard with the cancel button
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cart_cancel")]])
         # Send a message containing the button to cancel or pay
@@ -537,12 +537,13 @@ class ChatWorker(threading.Thread):
     def __products_menu(self):
         """Display the admin menu to select a product to edit."""
         # Get the products list from the db
-        products = self.session.query(db.Product).all()
+        products = self.session.query(db.Product).filter_by(deleted=False).all()
         # Create a list of product names
         product_names = [product.name for product in products]
-        # Insert at the start of the list the add product option and the Cancel option
+        # Insert at the start of the list the add product option, the remove product option and the Cancel option
         product_names.insert(0, strings.menu_cancel)
         product_names.insert(1, strings.menu_add_product)
+        product_names.insert(2, strings.menu_delete_product)
         # Create a keyboard using the product names
         keyboard = [[telegram.KeyboardButton(product_name)] for product_name in product_names]
         # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
@@ -558,10 +559,14 @@ class ChatWorker(threading.Thread):
         elif selection == strings.menu_add_product:
             # Open the add product menu
             self.__edit_product_menu()
+        # If the user has selected the Remove Product option...
+        elif selection == strings.menu_delete_product:
+            # Open the delete product menu
+            self.__delete_product_menu()
         # If the user has selected a product
         else:
             # Find the selected product
-            product = self.session.query(db.Product).filter_by(name=selection).one()
+            product = self.session.query(db.Product).filter_by(name=selection, deleted=False).one()
             # Open the edit menu for that specific product
             self.__edit_product_menu(product=product)
 
@@ -579,7 +584,7 @@ class ChatWorker(threading.Thread):
             # Wait for an answer
             name = self.__wait_for_regex(r"(.*)", cancellable=bool(product))
             # Ensure a product with that name doesn't already exist
-            if (product and isinstance(name, CancelSignal)) or self.session.query(db.Product).filter_by(name=name).one_or_none() in [None, product]:
+            if (product and isinstance(name, CancelSignal)) or self.session.query(db.Product).filter_by(name=name, deleted=False).one_or_none() in [None, product]:
                 # Exit the loop
                 break
             self.bot.send_message(self.chat.id, strings.error_duplicate_name)
@@ -614,7 +619,7 @@ class ChatWorker(threading.Thread):
             product = db.Product(name=name,
                                  description=description,
                                  price=int(price),
-                                 boolean_product=False)
+                                 deleted=False)
             # Add the record to the database
             self.session.add(product)
         # If a product is being edited...
@@ -641,6 +646,32 @@ class ChatWorker(threading.Thread):
         self.session.commit()
         # Notify the user
         self.bot.send_message(self.chat.id, strings.success_product_edited)
+
+    def __delete_product_menu(self):
+        # Get the products list from the db
+        products = self.session.query(db.Product).filter_by(deleted=False).all()
+        # Create a list of product names
+        product_names = [product.name for product in products]
+        # Insert at the start of the list the Cancel button
+        product_names.insert(0, strings.menu_cancel)
+        # Create a keyboard using the product names
+        keyboard = [[telegram.KeyboardButton(product_name)] for product_name in product_names]
+        # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+        self.bot.send_message(self.chat.id, strings.conversation_admin_select_product_to_delete,
+                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+        # Wait for a reply from the user
+        selection = self.__wait_for_specific_message(product_names)
+        if selection == strings.menu_cancel:
+            # Exit the menu
+            return
+        else:
+            # Find the selected product
+            product = self.session.query(db.Product).filter_by(name=selection, deleted=False).one()
+            # "Delete" the product by setting the deleted flag to true
+            product.deleted = True
+            self.session.commit()
+            # Notify the user
+            self.bot.send_message(self.chat.id, strings.success_product_deleted)
 
     def __orders_menu(self):
         raise NotImplementedError()

@@ -32,7 +32,10 @@ conversation_open_admin_menu = "Sei un amministratore di greed!\n" \
 conversation_payment_method = "Come vuoi aggiungere fondi al tuo portafoglio?"
 
 # Conversation: select a product to edit
-conversation_admin_select_product = "Che prodotto vuoi modificare?"
+conversation_admin_select_product = "✏️ Che prodotto vuoi modificare?"
+
+# Conversation: select a product to delete
+conversation_admin_select_product_to_delete = "❌ Che prodotto vuoi eliminare?"
 
 # Conversation: add extra notes to the order
 conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
@@ -80,6 +83,9 @@ menu_user_mode = "👤 Passa alla modalità utente"
 
 # Admin menu: add product
 menu_add_product = "✨ Nuovo prodotto"
+
+# Admin menu: delete product
+menu_delete_product = "❌ Elimina prodotto"
 
 # Menu: cancel
 menu_cancel = "🔙 Annulla"
@@ -152,6 +158,9 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
 
 # Success: product has been added/edited to the database
 success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con successo!"
+
+# Success: product has been added/edited to the database
+success_product_deleted = "✅ Il prodotto è stato eliminato con successo!"
 
 # Success: order has been created
 success_order_created = "✅ L'ordine è stato inviato con successo!"
