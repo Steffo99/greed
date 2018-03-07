@@ -371,6 +371,11 @@ class ChatWorker(threading.Thread):
         self.session.commit()
         # Notify the user of the order result
         self.bot.send_message(self.chat.id, strings.success_order_created)
+        # Notify the admins (with Order Notifications enabled) of the new order created
+        admins = self.session.query(db.Admin).filter_by(receive_orders=True).all()
+        # Notify them of the new placed order
+        for admin in admins:
+            self.bot.send_message(admin.user_id, f"{strings.notification_order_placed.format(order=str(order))}")
 
     def __order_status(self):
         raise NotImplementedError()

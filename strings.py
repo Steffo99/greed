@@ -14,6 +14,16 @@ in_stock_format_string = "{quantity} disponibili"
 # Copies of a product in cart
 in_cart_format_string = "{quantity} nel carrello"
 
+# Order info displayed string
+order_format_string = "Ordine #{id}\n" \
+                      "di {user}\n" \
+                      "{value}\n" \
+                      "Creato {date}\n" \
+                      "\n" \
+                      "{items}\n" \
+                      "\n" \
+                      "{notes}"
+
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
@@ -149,6 +159,10 @@ payment_invoice_label = "Ricarica"
 
 # Payment: label of the labeled price on the invoice
 payment_invoice_fee_label = "Supplemento carta"
+
+# Notification: order has been placed
+notification_order_placed = "*️⃣ E' stato piazzato un nuovo ordine:\n" \
+                            "{order}"
 
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \

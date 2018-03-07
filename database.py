@@ -54,6 +54,13 @@ class User(TableDeclarativeBase):
         else:
             return self.first_name
 
+    def mention(self):
+        """Mention the user in the best way possible given the available data."""
+        if self.username is not None:
+            return f"@{self.username}"
+        else:
+            return f"[{self.first_name}](tg://user?id={self.user_id})"
+
     def __repr__(self):
         return f"<User {self} having {self.credit} credit>"
 
@@ -182,6 +189,7 @@ class Admin(TableDeclarativeBase):
     user_id = Column(BigInteger, ForeignKey("users.user_id"), primary_key=True)
     user = relationship("User")
     # Permissions
+    receive_orders = Column(Boolean, default=True)
     # TODO: unfinished
 
     # Extra table parameters
@@ -215,6 +223,17 @@ class Order(TableDeclarativeBase):
     def __repr__(self):
         return f"<Order {self.order_id} placed by User {self.user_id}>"
 
+    def __str__(self):
+        items = ""
+        for item in self.items:
+            items += str(item) + "\n"
+        return strings.order_format_string.format(id=self.order_id,
+                                                  user=self.user.mention(),
+                                                  date=self.creation_date.isoformat(),
+                                                  items=items,
+                                                  notes=self.notes if self.notes is not None else "",
+                                                  value=#TODO)
+
 
 class OrderItem(TableDeclarativeBase):
     """A product that has been purchased as part of an order."""
@@ -229,6 +248,9 @@ class OrderItem(TableDeclarativeBase):
 
     # Extra table parameters
     __tablename__ = "orderitems"
+
+    def __str__(self):
+        return f"{self.product.name} - {self.product.price}"
 
     def __repr__(self):
         return f"<OrderItem {self.item_id}>"
