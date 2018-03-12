@@ -163,7 +163,8 @@ class Transaction(TableDeclarativeBase):
     payment_email = Column(String)
 
     # Order ID
-    order_id = Column(Integer)
+    order_id = Column(Integer, ForeignKey("orders.order_id"))
+    order = relationship("Order")
 
     # Extra table parameters
     __tablename__ = "transactions"
@@ -216,6 +217,8 @@ class Order(TableDeclarativeBase):
     items = relationship("OrderItem")
     # Extra details specified by the purchasing user
     notes = Column(Text)
+    # Linked transaction
+    transaction = relationship("Transaction", uselist=False)
 
     # Extra table parameters
     __tablename__ = "orders"
@@ -223,7 +226,8 @@ class Order(TableDeclarativeBase):
     def __repr__(self):
         return f"<Order {self.order_id} placed by User {self.user_id}>"
 
-    def __str__(self):
+    def get_text(self, session):
+        joined_self = session.query(Order).filter_by(order_id=self.order_id).join(Transaction).one()
         items = ""
         for item in self.items:
             items += str(item) + "\n"
@@ -232,7 +236,7 @@ class Order(TableDeclarativeBase):
                                                   date=self.creation_date.isoformat(),
                                                   items=items,
                                                   notes=self.notes if self.notes is not None else "",
-                                                  value=#TODO)
+                                                  value=str(Price(-joined_self.transaction.value)))
 
 
 class OrderItem(TableDeclarativeBase):
@@ -250,7 +254,7 @@ class OrderItem(TableDeclarativeBase):
     __tablename__ = "orderitems"
 
     def __str__(self):
-        return f"{self.product.name} - {self.product.price}"
+        return f"{self.product.name} - {str(Price(self.product.price))}"
 
     def __repr__(self):
         return f"<OrderItem {self.item_id}>"

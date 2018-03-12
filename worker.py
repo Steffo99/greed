@@ -363,7 +363,8 @@ class ChatWorker(threading.Thread):
             return
         # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
-                                     value=value)
+                                     value=value,
+                                     order_id=order.order_id)
         self.session.add(transaction)
         # Subtract credit from the user
         self.user.credit += value
@@ -375,7 +376,7 @@ class ChatWorker(threading.Thread):
         admins = self.session.query(db.Admin).filter_by(receive_orders=True).all()
         # Notify them of the new placed order
         for admin in admins:
-            self.bot.send_message(admin.user_id, f"{strings.notification_order_placed.format(order=str(order))}")
+            self.bot.send_message(admin.user_id, f"{strings.notification_order_placed.format(order=order.get_text(self.session))}")
 
     def __order_status(self):
         raise NotImplementedError()
@@ -457,7 +458,8 @@ class ChatWorker(threading.Thread):
         # Create the price array
         prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = Price(configloader.config["Credit Card"]["fee_percentage"]) // 100
+        # TODO: there's a bug here
+        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
         fee_fixed = Price(configloader.config["Credit Card"]["fee_fixed"])
         total_fee = value * fee_percentage + fee_fixed
         if total_fee > 0:
