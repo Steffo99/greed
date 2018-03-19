@@ -60,6 +60,10 @@ conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
                             "Totale: {total_cost}\n" \
                             "Procedere?"
 
+# Conversation: the user activated the live orders mode
+conversation_live_orders_start = "Hai avviato la modalità Ordini Live!\n" \
+                                 "Per interrompere il flusso di ordini, manda un qualsiasi messaggio in chat."
+
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
                        "Per riavviarne una nuova, invia il comando /start."
@@ -176,6 +180,12 @@ success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con succe
 # Success: product has been added/edited to the database
 success_product_deleted = "✅ Il prodotto è stato eliminato con successo!"
 
+# Order: set as complete
+order_complete = "✅ Completa"
+
+# Order: set as refunded
+order_refund = "✴️ Rimborsa"
+
 # Success: order has been created
 success_order_created = "✅ L'ordine è stato inviato con successo!"
 
@@ -196,7 +206,7 @@ error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere a
 error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullato. Se vuoi ancora aggiungere fondi, usa l'opzione Aggiungi fondi del menu."
 
 # Error: a product with that name already exists
-error_duplicate_name = "️⚠ Esiste già un prodotto con questo nome."
+error_duplicate_name = "️⚠️ Esiste già un prodotto con questo nome."
 
 # Error: not enough credit to order
-error_not_enough_credit = "⚠ Non hai credito sufficiente per effettuare l'ordine."
+error_not_enough_credit = "⚠️ Non hai credito sufficiente per effettuare l'ordine."

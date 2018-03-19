@@ -42,6 +42,8 @@ class ChatWorker(threading.Thread):
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
+        # Listening mode flag: if set, display the received orders in real time
+        self.listening_mode = False
 
     def run(self):
         """The conversation code."""
@@ -379,7 +381,8 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(admin.user_id, f"{strings.notification_order_placed.format(order=order.get_text(self.session))}")
 
     def __order_status(self):
-        raise NotImplementedError()
+        """Display the status of the sent orders."""
+        pass
 
     def __add_credit_menu(self):
         """Add more credit to the account."""
@@ -681,7 +684,19 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.success_product_deleted)
 
     def __orders_menu(self):
-        raise NotImplementedError()
+        """Display a live flow of orders."""
+        # Send a small intro message on the Live Orders mode
+        self.bot.send_message(self.chat.id, strings.conversation_live_orders_start)
+        # Create the order keyboard
+        order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.order_complete)],
+                                                        [telegram.InlineKeyboardButton(strings.order_refund)]])
+        # Display the past pending orders
+        orders = self.session.query(db.Order).filter(db.Order.delivery_date == None).all()
+        # Create a message for every one of them
+        for order in orders:
+            # Send the created message
+            self.bot.send_message(self.chat.id, order.get_text(session=self.session), reply_markup=order_keyboard)
+
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""
