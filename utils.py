@@ -19,6 +19,9 @@ class Price:
             # Copy self
             self.value = value.value
 
+    def __repr__(self):
+        return f"<Price of value {self.value}>"
+
     def __str__(self):
         return currency_format_string.format(symbol=currency_symbol, value="{0:.2f}".format(self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 
@@ -50,19 +53,19 @@ class Price:
         return Price(self.value - Price(other).value)
 
     def __mul__(self, other):
-        return Price(self.value * Price(other).value)
+        return Price(int(self.value * other))
 
     def __floordiv__(self, other):
-        return Price(self.value // Price(other).value)
+        return Price(int(self.value // other))
 
     def __radd__(self, other):
-        self.__add__(other)
+        return self.__add__(other)
 
     def __rsub__(self, other):
         return Price(Price(other).value - self.value)
 
     def __rmul__(self, other):
-        self.__mul__(other)
+        return self.__mul__(other)
 
     def __iadd__(self, other):
         self.value += Price(other).value
@@ -73,9 +76,10 @@ class Price:
         return self
 
     def __imul__(self, other):
-        self.value *= Price(other).value
+        self.value *= other
+        self.value = int(self.value)
         return self
 
     def __ifloordiv__(self, other):
-        self.value //= Price(other).value
+        self.value //= other
         return self

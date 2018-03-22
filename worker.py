@@ -465,9 +465,8 @@ class ChatWorker(threading.Thread):
         # Create the price array
         prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        # TODO: there's a bug here
         fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = Price(configloader.config["Credit Card"]["fee_fixed"])
+        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
         total_fee = value * fee_percentage + fee_fixed
         if total_fee > 0:
             prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
@@ -525,10 +524,14 @@ class ChatWorker(threading.Thread):
         Administrative bot actions should be placed here."""
         # Loop used to return to the menu after executing a command
         while True:
-            # Create a keyboard with the admin main menu
-            keyboard = [[telegram.KeyboardButton(strings.menu_products)],
-                        [telegram.KeyboardButton(strings.menu_orders)],
-                        [telegram.KeyboardButton(strings.menu_user_mode)]]
+            # Create a keyboard with the admin main menu based on the admin permissions specified in the db
+            keyboard = [[strings.menu_user_mode]]
+            if self.admin.edit_products:
+                keyboard.append([strings.menu_products])
+            if self.admin.receive_orders:
+                keyboard.append([strings.menu_orders])
+            if self.admin.view_transactions:
+                keyboard.append([strings.menu_transactions])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
@@ -716,6 +719,7 @@ class ChatWorker(threading.Thread):
             if isinstance(update, CancelSignal):
                 # Stop the listening mode
                 self.listening_mode = False
+                break
             # If the user pressed the complete order button, complete the order
             elif update.data == "order_complete":
                 # Find the order

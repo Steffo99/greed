@@ -92,6 +92,9 @@ menu_products = "📝️ Prodotti"
 # Admin menu: orders
 menu_orders = "📦 Ordini"
 
+# Menu: transactions
+menu_transactions = "💳 Transazioni"
+
 # Admin menu: go to user mode
 menu_user_mode = "👤 Passa alla modalità utente"
 
