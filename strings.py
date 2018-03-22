@@ -113,6 +113,15 @@ menu_done = "✅️ Fatto"
 # Menu: pay invoice
 menu_pay = "💳 Paga"
 
+# Menu: complete
+menu_complete = "✅ Completa"
+
+# Menu: refund
+menu_refund = "✴️ Rimborsa"
+
+# Menu: stop
+menu_stop = "🛑 Interrompi"
+
 # Menu: add to cart
 menu_add_to_cart = "➕ Aggiungi"
 
@@ -135,6 +144,10 @@ ask_product_image = "Che immagine vuoi che abbia il prodotto?"
 # Order product: notes?
 ask_order_notes = "Vuoi lasciare un messaggio insieme all'ordine?\n" \
                   "Sarà visibile al negoziante."
+
+# Refund product: reason?
+ask_refund_reason = "Allega una motivazione a questo rimborso.\n" \
+                    "Sarà visibile al cliente."
 
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \
@@ -168,6 +181,17 @@ payment_invoice_fee_label = "Supplemento carta"
 notification_order_placed = "*️⃣ E' stato piazzato un nuovo ordine:\n" \
                             "{order}"
 
+# Notification: order has been completed
+notification_order_completed = "✅ Un tuo ordine è stato completato!\n" \
+                               "{order}"
+
+# Notification: order has been refunded
+notification_order_refunded = "✴️ Un tuo ordine è stato rimborsato!\n" \
+                              "{order}\n" \
+                              "\n" \
+                              "Motivazione data dal negoziante:\n" \
+                              "{reason}"
+
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
@@ -180,14 +204,14 @@ success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con succe
 # Success: product has been added/edited to the database
 success_product_deleted = "✅ Il prodotto è stato eliminato con successo!"
 
-# Order: set as complete
-order_complete = "✅ Completa"
-
-# Order: set as refunded
-order_refund = "✴️ Rimborsa"
-
 # Success: order has been created
 success_order_created = "✅ L'ordine è stato inviato con successo!"
+
+# Success: order was marked as completed
+success_order_completed = "✅ Hai segnato l'ordine #{order_id} come completato."
+
+# Success: order was refunded successfully
+success_order_refunded = "✴️ L'ordine #{order_id} è stato rimborsato con successo."
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."

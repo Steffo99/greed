@@ -148,6 +148,8 @@ class Transaction(TableDeclarativeBase):
     user = relationship("User")
     # The value of this transaction. Can be both negative and positive.
     value = Column(Integer, nullable=False)
+    # Refunded status: if True, ignore the value of this transaction when recalculating
+    refunded = Column(Boolean, default=False)
     # Extra notes on the transaction
     notes = Column(Text)
 
@@ -190,8 +192,9 @@ class Admin(TableDeclarativeBase):
     user_id = Column(BigInteger, ForeignKey("users.user_id"), primary_key=True)
     user = relationship("User")
     # Permissions
+    edit_products = Column(Boolean, default=True)
     receive_orders = Column(Boolean, default=True)
-    # TODO: unfinished
+    view_transactions = Column(Boolean, default=True)
 
     # Extra table parameters
     __tablename__ = "admins"
@@ -211,8 +214,12 @@ class Order(TableDeclarativeBase):
     user = relationship("User")
     # Date of creation
     creation_date = Column(DateTime, nullable=False)
-    # Date of delivery, None if the item hasn't been delivered yet
+    # Date of delivery
     delivery_date = Column(DateTime)
+    # Date of refund: if null, product hasn't been refunded
+    refund_date = Column(DateTime)
+    # Refund reason: if null, product hasn't been refunded
+    refund_reason = Column(Text)
     # List of items in the order
     items = relationship("OrderItem")
     # Extra details specified by the purchasing user

@@ -184,11 +184,15 @@ class ChatWorker(threading.Thread):
             # Return the photo array
             return update.message.photo
 
-    def __wait_for_inlinekeyboard_callback(self) -> telegram.CallbackQuery:
+    def __wait_for_inlinekeyboard_callback(self, cancellable:bool=True) -> typing.Union[telegram.CallbackQuery, CancelSignal]:
         """Continue getting updates until an inline keyboard callback is received, then return it."""
         while True:
             # Get the next update
             update = self.__receive_next_update()
+            # Ensure the update isn't a CancelSignal
+            if cancellable and isinstance(update, CancelSignal):
+                # Return the CancelSignal
+                return update
             # Ensure the update is a CallbackQuery
             if update.callback_query is None:
                 continue
@@ -685,17 +689,70 @@ class ChatWorker(threading.Thread):
 
     def __orders_menu(self):
         """Display a live flow of orders."""
+        # Create a cancel and a stop keyboard
+        stop_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_stop, callback_data="cmd_cancel")]])
+        cancel_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cmd_cancel")]])
         # Send a small intro message on the Live Orders mode
-        self.bot.send_message(self.chat.id, strings.conversation_live_orders_start)
+        self.bot.send_message(self.chat.id, strings.conversation_live_orders_start, reply_markup=stop_keyboard)
         # Create the order keyboard
-        order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.order_complete)],
-                                                        [telegram.InlineKeyboardButton(strings.order_refund)]])
+        order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_complete, callback_data="order_complete")],
+                                                        [telegram.InlineKeyboardButton(strings.menu_refund, callback_data="order_refund")]])
         # Display the past pending orders
-        orders = self.session.query(db.Order).filter(db.Order.delivery_date == None).all()
+        orders = self.session.query(db.Order).filter_by(delivery_date=None, refund_date=None).join(db.Transaction).join(db.User).all()
+        # Create a dict linking the message ids to the orders
+        order_dict: typing.Dict[int, db.Order] = {}
         # Create a message for every one of them
         for order in orders:
             # Send the created message
-            self.bot.send_message(self.chat.id, order.get_text(session=self.session), reply_markup=order_keyboard)
+            message = self.bot.send_message(self.chat.id, order.get_text(session=self.session), reply_markup=order_keyboard)
+            # Add the message to the order_dict
+            order_dict[message.message_id] = order
+        # Set the listening mode flag to True
+        self.listening_mode = True
+        while True:
+            # Wait for any message to stop the listening mode
+            update = self.__wait_for_inlinekeyboard_callback(cancellable=True)
+            # If the user pressed the stop button, exit listening mode
+            if isinstance(update, CancelSignal):
+                # Stop the listening mode
+                self.listening_mode = False
+            # If the user pressed the complete order button, complete the order
+            elif update.data == "order_complete":
+                # Find the order
+                order = order_dict[update.message.message_id]
+                # Mark the order as complete
+                order.completition_date = datetime.datetime.now()
+                # Commit the transaction
+                self.session.commit()
+                # Notify the admin of the completition
+                self.bot.send_message(self.chat.id, strings.success_order_completed.format(order_id=order.order_id))
+                # Notify the user of the completition
+                self.bot.send_message(order.user_id, strings.notification_order_completed.format(order=order.get_text(self.session)))
+            # If the user pressed the refund order button, refund the order...
+            elif update.data == "order_refund":
+                # Find the order
+                order = order_dict[update.message.message_id]
+                # Ask for a refund reason
+                self.bot.send_message(self.chat.id, strings.ask_refund_reason, reply_markup=cancel_keyboard)
+                # Wait for a reply
+                reply = self.__wait_for_regex("(.*)", cancellable=True)
+                # If the user pressed the cancel button, cancel the refund
+                if isinstance(reply, CancelSignal):
+                    continue
+                # Mark the order as refunded
+                order.refund_date = datetime.datetime.now()
+                # Save the refund reason
+                order.refund_reason = reply
+                # Refund the credit, reverting the old transaction
+                order.transaction.refunded = True
+                # Restore the credit to the user
+                order.user.credit -= order.transaction.value
+                # Commit the changes
+                self.session.commit()
+                # Notify the shopkeeper of the successful refund
+                self.bot.send_message(self.chat.id, strings.success_order_refunded.format(order_id=order.order_id))
+                # Notify the user of the refund
+                self.bot.send_message(order.user_id, strings.notification_order_refunded.format(order=order.get_text(self.session), reason=reply))
 
 
     def __graceful_stop(self):
