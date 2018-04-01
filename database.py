@@ -140,6 +140,7 @@ class Product(TableDeclarativeBase):
 class Transaction(TableDeclarativeBase):
     """A greed wallet transaction.
     Wallet credit ISN'T calculated from these, but they can be used to recalculate it."""
+    # TODO: split this into multiple tables
 
     # The internal transaction ID
     transaction_id = Column(Integer, primary_key=True)
@@ -195,6 +196,8 @@ class Admin(TableDeclarativeBase):
     edit_products = Column(Boolean, default=True)
     receive_orders = Column(Boolean, default=True)
     view_transactions = Column(Boolean, default=True)
+    # Live mode enabled
+    live_mode = Column(Boolean, default=False)
 
     # Extra table parameters
     __tablename__ = "admins"
@@ -238,12 +241,19 @@ class Order(TableDeclarativeBase):
         items = ""
         for item in self.items:
             items += str(item) + "\n"
-        return strings.order_format_string.format(id=self.order_id,
-                                                  user=self.user.mention(),
-                                                  date=self.creation_date.isoformat(),
-                                                  items=items,
-                                                  notes=self.notes if self.notes is not None else "",
-                                                  value=str(Price(-joined_self.transaction.value)))
+        if self.delivery_date is not None:
+            status_emoji = strings.emoji_completed
+        elif self.refund_date is not None:
+            status_emoji = strings.emoji_refunded
+        else:
+            status_emoji = strings.emoji_not_processed
+        return status_emoji + " " + \
+            strings.order_number.format(id=self.order_id) + "\n" + \
+            strings.order_format_string.format(user=self.user.mention(),
+                                               date=self.creation_date.isoformat(),
+                                               items=items,
+                                               notes=self.notes if self.notes is not None else "",
+                                               value=str(Price(-joined_self.transaction.value)))
 
 
 class OrderItem(TableDeclarativeBase):

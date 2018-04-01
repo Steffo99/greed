@@ -14,9 +14,11 @@ in_stock_format_string = "{quantity} disponibili"
 # Copies of a product in cart
 in_cart_format_string = "{quantity} nel carrello"
 
+# Order number, displayed in the order info
+order_number = "Ordine #{id}"
+
 # Order info displayed string
-order_format_string = "Ordine #{id}\n" \
-                      "di {user}\n" \
+order_format_string = "di {user}\n" \
                       "{value}\n" \
                       "Creato {date}\n" \
                       "\n" \
@@ -131,6 +133,15 @@ menu_add_to_cart = "➕ Aggiungi"
 # Menu: remove from cart
 menu_remove_from_cart = "➖ Rimuovi"
 
+# Emoji: unprocessed order
+emoji_not_processed = "*️⃣ "
+
+# Emoji: completed order
+emoji_completed = "✅"
+
+# Emoji: refunded order
+emoji_refunded = "✴️"
+
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
 
@@ -185,11 +196,11 @@ notification_order_placed = "*️⃣ E' stato piazzato un nuovo ordine:\n" \
                             "{order}"
 
 # Notification: order has been completed
-notification_order_completed = "✅ Un tuo ordine è stato completato!\n" \
+notification_order_completed = "Un tuo ordine è stato completato!\n" \
                                "{order}"
 
 # Notification: order has been refunded
-notification_order_refunded = "✴️ Un tuo ordine è stato rimborsato!\n" \
+notification_order_refunded = "Un tuo ordine è stato rimborsato!\n" \
                               "{order}\n" \
                               "\n" \
                               "Motivazione data dal negoziante:\n" \
@@ -237,3 +248,6 @@ error_duplicate_name = "️⚠️ Esiste già un prodotto con questo nome."
 
 # Error: not enough credit to order
 error_not_enough_credit = "⚠️ Non hai credito sufficiente per effettuare l'ordine."
+
+# Error: order has already been cleared
+error_order_already_cleared = "⚠️  Questo ordine è già stato processato."

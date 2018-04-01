@@ -5,6 +5,7 @@ import strings
 import worker
 import configloader
 
+
 def main():
     """The core code of the program. Should be run only in the main process!"""
 
@@ -36,7 +37,8 @@ def main():
     while True:
         # Get a new batch of 100 updates and mark the last 100 parsed as read
         try:
-            updates = bot.get_updates(offset=next_update, timeout=int(configloader.config["Telegram"]["long_polling_timeout"]))
+            updates = bot.get_updates(offset=next_update,
+                                      timeout=int(configloader.config["Telegram"]["long_polling_timeout"]))
         # If the method times out...
         except telegram.error.TimedOut:
             # Increase the TimedOut counter

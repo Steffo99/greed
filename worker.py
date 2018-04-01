@@ -42,8 +42,6 @@ class ChatWorker(threading.Thread):
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
-        # Listening mode flag: if set, display the received orders in real time
-        self.listening_mode = False
 
     def run(self):
         """The conversation code."""
@@ -196,6 +194,8 @@ class ChatWorker(threading.Thread):
             # Ensure the update is a CallbackQuery
             if update.callback_query is None:
                 continue
+            # Answer the callbackquery
+            self.bot.answer_callback_query(update.callback_query.id)
             # Return the callbackquery
             return update.callback_query
 
@@ -378,11 +378,17 @@ class ChatWorker(threading.Thread):
         self.session.commit()
         # Notify the user of the order result
         self.bot.send_message(self.chat.id, strings.success_order_created)
-        # Notify the admins (with Order Notifications enabled) of the new order created
-        admins = self.session.query(db.Admin).filter_by(receive_orders=True).all()
+        # Notify the admins (in Live Orders mode) of the new order
+        admins = self.session.query(db.Admin).filter_by(live_mode=True).all()
+        # Create the order keyboard
+        order_keyboard = telegram.InlineKeyboardMarkup(
+            [[telegram.InlineKeyboardButton(strings.menu_complete, callback_data="order_complete")],
+             [telegram.InlineKeyboardButton(strings.menu_refund, callback_data="order_refund")]])
         # Notify them of the new placed order
         for admin in admins:
-            self.bot.send_message(admin.user_id, f"{strings.notification_order_placed.format(order=order.get_text(self.session))}")
+            self.bot.send_message(admin.user_id,
+                                  f"{strings.notification_order_placed.format(order=order.get_text(self.session))}",
+                                  reply_markup=order_keyboard)
 
     def __order_status(self):
         """Display the status of the sent orders."""
@@ -449,10 +455,10 @@ class ChatWorker(threading.Thread):
             # Convert the amount to an integer
             value = Price(selection)
             # Ensure the amount is within the range
-            if value > int(configloader.config["Payments"]["max_amount"]):
+            if value > Price(int(configloader.config["Credit Card"]["max_amount"])):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=Price(configloader.config["Payments"]["max_amount"])))
                 continue
-            elif value < int(configloader.config["Payments"]["min_amount"]):
+            elif value < Price(int(configloader.config["Credit Card"]["min_amount"])):
                 self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=Price(configloader.config["Payments"]["min_amount"])))
                 continue
             break
@@ -702,40 +708,44 @@ class ChatWorker(threading.Thread):
                                                         [telegram.InlineKeyboardButton(strings.menu_refund, callback_data="order_refund")]])
         # Display the past pending orders
         orders = self.session.query(db.Order).filter_by(delivery_date=None, refund_date=None).join(db.Transaction).join(db.User).all()
-        # Create a dict linking the message ids to the orders
-        order_dict: typing.Dict[int, db.Order] = {}
         # Create a message for every one of them
         for order in orders:
             # Send the created message
             message = self.bot.send_message(self.chat.id, order.get_text(session=self.session), reply_markup=order_keyboard)
-            # Add the message to the order_dict
-            order_dict[message.message_id] = order
-        # Set the listening mode flag to True
-        self.listening_mode = True
+        # Set the Live mode flag to True
+        self.admin.live_mode = True
+        # Commit the change to the database
+        self.session.commit()
         while True:
             # Wait for any message to stop the listening mode
             update = self.__wait_for_inlinekeyboard_callback(cancellable=True)
             # If the user pressed the stop button, exit listening mode
             if isinstance(update, CancelSignal):
                 # Stop the listening mode
-                self.listening_mode = False
+                self.admin.live_mode = False
+                break
+            # Find the order
+            # TODO: debug the regex?
+            order_id = re.search(strings.order_number.replace("{id}", "([0-9]+)"), update.message.text).group(1)
+            order = self.session.query(db.Order).filter(db.Order.order_id == order_id).one()
+            # Check if the order hasn't been already cleared
+            if order.delivery_date is not None or order.refund_date is not None:
+                # Notify the admin and skip that order
+                self.bot.edit_message_text(self.chat.id, strings.error_order_already_cleared)
                 break
             # If the user pressed the complete order button, complete the order
-            elif update.data == "order_complete":
-                # Find the order
-                order = order_dict[update.message.message_id]
+            if update.data == "order_complete":
                 # Mark the order as complete
-                order.completition_date = datetime.datetime.now()
+                order.delivery_date = datetime.datetime.now()
                 # Commit the transaction
                 self.session.commit()
-                # Notify the admin of the completition
-                self.bot.send_message(self.chat.id, strings.success_order_completed.format(order_id=order.order_id))
+                # Update order message
+                self.bot.edit_message_text(order.get_text(session=self.session), chat_id=self.chat.id,
+                                           message_id=update.message.message_id)
                 # Notify the user of the completition
                 self.bot.send_message(order.user_id, strings.notification_order_completed.format(order=order.get_text(self.session)))
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
-                # Find the order
-                order = order_dict[update.message.message_id]
                 # Ask for a refund reason
                 self.bot.send_message(self.chat.id, strings.ask_refund_reason, reply_markup=cancel_keyboard)
                 # Wait for a reply
@@ -753,8 +763,8 @@ class ChatWorker(threading.Thread):
                 order.user.credit -= order.transaction.value
                 # Commit the changes
                 self.session.commit()
-                # Notify the shopkeeper of the successful refund
-                self.bot.send_message(self.chat.id, strings.success_order_refunded.format(order_id=order.order_id))
+                # Update the order message
+                self.bot.edit_message_text(order.get_text(session=self.session), chat_id=self.chat.id, message_id=update.message.message_id)
                 # Notify the user of the refund
                 self.bot.send_message(order.user_id, strings.notification_order_refunded.format(order=order.get_text(self.session), reason=reply))
 
