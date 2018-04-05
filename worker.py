@@ -173,7 +173,7 @@ class ChatWorker(threading.Thread):
             # Return the successfulpayment
             return update.message.successful_payment
 
-    def __wait_for_photo(self, cancellable:bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
+    def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
         while True:
             # Get the next update
@@ -191,7 +191,8 @@ class ChatWorker(threading.Thread):
             # Return the photo array
             return update.message.photo
 
-    def __wait_for_inlinekeyboard_callback(self, cancellable:bool=True) -> typing.Union[telegram.CallbackQuery, CancelSignal]:
+    def __wait_for_inlinekeyboard_callback(self, cancellable: bool=True) \
+            -> typing.Union[telegram.CallbackQuery, CancelSignal]:
         """Continue getting updates until an inline keyboard callback is received, then return it."""
         while True:
             # Get the next update
@@ -260,14 +261,24 @@ class ChatWorker(threading.Thread):
             # Add the product to the cart
             cart[message['result']['message_id']] = [product, 0]
             # Create the inline keyboard to add the product to the cart
-            inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add")]])
+            inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_add_to_cart,
+                                                                                            callback_data="cart_add")]])
             # Edit the sent message and add the inline keyboard
             if product.image is None:
-                self.bot.edit_message_text(chat_id=self.chat.id, message_id=message['result']['message_id'], text=product.text(), parse_mode="HTML", reply_markup=inline_keyboard)
+                self.bot.edit_message_text(chat_id=self.chat.id,
+                                           message_id=message['result']['message_id'],
+                                           text=product.text(),
+                                           parse_mode="HTML",
+                                           reply_markup=inline_keyboard)
             else:
-                self.bot.edit_message_caption(chat_id=self.chat.id, message_id=message['result']['message_id'], caption=product.text(style="image"), parse_mode="HTML", reply_markup=inline_keyboard)
+                self.bot.edit_message_caption(chat_id=self.chat.id,
+                                              message_id=message['result']['message_id'],
+                                              caption=product.text(style="image"),
+                                              parse_mode="HTML",
+                                              reply_markup=inline_keyboard)
         # Create the keyboard with the cancel button
-        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cart_cancel")]])
+        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
+                                                                                        callback_data="cart_cancel")]])
         # Send a message containing the button to cancel or pay
         final = self.bot.send_message(self.chat.id, strings.conversation_cart_actions, reply_markup=inline_keyboard)
         # Wait for user input
@@ -285,18 +296,31 @@ class ChatWorker(threading.Thread):
                 # Add 1 copy to the cart
                 cart[callback.message.message_id][1] += 1
                 # Create the product inline keyboard
-                product_inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add")],
-                                                                         [telegram.InlineKeyboardButton(strings.menu_remove_from_cart, callback_data="cart_remove")]])
+                product_inline_keyboard = telegram.InlineKeyboardMarkup(
+                    [
+                        [telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add")],
+                        [telegram.InlineKeyboardButton(strings.menu_remove_from_cart, callback_data="cart_remove")]
+                    ])
                 # Create the final inline keyboard
-                final_inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cart_cancel")],
-                                                                       [telegram.InlineKeyboardButton(strings.menu_done, callback_data="cart_done")]])
+                final_inline_keyboard = telegram.InlineKeyboardMarkup(
+                    [
+                        [telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cart_cancel")],
+                        [telegram.InlineKeyboardButton(strings.menu_done, callback_data="cart_done")]
+                    ])
                 # Edit both the product and the final message
                 if product.image is None:
-                    self.bot.edit_message_text(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                               text=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
+                    self.bot.edit_message_text(chat_id=self.chat.id,
+                                               message_id=callback.message.message_id,
+                                               text=product.text(cart_qty=cart[callback.message.message_id][1]),
+                                               parse_mode="HTML",
+                                               reply_markup=product_inline_keyboard)
                 else:
-                    self.bot.edit_message_caption(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                                  caption=product.text(style="image", cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
+                    self.bot.edit_message_caption(chat_id=self.chat.id,
+                                                  message_id=callback.message.message_id,
+                                                  caption=product.text(style="image",
+                                                                       cart_qty=cart[callback.message.message_id][1]),
+                                                  parse_mode="HTML",
+                                                  reply_markup=product_inline_keyboard)
                 # Create the cart summary
                 product_list = ""
                 total_cost = utils.Price(0)
@@ -305,7 +329,9 @@ class ChatWorker(threading.Thread):
                         product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
                         total_cost += cart[product_id][0].price * cart[product_id][1]
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=product_list, total_cost=str(total_cost)), reply_markup=final_inline_keyboard)
+                                           text=strings.conversation_confirm_cart.format(product_list=product_list,
+                                                                                         total_cost=str(total_cost)),
+                                           reply_markup=final_inline_keyboard)
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
                 # Get the selected product
@@ -316,24 +342,32 @@ class ChatWorker(threading.Thread):
                 else:
                     continue
                 # Create the product inline keyboard
-                product_inline_list = [[telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add")]]
+                product_inline_list = [[telegram.InlineKeyboardButton(strings.menu_add_to_cart,
+                                                                      callback_data="cart_add")]]
                 if cart[callback.message.message_id][1] > 0:
-                    product_inline_list.append([telegram.InlineKeyboardButton(strings.menu_remove_from_cart, callback_data="cart_remove")])
+                    product_inline_list.append([telegram.InlineKeyboardButton(strings.menu_remove_from_cart,
+                                                                              callback_data="cart_remove")])
                 product_inline_keyboard = telegram.InlineKeyboardMarkup(product_inline_list)
                 # Create the final inline keyboard
                 final_inline_list = [[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cart_cancel")]]
                 for product_id in cart:
                     if cart[product_id][1] > 0:
-                        final_inline_list.append([telegram.InlineKeyboardButton(strings.menu_done, callback_data="cart_done")])
+                        final_inline_list.append([telegram.InlineKeyboardButton(strings.menu_done,
+                                                                                callback_data="cart_done")])
                         break
                 final_inline_keyboard = telegram.InlineKeyboardMarkup(final_inline_list)
                 # Edit the product message
                 if product.image is None:
                     self.bot.edit_message_text(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                               text=product.text(cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
+                                               text=product.text(cart_qty=cart[callback.message.message_id][1]),
+                                               parse_mode="HTML", reply_markup=product_inline_keyboard)
                 else:
-                    self.bot.edit_message_caption(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                                  caption=product.text(style="image", cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
+                    self.bot.edit_message_caption(chat_id=self.chat.id,
+                                                  message_id=callback.message.message_id,
+                                                  caption=product.text(style="image",
+                                                                       cart_qty=cart[callback.message.message_id][1]),
+                                                  parse_mode="HTML",
+                                                  reply_markup=product_inline_keyboard)
                 # Create the cart summary
                 product_list = ""
                 total_cost = utils.Price(0)
@@ -350,7 +384,8 @@ class ChatWorker(threading.Thread):
                 # End the loop
                 break
         # Create an inline keyboard with a single skip button
-        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip, callback_data="cmd_cancel")]])
+        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip,
+                                                                               callback_data="cmd_cancel")]])
         # Ask if the user wants to add notes to the order
         self.bot.send_message(self.chat.id, strings.ask_order_notes, reply_markup=cancel)
         # Wait for user input
@@ -393,8 +428,10 @@ class ChatWorker(threading.Thread):
         admins = self.session.query(db.Admin).filter_by(live_mode=True).all()
         # Create the order keyboard
         order_keyboard = telegram.InlineKeyboardMarkup(
-            [[telegram.InlineKeyboardButton(strings.menu_complete, callback_data="order_complete")],
-             [telegram.InlineKeyboardButton(strings.menu_refund, callback_data="order_refund")]])
+            [
+                [telegram.InlineKeyboardButton(strings.menu_complete, callback_data="order_complete")],
+                [telegram.InlineKeyboardButton(strings.menu_refund, callback_data="order_refund")]
+            ])
         # Notify them of the new placed order
         for admin in admins:
             self.bot.send_message(admin.user_id,
@@ -404,7 +441,11 @@ class ChatWorker(threading.Thread):
     def __order_status(self):
         """Display the status of the sent orders."""
         # Find the latest orders
-        orders = self.session.query(db.Order).filter(db.Order.user == self.user).order_by(db.Order.creation_date.desc()).limit(5).all()
+        orders = self.session.query(db.Order)\
+            .filter(db.Order.user == self.user)\
+            .order_by(db.Order.creation_date.desc())\
+            .limit(5)\
+            .all()
         # Ensure there is at least one order to display
         if len(orders) == 0:
             self.bot.send_message(self.chat.id, strings.error_no_orders)
@@ -475,10 +516,14 @@ class ChatWorker(threading.Thread):
             value = utils.Price(selection)
             # Ensure the amount is within the range
             if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
-                self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
+                self.bot.send_message(self.chat.id,
+                                      strings.error_payment_amount_over_max.format(
+                                          max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
                 continue
             elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
-                self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
+                self.bot.send_message(self.chat.id,
+                                      strings.error_payment_amount_under_min.format(
+                                          min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
                 continue
             break
         # If the user cancelled the action...
@@ -500,7 +545,8 @@ class ChatWorker(threading.Thread):
             total_fee = 0
         # Create the invoice keyboard
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
-                                                         [telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cmd_cancel")]])
+                                                         [telegram.InlineKeyboardButton(strings.menu_cancel,
+                                                                                        callback_data="cmd_cancel")]])
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
@@ -615,18 +661,22 @@ class ChatWorker(threading.Thread):
     def __edit_product_menu(self, product: typing.Optional[db.Product]=None):
         """Add a product to the database or edit an existing one."""
         # Create an inline keyboard with a single skip button
-        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip, callback_data="cmd_cancel")]])
+        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip,
+                                                                               callback_data="cmd_cancel")]])
         # Ask for the product name until a valid product name is specified
         while True:
             # Ask the question to the user
             self.bot.send_message(self.chat.id, strings.ask_product_name)
             # Display the current name if you're editing an existing product
             if product:
-                self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.name)), parse_mode="HTML", reply_markup=cancel)
+                self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.name)),
+                                      parse_mode="HTML",
+                                      reply_markup=cancel)
             # Wait for an answer
             name = self.__wait_for_regex(r"(.*)", cancellable=bool(product))
             # Ensure a product with that name doesn't already exist
-            if (product and isinstance(name, CancelSignal)) or self.session.query(db.Product).filter_by(name=name, deleted=False).one_or_none() in [None, product]:
+            if (product and isinstance(name, CancelSignal)) or\
+                    self.session.query(db.Product).filter_by(name=name, deleted=False).one_or_none() in [None, product]:
                 # Exit the loop
                 break
             self.bot.send_message(self.chat.id, strings.error_duplicate_name)
@@ -634,16 +684,25 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.ask_product_description)
         # Display the current description if you're editing an existing product
         if product:
-            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.description)), parse_mode="HTML", reply_markup=cancel)
+            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.description)),
+                                  parse_mode="HTML",
+                                  reply_markup=cancel)
         # Wait for an answer
         description = self.__wait_for_regex(r"(.*)", cancellable=bool(product))
         # Ask for the product price
-        self.bot.send_message(self.chat.id, strings.ask_product_price, parse_mode="HTML")
+        self.bot.send_message(self.chat.id, strings.ask_product_price,
+                              parse_mode="HTML")
         # Display the current name if you're editing an existing product
         if product:
-            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(str(utils.Price(product.price)) if product.price is not None else 'Non in vendita')), parse_mode="HTML", reply_markup=cancel)
+            self.bot.send_message(self.chat.id,
+                                  strings.edit_current_value.format(
+                                      value=(str(utils.Price(product.price))
+                                             if product.price is not None else 'Non in vendita')),
+                                  parse_mode="HTML",
+                                  reply_markup=cancel)
         # Wait for an answer
-        price = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?|[Xx])", cancellable=True)
+        price = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?|[Xx])",
+                                      cancellable=True)
         # If the price is skipped
         if isinstance(price, CancelSignal):
             pass
@@ -718,19 +777,28 @@ class ChatWorker(threading.Thread):
     def __orders_menu(self):
         """Display a live flow of orders."""
         # Create a cancel and a stop keyboard
-        stop_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_stop, callback_data="cmd_cancel")]])
-        cancel_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cmd_cancel")]])
+        stop_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_stop,
+                                                                                      callback_data="cmd_cancel")]])
+        cancel_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
+                                                                                        callback_data="cmd_cancel")]])
         # Send a small intro message on the Live Orders mode
         self.bot.send_message(self.chat.id, strings.conversation_live_orders_start, reply_markup=stop_keyboard)
         # Create the order keyboard
-        order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_complete, callback_data="order_complete")],
-                                                        [telegram.InlineKeyboardButton(strings.menu_refund, callback_data="order_refund")]])
+        order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_complete,
+                                                                                       callback_data="order_complete")],
+                                                        [telegram.InlineKeyboardButton(strings.menu_refund,
+                                                                                       callback_data="order_refund")]])
         # Display the past pending orders
-        orders = self.session.query(db.Order).filter_by(delivery_date=None, refund_date=None).join(db.Transaction).join(db.User).all()
+        orders = self.session.query(db.Order)\
+            .filter_by(delivery_date=None, refund_date=None)\
+            .join(db.Transaction)\
+            .join(db.User)\
+            .all()
         # Create a message for every one of them
         for order in orders:
             # Send the created message
-            message = self.bot.send_message(self.chat.id, order.get_text(session=self.session), reply_markup=order_keyboard)
+            self.bot.send_message(self.chat.id, order.get_text(session=self.session),
+                                  reply_markup=order_keyboard)
         # Set the Live mode flag to True
         self.admin.live_mode = True
         # Commit the change to the database
@@ -762,7 +830,8 @@ class ChatWorker(threading.Thread):
                 self.bot.edit_message_text(order.get_text(session=self.session), chat_id=self.chat.id,
                                            message_id=update.message.message_id)
                 # Notify the user of the completition
-                self.bot.send_message(order.user_id, strings.notification_order_completed.format(order=order.get_text(self.session)))
+                self.bot.send_message(order.user_id,
+                                      strings.notification_order_completed.format(order=order.get_text(self.session)))
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
                 # Ask for a refund reason
@@ -783,9 +852,12 @@ class ChatWorker(threading.Thread):
                 # Commit the changes
                 self.session.commit()
                 # Update the order message
-                self.bot.edit_message_text(order.get_text(session=self.session), chat_id=self.chat.id, message_id=update.message.message_id)
+                self.bot.edit_message_text(order.get_text(session=self.session),
+                                           chat_id=self.chat.id,
+                                           message_id=update.message.message_id)
                 # Notify the user of the refund
-                self.bot.send_message(order.user_id, strings.notification_order_refunded.format(order=order.get_text(self.session)))
+                self.bot.send_message(order.user_id,
+                                      strings.notification_order_refunded.format(order=order.get_text(self.session)))
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""
