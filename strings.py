@@ -232,18 +232,22 @@ success_order_refunded = "✴️ L'ordine #{order_id} è stato rimborsato con su
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
 
-# Error: a message was sent in a chat, but no worker exists for that chat. Suggest the creation of a new worker with /start
+# Error: a message was sent in a chat, but no worker exists for that chat.
+# Suggest the creation of a new worker with /start
 error_no_worker_for_chat = "⚠️ La conversazione con il bot è interrotta.\n" \
                            "Per riavviarla, manda il comando /start al bot."
 
 # Error: add funds amount over max
-error_payment_amount_over_max = "⚠️ Il massimo di fondi che possono essere aggiunti in una singola transazione è {max_amount}."
+error_payment_amount_over_max = "⚠️ Il massimo di fondi che possono essere aggiunti in una singola transazione è " \
+                                "{max_amount}."
 
 # Error: add funds amount under min
-error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere aggiunti in una singola transazione è {min_amount}."
+error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere aggiunti in una singola transazione è " \
+                                 "{min_amount}."
 
 # Error: the invoice has expired and can't be paid
-error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullato. Se vuoi ancora aggiungere fondi, usa l'opzione Aggiungi fondi del menu."
+error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullato. Se vuoi ancora aggiungere fondi, " \
+                        "usa l'opzione Aggiungi fondi del menu. "
 
 # Error: a product with that name already exists
 error_duplicate_name = "️⚠️ Esiste già un prodotto con questo nome."
