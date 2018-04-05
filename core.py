@@ -4,13 +4,13 @@ import time
 import strings
 import worker
 import configloader
-
+import utils
 
 def main():
     """The core code of the program. Should be run only in the main process!"""
 
     # Create a bot instance
-    bot = telegram.Bot(configloader.config["Telegram"]["token"])
+    bot = utils.DuckBot(configloader.config["Telegram"]["token"])
 
     # Test the specified token
     try:

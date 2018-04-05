@@ -9,7 +9,7 @@ import sys
 import queue as queuem
 import database as db
 import re
-from utils import Price
+import utils
 from html import escape
 
 class StopSignal:
@@ -27,17 +27,17 @@ class CancelSignal:
 class ChatWorker(threading.Thread):
     """A worker for a single conversation. A new one is created every time the /start command is sent."""
 
-    def __init__(self, bot: telegram.Bot, chat: telegram.Chat, *args, **kwargs):
+    def __init__(self, bot: utils.DuckBot, chat: telegram.Chat, *args, **kwargs):
         # Initialize the thread
         super().__init__(name=f"ChatThread {chat.first_name}", *args, **kwargs)
         # Store the bot and chat info inside the class
-        self.bot = bot
-        self.chat = chat
+        self.bot: utils.DuckBot = bot
+        self.chat: telegram.Chat = chat
         # Open a new database session
         self.session = db.Session()
         # Get the user db data from the users and admin tables
-        self.user = None
-        self.admin = None
+        self.user: typing.Optional[db.User] = None
+        self.admin: typing.Optional[db.Admin] = None
         # The sending pipe is stored in the ChatWorker class, allowing the forwarding of messages to the chat process
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
@@ -216,7 +216,7 @@ class ChatWorker(threading.Thread):
                         [telegram.KeyboardButton(strings.menu_bot_info)]]
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id,
-                                  strings.conversation_open_user_menu.format(credit=Price(self.user.credit)),
+                                  strings.conversation_open_user_menu.format(credit=utils.Price(self.user.credit)),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
                                   parse_mode="HTML")
             # Wait for a reply from the user
@@ -295,7 +295,7 @@ class ChatWorker(threading.Thread):
                                                   caption=product.text(style="image", cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
                 # Create the cart summary
                 product_list = ""
-                total_cost = Price(0)
+                total_cost = utils.Price(0)
                 for product_id in cart:
                     if cart[product_id][1] > 0:
                         product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
@@ -332,7 +332,7 @@ class ChatWorker(threading.Thread):
                                                   caption=product.text(style="image", cart_qty=cart[callback.message.message_id][1]), parse_mode="HTML", reply_markup=product_inline_keyboard)
                 # Create the cart summary
                 product_list = ""
-                total_cost = Price(0)
+                total_cost = utils.Price(0)
                 for product_id in cart:
                     if cart[product_id][1] > 0:
                         product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
@@ -447,10 +447,10 @@ class ChatWorker(threading.Thread):
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(str(Price("10.00")))],
-                    [telegram.KeyboardButton(str(Price("25.00")))],
-                    [telegram.KeyboardButton(str(Price("50.00")))],
-                    [telegram.KeyboardButton(str(Price("100.00")))],
+        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
+                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
+                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
+                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
                     [telegram.KeyboardButton(strings.menu_cancel)]]
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
@@ -468,13 +468,13 @@ class ChatWorker(threading.Thread):
                 cancelled = True
                 continue
             # Convert the amount to an integer
-            value = Price(selection)
+            value = utils.Price(selection)
             # Ensure the amount is within the range
-            if value > Price(int(configloader.config["Credit Card"]["max_amount"])):
-                self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=Price(configloader.config["Payments"]["max_amount"])))
+            if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
+                self.bot.send_message(self.chat.id, strings.error_payment_amount_over_max.format(max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
                 continue
-            elif value < Price(int(configloader.config["Credit Card"]["min_amount"])):
-                self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=Price(configloader.config["Payments"]["min_amount"])))
+            elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
+                self.bot.send_message(self.chat.id, strings.error_payment_amount_under_min.format(min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
                 continue
             break
         # If the user cancelled the action...
@@ -637,7 +637,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.ask_product_price, parse_mode="HTML")
         # Display the current name if you're editing an existing product
         if product:
-            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(str(Price(product.price)) if product.price is not None else 'Non in vendita')), parse_mode="HTML", reply_markup=cancel)
+            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=(str(utils.Price(product.price)) if product.price is not None else 'Non in vendita')), parse_mode="HTML", reply_markup=cancel)
         # Wait for an answer
         price = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]{1,2})?|[Xx])", cancellable=True)
         # If the price is skipped
@@ -646,7 +646,7 @@ class ChatWorker(threading.Thread):
         elif price.lower() == "x":
             price = None
         else:
-            price = Price(price)
+            price = utils.Price(price)
         # Ask for the product image
         self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
         # Wait for an answer

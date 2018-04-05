@@ -1,6 +1,6 @@
 import telegram
 import telegram.error
-
+import time
 from configloader import config
 from strings import currency_format_string, currency_symbol
 import typing
@@ -66,6 +66,7 @@ class Price:
         return Price(Price(other).value - self.value)
 
     def __rmul__(self, other):
+
         return self.__mul__(other)
 
     def __iadd__(self, other):
@@ -85,3 +86,73 @@ class Price:
         self.value //= other
         return self
 
+
+def catch_telegram_errors(func):
+    """Decorator, can be applied to any function to retry in case of Telegram errors."""
+    def result_func(*args, **kwargs):
+        while True:
+            try:
+                func(*args, **kwargs)
+            except telegram.error.Unauthorized:
+                print(f"Unauthorized to call {func.__name__}(), skipping.")
+                break
+            except telegram.error.TimedOut:
+                print(f"Timed out while calling {func.__name__}(), retrying in 1 sec...")
+                time.sleep(1)
+            except telegram.error.NetworkError:
+                print(f"Network error while calling {func.__name__}(), retrying in 5 secs...")
+                time.sleep(5)
+            else:
+                break
+    return result_func
+
+
+class DuckBot:
+    def __init__(self, *args, **kwargs):
+        self.bot = telegram.Bot(*args, **kwargs)
+
+    @catch_telegram_errors
+    def send_message(self, *args, **kwargs):
+        self.bot.send_message(*args, **kwargs)
+
+    @catch_telegram_errors
+    def edit_message_text(self, *args, **kwargs):
+        self.bot.edit_message_text(*args, **kwargs)
+
+    @catch_telegram_errors
+    def edit_message_caption(self, *args, **kwargs):
+        self.bot.edit_message_caption(*args, **kwargs)
+
+    @catch_telegram_errors
+    def edit_message_reply_markup(self, *args, **kwargs):
+        self.bot.edit_message_reply_markup(*args, **kwargs)
+
+    @catch_telegram_errors
+    def get_updates(self, *args, **kwargs):
+        self.bot.get_updates(*args, **kwargs)
+
+    @catch_telegram_errors
+    def get_me(self, *args, **kwargs):
+        self.bot.get_me(*args, **kwargs)
+
+    @catch_telegram_errors
+    def answer_callback_query(self, *args, **kwargs):
+        self.bot.answer_callback_query(*args, **kwargs)
+
+    @catch_telegram_errors
+    def answer_pre_checkout_query(self, *args, **kwargs):
+        self.bot.answer_pre_checkout_query(*args, **kwargs)
+
+    @catch_telegram_errors
+    def send_invoice(self, *args, **kwargs):
+        self.bot.send_invoice(*args, **kwargs)
+
+    @catch_telegram_errors
+    def get_file(self, *args, **kwargs):
+        self.bot.get_file(*args, **kwargs)
+
+    @catch_telegram_errors
+    def send_chat_action(self, *args, **kwargs):
+        self.bot.send_chat_action(*args, **kwargs)
+
+    # TODO: add more methods
