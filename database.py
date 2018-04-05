@@ -253,7 +253,8 @@ class Order(TableDeclarativeBase):
                                                date=self.creation_date.isoformat(),
                                                items=items,
                                                notes=self.notes if self.notes is not None else "",
-                                               value=str(Price(-joined_self.transaction.value)))
+                                               value=str(Price(-joined_self.transaction.value))) + \
+            (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
 
 
 class OrderItem(TableDeclarativeBase):

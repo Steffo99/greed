@@ -64,6 +64,11 @@ class ChatWorker(threading.Thread):
             self.__user_menu()
         # If the user is an admin, send him to the admin menu
         else:
+            # Clear the live orders flag
+            self.admin.live_mode = False
+            # Commit the change
+            self.session.commit()
+            # Open the admin menu
             self.__admin_menu()
 
     def stop(self, reason: str=""):
@@ -210,8 +215,10 @@ class ChatWorker(threading.Thread):
                         [telegram.KeyboardButton(strings.menu_add_credit)],
                         [telegram.KeyboardButton(strings.menu_bot_info)]]
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
-            self.bot.send_message(self.chat.id, strings.conversation_open_user_menu,
-                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+            self.bot.send_message(self.chat.id,
+                                  strings.conversation_open_user_menu.format(credit=Price(self.user.credit)),
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
+                                  parse_mode="HTML")
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
                                                           strings.menu_add_credit, strings.menu_bot_info])
@@ -392,7 +399,15 @@ class ChatWorker(threading.Thread):
 
     def __order_status(self):
         """Display the status of the sent orders."""
-        pass
+        # Find the latest orders
+        orders = self.session.query(db.Order).filter(db.Order.user == self.user).order_by(db.Order.creation_date.desc()).limit(5).all()
+        # Ensure there is at least one order to display
+        if len(orders) == 0:
+            self.bot.send_message(self.chat.id, strings.error_no_orders)
+        # Display the order status to the user
+        for order in orders:
+            self.bot.send_message(self.chat.id, order.get_text(self.session))
+        # TODO: maybe add a page displayer instead of showing the latest 5 orders
 
     def __add_credit_menu(self):
         """Add more credit to the account."""
@@ -766,8 +781,7 @@ class ChatWorker(threading.Thread):
                 # Update the order message
                 self.bot.edit_message_text(order.get_text(session=self.session), chat_id=self.chat.id, message_id=update.message.message_id)
                 # Notify the user of the refund
-                self.bot.send_message(order.user_id, strings.notification_order_refunded.format(order=order.get_text(self.session), reason=reply))
-
+                self.bot.send_message(order.user_id, strings.notification_order_refunded.format(order=order.get_text(self.session)))
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""

@@ -1,4 +1,5 @@
-import time
+import telegram
+import telegram.error
 
 from configloader import config
 from strings import currency_format_string, currency_symbol
@@ -83,3 +84,4 @@ class Price:
     def __ifloordiv__(self, other):
         self.value //= other
         return self
+

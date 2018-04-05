@@ -31,7 +31,8 @@ conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!"
 
 # Conversation: to send an inline keyboard you need to send a message with it
-conversation_open_user_menu = "Cosa vorresti fare?"
+conversation_open_user_menu = "Cosa vorresti fare?\n" \
+                              "Hai <b>{credit}</b> sul portafoglio."
 
 # Conversation: the same message as above but when the first has already been sent
 conversation_open_user_menu_multiple = "Hai bisogno di qualcos'altro?"
@@ -192,7 +193,7 @@ payment_invoice_label = "Ricarica"
 payment_invoice_fee_label = "Supplemento carta"
 
 # Notification: order has been placed
-notification_order_placed = "*️⃣ E' stato piazzato un nuovo ordine:\n" \
+notification_order_placed = "E' stato piazzato un nuovo ordine:\n" \
                             "{order}"
 
 # Notification: order has been completed
@@ -201,10 +202,11 @@ notification_order_completed = "Un tuo ordine è stato completato!\n" \
 
 # Notification: order has been refunded
 notification_order_refunded = "Un tuo ordine è stato rimborsato!\n" \
-                              "{order}\n" \
-                              "\n" \
-                              "Motivazione data dal negoziante:\n" \
-                              "{reason}"
+                              "{order}"
+
+# Refund reason
+refund_reason = "Motivazione del rimborso:\n" \
+                "{reason}"
 
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
@@ -251,3 +253,6 @@ error_not_enough_credit = "⚠️ Non hai credito sufficiente per effettuare l'o
 
 # Error: order has already been cleared
 error_order_already_cleared = "⚠️  Questo ordine è già stato processato."
+
+# Error: no orders have been placed, so none can be shown
+error_no_orders = "⚠️  Non hai ancora piazzato ordini, quindi non c'è niente da visualizzare!"
