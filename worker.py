@@ -12,6 +12,7 @@ import re
 import utils
 from html import escape
 
+
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
 
@@ -45,7 +46,6 @@ class ChatWorker(threading.Thread):
 
     def run(self):
         """The conversation code."""
-        # TODO: catch all the possible exceptions
         # Welcome the user to the bot
         self.bot.send_message(self.chat.id, strings.conversation_after_start)
         # Get the user db data from the users and admin tables
@@ -78,6 +78,7 @@ class ChatWorker(threading.Thread):
         # Wait for the thread to stop
         self.join()
 
+    # noinspection PyUnboundLocalVariable
     def __receive_next_update(self) -> telegram.Update:
         """Get the next update from the queue.
         If no update is found, block the process until one is received.
@@ -95,7 +96,9 @@ class ChatWorker(threading.Thread):
         # Return the received update
         return data
 
-    def __wait_for_specific_message(self, items:typing.List[str], cancellable:bool=False) -> typing.Union[str, CancelSignal]:
+    def __wait_for_specific_message(self,
+                                    items: typing.List[str],
+                                    cancellable: bool=False) -> typing.Union[str, CancelSignal]:
         """Continue getting updates until until one of the strings contained in the list is received as a message."""
         while True:
             # Get the next update
@@ -116,7 +119,7 @@ class ChatWorker(threading.Thread):
             # Return the message text
             return update.message.text
 
-    def __wait_for_regex(self, regex:str, cancellable:bool=False) -> typing.Union[str, CancelSignal]:
+    def __wait_for_regex(self, regex: str, cancellable: bool=False) -> typing.Union[str, CancelSignal]:
         """Continue getting updates until the regex finds a match in a message, then return the first capture group."""
         while True:
             # Get the next update
@@ -139,7 +142,8 @@ class ChatWorker(threading.Thread):
             # Return the first capture group
             return match.group(1)
 
-    def __wait_for_precheckoutquery(self, cancellable:bool=False) -> typing.Union[telegram.PreCheckoutQuery, CancelSignal]:
+    def __wait_for_precheckoutquery(self,
+                                    cancellable: bool=False) -> typing.Union[telegram.PreCheckoutQuery, CancelSignal]:
         """Continue getting updates until a precheckoutquery is received.
         The payload is checked by the core before forwarding the message."""
         while True:

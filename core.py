@@ -36,39 +36,8 @@ def main():
     # Main loop of the program
     while True:
         # Get a new batch of 100 updates and mark the last 100 parsed as read
-        try:
-            updates = bot.get_updates(offset=next_update,
-                                      timeout=int(configloader.config["Telegram"]["long_polling_timeout"]))
-        # If the method times out...
-        except telegram.error.TimedOut:
-            # Increase the TimedOut counter
-            timed_out_counter += 1
-            # Notify on stdout
-            print(f"WARNING: get_updates timed out ({timed_out_counter} time{'s' if timed_out_counter != 1 else ''})")
-            # Try again
-            continue
-        # If the method raises a NetworkError (connection problems)...
-        except telegram.error.NetworkError:
-            # Increase the TimedOut counter
-            timed_out_counter += 1
-            # Notify on stdout
-            print(f"ERROR: get_updates raised a NetworkError ({timed_out_counter} time{'s' if timed_out_counter != 1 else ''})")
-            # Wait some time before retrying
-            time.sleep(3)
-            continue
-        # If Telegram returns an error...
-        except telegram.error.TelegramError as e:
-            # Increase the TimedOut counter
-            timed_out_counter += 1
-            # Notify on stdout
-            print(f"ERROR: telegram returned an error while trying to get_updates ({e.message}) ({timed_out_counter} time{'s' if timed_out_counter != 1 else ''})")
-            # Wait some time before retrying
-            time.sleep(3)
-            continue
-        # If all goes well...
-        else:
-            # Reset the TimedOut counter
-            timed_out_counter = 0
+        updates = bot.get_updates(offset=next_update,
+                                  timeout=int(configloader.config["Telegram"]["long_polling_timeout"]))
         # Parse all the updates
         for update in updates:
             # If the update is a message...
