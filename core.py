@@ -1,10 +1,10 @@
 import sys
 import telegram
-import time
 import strings
 import worker
 import configloader
 import utils
+
 
 def main():
     """The core code of the program. Should be run only in the main process!"""
@@ -26,9 +26,6 @@ def main():
 
     # Current update offset; if None it will get the last 100 unparsed messages
     next_update = None
-
-    # TimedOut / NetworkError counter, increases by 1 every time get_updates fails and resets to 0 when it succedes
-    timed_out_counter = 0
 
     # Notify on the console that the bot is starting
     print("greed-bot is now starting!")
@@ -68,7 +65,8 @@ def main():
                 # Ensure a worker exists for the chat and is alive
                 if receiving_worker is None or not receiving_worker.is_alive():
                     # Suggest that the user restarts the chat with /start
-                    bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat, reply_markup=telegram.ReplyKeyboardRemove())
+                    bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat,
+                                     reply_markup=telegram.ReplyKeyboardRemove())
                     # Skip the update
                     continue
                 # Forward the update to the worker
@@ -97,10 +95,13 @@ def main():
                 # Forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.pre_checkout_query.from_user.id)
                 # Check if it's the active invoice for this chat
-                if receiving_worker is None or update.pre_checkout_query.invoice_payload != receiving_worker.invoice_payload:
+                if receiving_worker is None or\
+                        update.pre_checkout_query.invoice_payload != receiving_worker.invoice_payload:
                     # Notify the user that the invoice has expired
                     try:
-                        bot.answer_pre_checkout_query(update.pre_checkout_query.id, ok=False, error_message=strings.error_invoice_expired)
+                        bot.answer_pre_checkout_query(update.pre_checkout_query.id,
+                                                      ok=False,
+                                                      error_message=strings.error_invoice_expired)
                     except telegram.error.BadRequest:
                         print(f"ERROR: pre_checkout_query expired before an answer could be sent")
                     # Go to the next update

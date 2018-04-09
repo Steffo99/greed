@@ -1,2 +1,2 @@
 # greed
-A framework for shops on Telegram
+A customizable Telegram shop bot

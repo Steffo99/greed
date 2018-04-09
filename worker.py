@@ -684,13 +684,15 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.ask_product_description)
         # Display the current description if you're editing an existing product
         if product:
-            self.bot.send_message(self.chat.id, strings.edit_current_value.format(value=escape(product.description)),
+            self.bot.send_message(self.chat.id,
+                                  strings.edit_current_value.format(value=escape(product.description)),
                                   parse_mode="HTML",
                                   reply_markup=cancel)
         # Wait for an answer
         description = self.__wait_for_regex(r"(.*)", cancellable=bool(product))
         # Ask for the product price
-        self.bot.send_message(self.chat.id, strings.ask_product_price,
+        self.bot.send_message(self.chat.id,
+                              strings.ask_product_price,
                               parse_mode="HTML")
         # Display the current name if you're editing an existing product
         if product:
@@ -717,6 +719,7 @@ class ChatWorker(threading.Thread):
         # If a new product is being added...
         if not product:
             # Create the db record for the product
+            # noinspection PyTypeChecker
             product = db.Product(name=name,
                                  description=description,
                                  price=int(price),

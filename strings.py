@@ -14,6 +14,13 @@ in_stock_format_string = "{quantity} disponibili"
 # Copies of a product in cart
 in_cart_format_string = "{quantity} nel carrello"
 
+# Product information
+product_format_string = "<b>{name}</b>\n" \
+                        "{description}\n" \
+                        "{stock}\n" \
+                        "{price}\n" \
+                        "<b>{cart}</b>"
+
 # Order number, displayed in the order info
 order_number = "Ordine #{id}"
 

@@ -1,3 +1,5 @@
+import typing
+
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
 from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker, relationship
@@ -17,6 +19,7 @@ TableDeclarativeBase = declarative_base(bind=engine)
 
 # Create a Session class able to initialize database sessions
 Session = sessionmaker()
+
 
 # Define all the database tables using the sqlalchemy declarative base
 class User(TableDeclarativeBase):
@@ -91,17 +94,26 @@ class Product(TableDeclarativeBase):
     def __str__(self):
         return self.text()
 
-    def text(self, style:str="full", cart_qty:int=None):
+    def text(self, style: str="full", cart_qty: int=None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
         if style == "short":
             return f"{cart_qty}x {escape(self.name)} - {str(Price(self.price) * cart_qty)}"
         elif style == "full":
-            return f"<b>{escape(self.name)}</b>\n" \
-                   f"{escape(self.description)}\n" \
-                   f"<i>{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}</i>\n" \
-                   f"{str(Price(self.price))}\n" \
-                   f"<b>{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}</b>"
+            if self.stock is not None:
+                stock = strings.in_stock_format_string.format(quantity=self.stock)
+            else:
+                stock = ''
+            if cart_qty is not None:
+                cart = strings.in_cart_format_string.format(quantity=cart_qty)
+            else:
+                cart = ''
+            return strings.order_format_string.format(name=escape(self.name),
+                                                      description=escape(self.description),
+                                                      stock=stock,
+                                                      price=str(Price(self.price)),
+                                                      cart=cart)
         elif style == "image":
+            print("WARNING: image text is obsolete and shouldn't be used anymore")
             return f"{escape(self.name)}\n" \
                    f"{escape(self.description)}\n" \
                    f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
@@ -117,9 +129,9 @@ class Product(TableDeclarativeBase):
         """Send a message containing the product data."""
         if self.image is None:
             r = requests.get(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendMessage",
-                           params={"chat_id": chat_id,
-                                   "text": self.text(),
-                                   "parse_mode": "HTML"})
+                             params={"chat_id": chat_id,
+                                     "text": self.text(),
+                                     "parse_mode": "HTML"})
         else:
             r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
                               files={"photo": self.image},
@@ -224,7 +236,7 @@ class Order(TableDeclarativeBase):
     # Refund reason: if null, product hasn't been refunded
     refund_reason = Column(Text)
     # List of items in the order
-    items = relationship("OrderItem")
+    items: typing.List["OrderItem"] = relationship("OrderItem")
     # Extra details specified by the purchasing user
     notes = Column(Text)
     # Linked transaction

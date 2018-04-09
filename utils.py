@@ -7,7 +7,7 @@ import typing
 
 
 class Price:
-    def __init__(self, value:typing.Union[int, float, str, "Price"]=0):
+    def __init__(self, value: typing.Union[int, float, str, "Price"]=0):
         if isinstance(value, int):
             # Keep the value as it is
             self.value = int(value)
@@ -25,7 +25,9 @@ class Price:
         return f"<Price of value {self.value}>"
 
     def __str__(self):
-        return currency_format_string.format(symbol=currency_symbol, value="{0:.2f}".format(self.value / (10 ** int(config["Payments"]["currency_exp"]))))
+        return currency_format_string.format(symbol=currency_symbol,
+                                             value="{0:.2f}".format(
+                                                 self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 
     def __int__(self):
         return self.value
