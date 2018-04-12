@@ -57,6 +57,10 @@ class User(TableDeclarativeBase):
         else:
             return self.first_name
 
+    def identifiable_str(self):
+        """Describe the user in the best way possible, ensuring a way back to the database record exists."""
+        return f"user_{self.user_id} ({str(self)})"
+
     def mention(self):
         """Mention the user in the best way possible given the available data."""
         if self.username is not None:
@@ -107,18 +111,11 @@ class Product(TableDeclarativeBase):
                 cart = strings.in_cart_format_string.format(quantity=cart_qty)
             else:
                 cart = ''
-            return strings.order_format_string.format(name=escape(self.name),
-                                                      description=escape(self.description),
-                                                      stock=stock,
-                                                      price=str(Price(self.price)),
-                                                      cart=cart)
-        elif style == "image":
-            print("WARNING: image text is obsolete and shouldn't be used anymore")
-            return f"{escape(self.name)}\n" \
-                   f"{escape(self.description)}\n" \
-                   f"{strings.in_stock_format_string.format(quantity=self.stock) if self.stock is not None else ''}\n" \
-                   f"{str(Price(self.price))}\n" \
-                   f"{strings.in_cart_format_string.format(quantity=cart_qty) if cart_qty is not None else ''}"
+            return strings.product_format_string.format(name=escape(self.name),
+                                                        description=escape(self.description),
+                                                        stock=stock,
+                                                        price=str(Price(self.price)),
+                                                        cart=cart)
         else:
             raise ValueError("style is not an accepted value")
 
@@ -136,7 +133,7 @@ class Product(TableDeclarativeBase):
             r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
                               files={"photo": self.image},
                               params={"chat_id": chat_id,
-                                      "caption": self.text(style="image"),
+                                      "caption": self.text(),
                                       "parse_mode": "HTML"})
         return r.json()
 
@@ -186,12 +183,13 @@ class Transaction(TableDeclarativeBase):
     __table_args__ = (UniqueConstraint("provider", "provider_charge_id"),)
 
     def __str__(self):
-        """Return the correctly formatted transaction value"""
-        # Add a plus symbol if the value is positive
-        string = "+" if self.value > 0 else ""
-        # Add the correctly formatted value
-        string += strings.currency_format_string.format(symbol=strings.currency_symbol, value=self.value)
-        # Return the created string
+        string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {Price(self.value)}"
+        if self.refunded:
+            string += f" | {strings.emoji_refunded}"
+        if self.provider:
+            string += f" | {self.provider}"
+        if self.notes:
+            string += f" | {self.notes}"
         return string
 
     def __repr__(self):
@@ -207,7 +205,7 @@ class Admin(TableDeclarativeBase):
     # Permissions
     edit_products = Column(Boolean, default=True)
     receive_orders = Column(Boolean, default=True)
-    view_transactions = Column(Boolean, default=True)
+    create_transactions = Column(Boolean, default=True)
     # Live mode enabled
     live_mode = Column(Boolean, default=False)
 

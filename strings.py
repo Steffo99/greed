@@ -57,6 +57,9 @@ conversation_admin_select_product = "✏️ Che prodotto vuoi modificare?"
 # Conversation: select a product to delete
 conversation_admin_select_product_to_delete = "❌ Che prodotto vuoi eliminare?"
 
+# Conversation: select a user to edit
+conversation_admin_select_user = "✏️ Che utente vuoi modificare?"
+
 # Conversation: add extra notes to the order
 conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
 
@@ -105,6 +108,9 @@ menu_orders = "📦 Ordini"
 # Menu: transactions
 menu_transactions = "💳 Transazioni"
 
+# Menu: edit credit
+menu_edit_credit = "💰 Crea transazione"
+
 # Admin menu: go to user mode
 menu_user_mode = "👤 Passa alla modalità utente"
 
@@ -142,7 +148,7 @@ menu_add_to_cart = "➕ Aggiungi"
 menu_remove_from_cart = "➖ Rimuovi"
 
 # Emoji: unprocessed order
-emoji_not_processed = "*️⃣ "
+emoji_not_processed = "*️⃣"
 
 # Emoji: completed order
 emoji_completed = "✅"
@@ -170,6 +176,14 @@ ask_order_notes = "Vuoi lasciare un messaggio insieme all'ordine?\n" \
 # Refund product: reason?
 ask_refund_reason = "Allega una motivazione a questo rimborso.\n" \
                     "Sarà visibile al cliente."
+
+# Edit credit: notes?
+ask_transaction_notes = "Allega una nota a questa transazione.\n" \
+                        "Sarà visibile al cliente in seguito all'accredito / addebito e nel registro delle transazioni."
+
+# Edit credit: amount?
+ask_credit = "Di quanto vuoi modificare il credito dell'utente?\n" \
+             "(Se vuoi addebitargli soldi, aggiungi un - davanti al numero.)"
 
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \
@@ -211,6 +225,10 @@ notification_order_completed = "Un tuo ordine è stato completato!\n" \
 notification_order_refunded = "Un tuo ordine è stato rimborsato!\n" \
                               "{order}"
 
+# Notification: a manual transaction was applied
+notification_transaction_created = "E' stata applicata una nuova transazione al tuo portafoglio:\n" \
+                                   "{transaction}"
+
 # Refund reason
 refund_reason = "Motivazione del rimborso:\n" \
                 "{reason}"
@@ -235,6 +253,9 @@ success_order_completed = "✅ Hai segnato l'ordine #{order_id} come completato.
 
 # Success: order was refunded successfully
 success_order_refunded = "✴️ L'ordine #{order_id} è stato rimborsato con successo."
+
+# Success: transaction was created successfully
+success_transaction_created = "✅ La transazione è stata creata con successo!"
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."
@@ -267,3 +288,6 @@ error_order_already_cleared = "⚠️  Questo ordine è già stato processato."
 
 # Error: no orders have been placed, so none can be shown
 error_no_orders = "⚠️  Non hai ancora piazzato ordini, quindi non c'è niente da visualizzare!"
+
+# Error: selected user does not exist
+error_user_does_not_exist = "⚠️  L'utente selezionato non esiste."

@@ -273,7 +273,7 @@ class ChatWorker(threading.Thread):
             else:
                 self.bot.edit_message_caption(chat_id=self.chat.id,
                                               message_id=message['result']['message_id'],
-                                              caption=product.text(style="image"),
+                                              caption=product.text(),
                                               parse_mode="HTML",
                                               reply_markup=inline_keyboard)
         # Create the keyboard with the cancel button
@@ -317,8 +317,7 @@ class ChatWorker(threading.Thread):
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id,
                                                   message_id=callback.message.message_id,
-                                                  caption=product.text(style="image",
-                                                                       cart_qty=cart[callback.message.message_id][1]),
+                                                  caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   parse_mode="HTML",
                                                   reply_markup=product_inline_keyboard)
                 # Create the cart summary
@@ -364,8 +363,7 @@ class ChatWorker(threading.Thread):
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id,
                                                   message_id=callback.message.message_id,
-                                                  caption=product.text(style="image",
-                                                                       cart_qty=cart[callback.message.message_id][1]),
+                                                  caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   parse_mode="HTML",
                                                   reply_markup=product_inline_keyboard)
                 # Create the cart summary
@@ -444,7 +442,7 @@ class ChatWorker(threading.Thread):
         orders = self.session.query(db.Order)\
             .filter(db.Order.user == self.user)\
             .order_by(db.Order.creation_date.desc())\
-            .limit(5)\
+            .limit(20)\
             .all()
         # Ensure there is at least one order to display
         if len(orders) == 0:
@@ -601,14 +599,14 @@ class ChatWorker(threading.Thread):
                 keyboard.append([strings.menu_products])
             if self.admin.receive_orders:
                 keyboard.append([strings.menu_orders])
-            if self.admin.view_transactions:
-                keyboard.append([strings.menu_transactions])
+            if self.admin.create_transactions:
+                keyboard.append([strings.menu_edit_credit])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_products, strings.menu_orders,
-                                                          strings.menu_user_mode])
+                                                          strings.menu_user_mode, strings.menu_edit_credit])
             # If the user has selected the Products option...
             if selection == strings.menu_products:
                 # Open the products menu
@@ -617,6 +615,10 @@ class ChatWorker(threading.Thread):
             elif selection == strings.menu_orders:
                 # Open the orders menu
                 self.__orders_menu()
+            # If the user has selected the Transactions option...
+            elif selection == strings.menu_edit_credit:
+                # Open the edit credit menu
+                self.__create_transaction()
             # If the user has selected the User mode option...
             elif selection == strings.menu_user_mode:
                 # Start the bot in user mode
@@ -861,6 +863,66 @@ class ChatWorker(threading.Thread):
                 # Notify the user of the refund
                 self.bot.send_message(order.user_id,
                                       strings.notification_order_refunded.format(order=order.get_text(self.session)))
+
+    def __create_transaction(self):
+        """Edit manually the credit of an user."""
+        # Find all the users in the database
+        users = self.session.query(db.User).all()
+        # Create a list containing all the keyboard button strings
+        keyboard_buttons = [[strings.menu_cancel]]
+        # Add to the list all the users
+        for user in users:
+            keyboard_buttons.append([user.identifiable_str()])
+        # TODO: handle more than 99 users
+        # Create the keyboard
+        keyboard = telegram.ReplyKeyboardMarkup(keyboard_buttons, one_time_keyboard=True)
+        # Send the keyboard
+        self.bot.send_message(self.chat.id, strings.conversation_admin_select_user, reply_markup=keyboard)
+        # Wait for a reply
+        reply = self.__wait_for_regex("user_([0-9]+)", cancellable=True)
+        # Allow the cancellation of the operation
+        if reply == strings.menu_cancel:
+            return
+        # Find the user in the database
+        user = self.session.query(db.User).filter_by(user_id=int(reply)).one_or_none()
+        # Ensure the user exists
+        if not user:
+            self.bot.send_message(self.chat.id, strings.error_user_does_not_exist)
+        # Create an inline keyboard with a single cancel button
+        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
+                                                                               callback_data="cmd_cancel")]])
+        # Request from the user the amount of money to be credited manually
+        self.bot.send_message(self.chat.id, strings.ask_credit, reply_markup=cancel)
+        # Wait for an answer
+        reply = self.__wait_for_regex(r"(-? ?[0-9]{1,3}(?:[.,][0-9]{1,2})?)", cancellable=True)
+        # Allow the cancellation of the operation
+        if isinstance(reply, CancelSignal):
+            return
+        # Convert the reply to a price object
+        price = utils.Price(reply)
+        # Ask the user for notes
+        self.bot.send_message(self.chat.id, strings.ask_transaction_notes, reply_markup=cancel)
+        # Wait for an answer
+        reply = self.__wait_for_regex(r"(.*)", cancellable=True)
+        # Allow the cancellation of the operation
+        if isinstance(reply, CancelSignal):
+            return
+        # Create a new transaction
+        transaction = db.Transaction(user=user,
+                                     value=int(price),
+                                     provider="Manual",
+                                     notes=reply)
+        self.session.add(transaction)
+        # Change the user credit
+        user.credit += int(price)
+        # Commit the changes
+        self.session.commit()
+        # Notify the user of the credit/debit
+        self.bot.send_message(user.user_id,
+                              strings.notification_transaction_created.format(transaction=str(transaction)),
+                              parse_mode="HTML")
+        # Notify the admin of the success
+        self.bot.send_message(self.chat.id, strings.success_transaction_created)
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""
