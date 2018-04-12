@@ -46,7 +46,7 @@ class ChatWorker(threading.Thread):
         self.invoice_payload = None
         # The Sentry client for reporting errors encountered by the user
         if configloader.config["Error Reporting"]["sentry_token"] != \
-            "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
+           "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
             import raven
             self.sentry_client = raven.Client(configloader.config["Error Reporting"]["sentry_token"],
                                               release=raven.fetch_git_sha(os.path.dirname(__file__)),
