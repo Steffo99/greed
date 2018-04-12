@@ -41,9 +41,6 @@ conversation_after_start = "Ciao!\n" \
 conversation_open_user_menu = "Cosa vorresti fare?\n" \
                               "Hai <b>{credit}</b> sul portafoglio."
 
-# Conversation: the same message as above but when the first has already been sent
-conversation_open_user_menu_multiple = "Hai bisogno di qualcos'altro?"
-
 # Conversation: like above, but for administrators
 conversation_open_admin_menu = "Sei un amministratore di greed!\n" \
                                "Cosa vorresti fare?"
@@ -196,7 +193,8 @@ edit_current_value = "Il valore attuale è:\n" \
 
 # Payment: cash payment info
 payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
-               "Il gestore provvederà ad aggiungere credito al tuo account appena gli avrai consegnato i soldi."
+               "Paga alla cassa, e fornisci al gestore del negozio questo id:\n" \
+               "<b>{user_cash_id}</b>"
 
 # Payment: invoice amount
 payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?"
@@ -291,3 +289,10 @@ error_no_orders = "⚠️  Non hai ancora piazzato ordini, quindi non c'è nient
 
 # Error: selected user does not exist
 error_user_does_not_exist = "⚠️  L'utente selezionato non esiste."
+
+# Fatal: conversation raised an exception
+fatal_conversation_exception = "☢️ Il bot ha riscontrato un errore fatale durante l'esecuzione e ha interrotto la" \
+                               " conversazione.\n" \
+                               "L'errore è stato segnalato allo sviluppatore di greed," \
+                               " in modo che possa sistemarlo.\n" \
+                               "Per avviare una nuova conversazione, invia il comando /start."

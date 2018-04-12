@@ -10,6 +10,7 @@ import queue as queuem
 import database as db
 import re
 import utils
+import os
 from html import escape
 
 
@@ -43,6 +44,15 @@ class ChatWorker(threading.Thread):
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
+        # The Sentry client for reporting errors encountered by the user
+        if configloader.config["Error Reporting"]["sentry_token"] != \
+            "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
+            import raven
+            self.sentry_client = raven.Client(configloader.config["Error Reporting"]["sentry_token"],
+                                              release=raven.fetch_git_sha(os.path.dirname(__file__)),
+                                              environment="Dev" if __debug__ else "Prod")
+        else:
+            self.sentry_client = None
 
     def run(self):
         """The conversation code."""
@@ -59,17 +69,28 @@ class ChatWorker(threading.Thread):
             self.session.add(self.user)
             # Commit the transaction
             self.session.commit()
-        # If the user is not an admin, send him to the user menu
-        if self.admin is None:
-            self.__user_menu()
-        # If the user is an admin, send him to the admin menu
-        else:
-            # Clear the live orders flag
-            self.admin.live_mode = False
-            # Commit the change
-            self.session.commit()
-            # Open the admin menu
-            self.__admin_menu()
+        # Capture exceptions that occour during the conversation
+        try:
+            # If the user is not an admin, send him to the user menu
+            if self.admin is None:
+                    self.__user_menu()
+            # If the user is an admin, send him to the admin menu
+            else:
+                # Clear the live orders flag
+                self.admin.live_mode = False
+                # Commit the change
+                self.session.commit()
+                # Open the admin menu
+                self.__admin_menu()
+        except Exception:
+            # Try to notify the user of the exception
+            try:
+                self.bot.send_message(self.chat.id, strings.fatal_conversation_exception)
+            except Exception:
+                pass
+            # If the Sentry integration is enabled, log the exception
+            if self.sentry_client is not None:
+                self.sentry_client.captureException()
 
     def stop(self, reason: str=""):
         """Gracefully stop the worker process"""
@@ -473,7 +494,9 @@ class ChatWorker(threading.Thread):
         # If the user has selected the Cash option...
         if selection == strings.menu_cash:
             # Go to the pay with cash function
-            self.__add_credit_cash()
+            self.bot.send_message(self.chat.id,
+                                  strings.payment_cash.format(user_cash_id=self.user.identifiable_str()),
+                                  parse_mode="HTML")
         # If the user has selected the Credit Card option...
         elif selection == strings.menu_credit_card:
             # Go to the pay with credit card function
@@ -482,10 +505,6 @@ class ChatWorker(threading.Thread):
         elif selection == strings.menu_cancel:
             # Send him back to the previous menu
             return
-
-    def __add_credit_cash(self):
-        """Tell the user how to pay with cash at this shop."""
-        self.bot.send_message(self.chat.id, strings.payment_cash)
 
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
@@ -867,7 +886,7 @@ class ChatWorker(threading.Thread):
     def __create_transaction(self):
         """Edit manually the credit of an user."""
         # Find all the users in the database
-        users = self.session.query(db.User).all()
+        users = self.session.query(db.User).order_by(db.User.user_id).all()
         # Create a list containing all the keyboard button strings
         keyboard_buttons = [[strings.menu_cancel]]
         # Add to the list all the users
