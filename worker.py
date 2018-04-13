@@ -312,8 +312,11 @@ class ChatWorker(threading.Thread):
                 return
             # If a Add to Cart button has been pressed...
             elif callback.data == "cart_add":
-                # Get the selected product
-                product = cart[callback.message.message_id][0]
+                # Get the selected product, ensuring it exists
+                p = cart.get(callback.message.message_id)
+                if p is None:
+                    continue
+                product = p[0]
                 # Add 1 copy to the cart
                 cart[callback.message.message_id][1] += 1
                 # Create the product inline keyboard
@@ -354,8 +357,11 @@ class ChatWorker(threading.Thread):
                                            reply_markup=final_inline_keyboard)
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
-                # Get the selected product
-                product = cart[callback.message.message_id][0]
+                # Get the selected product, ensuring it exists
+                p = cart.get(callback.message.message_id)
+                if p is None:
+                    continue
+                product = p[0]
                 # Remove 1 copy from the cart
                 if cart[callback.message.message_id][1] > 0:
                     cart[callback.message.message_id][1] -= 1
