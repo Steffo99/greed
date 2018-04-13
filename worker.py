@@ -125,9 +125,13 @@ class ChatWorker(threading.Thread):
             # Get the next update
             update = self.__receive_next_update()
             # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            if isinstance(update, CancelSignal):
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a message
             if update.message is None:
                 continue
