@@ -109,7 +109,6 @@ def telegram_html_escape(string: str):
                  .replace('"', "&quot;")
 
 
-
 def catch_telegram_errors(func):
     """Decorator, can be applied to any function to retry in case of Telegram errors."""
     def result_func(*args, **kwargs):
@@ -185,5 +184,9 @@ class DuckBot:
     @catch_telegram_errors
     def send_chat_action(self, *args, **kwargs):
         return self.bot.send_chat_action(*args, **kwargs)
+
+    @catch_telegram_errors
+    def delete_message(self, *args, **kwargs):
+        return self.bot.delete_message(*args, **kwargs)
 
     # TODO: add more methods

@@ -874,11 +874,13 @@ class ChatWorker(threading.Thread):
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
                 # Ask for a refund reason
-                self.bot.send_message(self.chat.id, strings.ask_refund_reason, reply_markup=cancel_keyboard)
+                reason_msg = self.bot.send_message(self.chat.id, strings.ask_refund_reason, reply_markup=cancel_keyboard)
                 # Wait for a reply
                 reply = self.__wait_for_regex("(.*)", cancellable=True)
                 # If the user pressed the cancel button, cancel the refund
                 if isinstance(reply, CancelSignal):
+                    # Delete the message asking for the refund reason
+                    self.bot.delete_message(self.chat.id, reason_msg.message_id)
                     continue
                 # Mark the order as refunded
                 order.refund_date = datetime.datetime.now()
@@ -897,6 +899,8 @@ class ChatWorker(threading.Thread):
                 # Notify the user of the refund
                 self.bot.send_message(order.user_id,
                                       strings.notification_order_refunded.format(order=order.get_text(self.session)))
+                # Notify the admin of the refund
+                self.bot.send_message(self.chat.id, strings.success_order_refunded.format(order_id=order.order_id))
 
     def __create_transaction(self):
         """Edit manually the credit of an user."""
