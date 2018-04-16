@@ -35,7 +35,10 @@ order_format_string = "di {user}\n" \
 
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
-                           "Benvenuto su greed!"
+                           "Benvenuto su greed!\n" \
+                           "Quella che vedi qui è la versione Alpha del software.\n" \
+                           "Pertanto, funzioni potranno essere aggiunte o rimosse in qualsiasi momento," \
+                           " e l'interfaccia utente potrebbe risultare incompleta."
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Cosa vorresti fare?\n" \
@@ -91,7 +94,7 @@ menu_order_status = "🛍 Stato ordini"
 menu_add_credit = "💵 Aggiungi fondi"
 
 # User menu: bot info
-menu_bot_info = "ℹ️ Informazioni sul bot"
+menu_bot_info = "ℹ️ Info sul bot"
 
 # User menu: cash
 menu_cash = "💵 In contanti"
@@ -148,7 +151,7 @@ menu_add_to_cart = "➕ Aggiungi"
 menu_remove_from_cart = "➖ Rimuovi"
 
 # Menu: help menu
-menu_help = "❓ Aiuto, assistenza e informazioni"
+menu_help = "❓ Aiuto e assistenza"
 
 # Menu: guide
 menu_guide = "📖 Guida"
@@ -215,7 +218,10 @@ payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?"
 payment_invoice_title = "Aggiunta di fondi"
 
 # Payment: add funds invoice description
-payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio."
+payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio.\n\n" \
+                              "Visto che sei nella versione Alpha del software, puoi effettuare pagamenti con la " \
+                              "carta di credito di prova `4242 4242 4242 4242`, con qualsiasi CVV e una data di " \
+                              "scadenza valida."
 
 # Payment: label of the labeled price on the invoice
 payment_invoice_label = "Ricarica"

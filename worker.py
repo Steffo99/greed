@@ -109,11 +109,11 @@ class ChatWorker(threading.Thread):
             data = self.queue.get(timeout=int(configloader.config["Telegram"]["conversation_timeout"]))
         except queuem.Empty:
             # If the conversation times out, gracefully stop the thread
-            self.__graceful_stop()
+            self.__graceful_stop(StopSignal("timeout"))
         # Check if the data is a stop signal instance
         if isinstance(data, StopSignal):
             # Gracefully stop the process
-            self.__graceful_stop()
+            self.__graceful_stop(data)
         # Return the received update
         return data
 
@@ -490,7 +490,6 @@ class ChatWorker(threading.Thread):
 
     def __add_credit_menu(self):
         """Add more credit to the account."""
-        # TODO: a loop might be needed here
         # Create a payment methods keyboard
         keyboard = list()
         # Add the supported payment methods to the keyboard
@@ -991,10 +990,14 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.contact_shopkeeper.format(shopkeepers=shopkeepers_string))
         # If the user has selected the Cancel option the function will return immediately
 
-    def __graceful_stop(self):
+    def __graceful_stop(self, stop_trigger: StopSignal):
         """Handle the graceful stop of the thread."""
-        # Notify the user that the session has expired and remove the keyboard
-        self.bot.send_message(self.chat.id, strings.conversation_expired, reply_markup=telegram.ReplyKeyboardRemove())
+        # If the session has expired...
+        if stop_trigger.reason == "timeout":
+            # Notify the user that the session has expired and remove the keyboard
+            self.bot.send_message(self.chat.id, strings.conversation_expired, reply_markup=telegram.ReplyKeyboardRemove())
+        # If a restart has been requested...
+        # Do nothing.
         # Close the database session
         # End the process
         sys.exit(0)

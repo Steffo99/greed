@@ -51,7 +51,7 @@ def main():
                     old_worker = chat_workers.get(update.message.chat.id)
                     # If it exists, gracefully stop the worker
                     if old_worker:
-                        old_worker.stop()
+                        old_worker.stop("request")
                     # Initialize a new worker for the chat
                     new_worker = worker.ChatWorker(bot, update.message.chat)
                     # Start the worker
