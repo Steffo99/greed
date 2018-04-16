@@ -102,6 +102,14 @@ class Price:
         return self
 
 
+def telegram_html_escape(string: str):
+    return string.replace("<", "&lt;")\
+                 .replace(">", "&gt;")\
+                 .replace("&", "&amp;")\
+                 .replace('"', "&quot;")
+
+
+
 def catch_telegram_errors(func):
     """Decorator, can be applied to any function to retry in case of Telegram errors."""
     def result_func(*args, **kwargs):

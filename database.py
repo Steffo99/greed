@@ -1,5 +1,4 @@
 import typing
-
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
 from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker, relationship
@@ -8,8 +7,7 @@ import configloader
 import telegram
 import strings
 import requests
-from html import escape
-from utils import Price
+import utils
 
 # Create a (lazy) database engine
 engine = create_engine(configloader.config["Database"]["engine"])
@@ -101,7 +99,7 @@ class Product(TableDeclarativeBase):
     def text(self, style: str="full", cart_qty: int=None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
         if style == "short":
-            return f"{cart_qty}x {escape(self.name)} - {str(Price(self.price) * cart_qty)}"
+            return f"{cart_qty}x {utils.telegram_html_escape(self.name)} - {str(utils.Price(self.price) * cart_qty)}"
         elif style == "full":
             if self.stock is not None:
                 stock = strings.in_stock_format_string.format(quantity=self.stock)
@@ -111,10 +109,10 @@ class Product(TableDeclarativeBase):
                 cart = strings.in_cart_format_string.format(quantity=cart_qty)
             else:
                 cart = ''
-            return strings.product_format_string.format(name=escape(self.name),
-                                                        description=escape(self.description),
+            return strings.product_format_string.format(name=utils.telegram_html_escape(self.name),
+                                                        description=utils.telegram_html_escape(self.description),
                                                         stock=stock,
-                                                        price=str(Price(self.price)),
+                                                        price=str(utils.Price(self.price)),
                                                         cart=cart)
         else:
             raise ValueError("style is not an accepted value")
@@ -183,7 +181,7 @@ class Transaction(TableDeclarativeBase):
     __table_args__ = (UniqueConstraint("provider", "provider_charge_id"),)
 
     def __str__(self):
-        string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {Price(self.value)}"
+        string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {utils.Price(self.value)}"
         if self.refunded:
             string += f" | {strings.emoji_refunded}"
         if self.provider:
@@ -265,7 +263,7 @@ class Order(TableDeclarativeBase):
                                                date=self.creation_date.isoformat(),
                                                items=items,
                                                notes=self.notes if self.notes is not None else "",
-                                               value=str(Price(-joined_self.transaction.value))) + \
+                                               value=str(utils.Price(-joined_self.transaction.value))) + \
             (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
 
 
@@ -284,7 +282,7 @@ class OrderItem(TableDeclarativeBase):
     __tablename__ = "orderitems"
 
     def __str__(self):
-        return f"{self.product.name} - {str(Price(self.product.price))}"
+        return f"{self.product.name} - {str(utils.Price(self.product.price))}"
 
     def __repr__(self):
         return f"<OrderItem {self.item_id}>"

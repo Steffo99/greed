@@ -985,7 +985,7 @@ class ChatWorker(threading.Thread):
             shopkeepers_string = "\n".join([admin.user.mention() for admin in shopkeepers])
             # Send the message to the user
             self.bot.send_message(self.chat.id, strings.contact_shopkeeper.format(shopkeepers=shopkeepers_string))
-        # If the user has selected the Cancel option the function will return immediatly
+        # If the user has selected the Cancel option the function will return immediately
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""
