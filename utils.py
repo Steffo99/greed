@@ -4,6 +4,18 @@ import time
 from configloader import config
 from strings import currency_format_string, currency_symbol
 import typing
+import os
+import sys
+
+if config["Error Reporting"]["sentry_token"] != \
+        "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
+    import raven
+
+    sentry_client = raven.Client(config["Error Reporting"]["sentry_token"],
+                                 release=raven.fetch_git_sha(os.path.dirname(__file__)),
+                                 environment="Dev" if __debug__ else "Prod")
+else:
+    sentry_client = None
 
 
 class Price:
@@ -111,6 +123,9 @@ def catch_telegram_errors(func):
             # Unknown error
             except telegram.error.TelegramError:
                 print(f"Telegram error while calling {func.__name__}(), retrying in 5 secs...")
+                # Send the error to the Sentry server
+                if sentry_client is not None:
+                    sentry_client.captureException(exc_info=sys.exc_info())
                 time.sleep(5)
     return result_func
 
