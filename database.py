@@ -206,6 +206,8 @@ class Admin(TableDeclarativeBase):
     edit_products = Column(Boolean, default=True)
     receive_orders = Column(Boolean, default=True)
     create_transactions = Column(Boolean, default=True)
+    display_on_help = Column(Boolean, default=False)
+    is_owner = Column(Boolean, default=False)
     # Live mode enabled
     live_mode = Column(Boolean, default=False)
 
@@ -290,4 +292,6 @@ class OrderItem(TableDeclarativeBase):
 
 # If this script is ran as main, try to create all the tables in the database
 if __name__ == "__main__":
+    print("Creating tables...")
     TableDeclarativeBase.metadata.create_all()
+    print("Done!")

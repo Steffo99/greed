@@ -74,15 +74,18 @@ conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
 conversation_live_orders_start = "Hai avviato la modalità Ordini Live!\n" \
                                  "Per interrompere il flusso di ordini, manda un qualsiasi messaggio in chat."
 
+# Conversation: help menu has been opened
+conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
+
 # Notification: the conversation has expired
 conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
                        "Per riavviarne una nuova, invia il comando /start."
 
 # User menu: order
-menu_order = "🛍 Ordina"
+menu_order = "🛒 Ordina"
 
 # User menu: order status
-menu_order_status = "❓ Stato ordini"
+menu_order_status = "🛍 Stato ordini"
 
 # User menu: add credit
 menu_add_credit = "💵 Aggiungi fondi"
@@ -143,6 +146,15 @@ menu_add_to_cart = "➕ Aggiungi"
 
 # Menu: remove from cart
 menu_remove_from_cart = "➖ Rimuovi"
+
+# Menu: help menu
+menu_help = "❓ Aiuto, assistenza e informazioni"
+
+# Menu: guide
+menu_guide = "📖 Guida"
+
+# Menu: contact the shopkeeper
+menu_contact_shopkeeper = "👨‍💼 Contatta il negozio"
 
 # Emoji: unprocessed order
 emoji_not_processed = "*️⃣"
@@ -236,6 +248,15 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
            ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE">Affero General Public License 3.0</a>.\n' \
            'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
+
+# Help: guide
+help_msg = "La guida del bot non è ancora disponibile.\n" \
+           "Riprova più avanti!"
+
+# Help: contact shopkeeper
+contact_shopkeeper = "Attualmente, il personale disponibile ad offrire assistenza agli utenti è composto da:\n" \
+                     "{shopkeepers}\n" \
+                     "Tocca sul nome di uno di loro per contattarli in una chat di Telegram."
 
 # Success: product has been added/edited to the database
 success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con successo!"

@@ -243,7 +243,7 @@ class ChatWorker(threading.Thread):
             keyboard = [[telegram.KeyboardButton(strings.menu_order)],
                         [telegram.KeyboardButton(strings.menu_order_status)],
                         [telegram.KeyboardButton(strings.menu_add_credit)],
-                        [telegram.KeyboardButton(strings.menu_bot_info)]]
+                        [telegram.KeyboardButton(strings.menu_help), telegram.KeyboardButton(strings.menu_bot_info)]]
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id,
                                   strings.conversation_open_user_menu.format(credit=utils.Price(self.user.credit)),
@@ -251,7 +251,8 @@ class ChatWorker(threading.Thread):
                                   parse_mode="HTML")
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
-                                                          strings.menu_add_credit, strings.menu_bot_info])
+                                                          strings.menu_add_credit, strings.menu_bot_info,
+                                                          strings.menu_help])
             # If the user has selected the Order option...
             if selection == strings.menu_order:
                 # Open the order menu
@@ -268,6 +269,10 @@ class ChatWorker(threading.Thread):
             elif selection == strings.menu_bot_info:
                 # Display information about the bot
                 self.__bot_info()
+            # If the user has selected the Help option...
+            elif selection == strings.menu_help:
+                # Go to the Help menu
+                self.__help_menu()
 
     def __order_menu(self):
         """User menu to order products from the shop."""
@@ -952,6 +957,35 @@ class ChatWorker(threading.Thread):
                               parse_mode="HTML")
         # Notify the admin of the success
         self.bot.send_message(self.chat.id, strings.success_transaction_created)
+
+    def __help_menu(self):
+        """Help menu. Allows the user to ask for assistance, get a guide or see some info about the bot."""
+        # Create a keyboard with the user help menu
+        keyboard = [[telegram.KeyboardButton(strings.menu_guide)],
+                    [telegram.KeyboardButton(strings.menu_contact_shopkeeper)],
+                    [telegram.KeyboardButton(strings.menu_bot_info)],
+                    [telegram.KeyboardButton(strings.menu_cancel)]]
+        # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+        self.bot.send_message(self.chat.id,
+                              strings.conversation_open_help_menu,
+                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
+                              parse_mode="HTML")
+        # Wait for a reply from the user
+        selection = self.__wait_for_specific_message([strings.menu_guide, strings.menu_contact_shopkeeper,
+                                                      strings.menu_cancel])
+        # If the user has selected the Guide option...
+        if selection == strings.menu_guide:
+            # Send them the bot guide
+            self.bot.send_message(self.chat.id, strings.help_msg)
+        # If the user has selected the Order Status option...
+        elif selection == strings.menu_contact_shopkeeper:
+            # Find the list of available shopkeepers
+            shopkeepers = self.session.query(db.Admin).filter_by(display_on_help=True).join(db.User).all()
+            # Create the string
+            shopkeepers_string = "\n".join([admin.user.mention() for admin in shopkeepers])
+            # Send the message to the user
+            self.bot.send_message(self.chat.id, strings.contact_shopkeeper.format(shopkeepers=shopkeepers_string))
+        # If the user has selected the Cancel option the function will return immediatly
 
     def __graceful_stop(self):
         """Handle the graceful stop of the thread."""
