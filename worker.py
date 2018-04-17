@@ -363,7 +363,7 @@ class ChatWorker(threading.Thread):
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
                                            text=strings.conversation_confirm_cart.format(product_list=product_list,
                                                                                          total_cost=str(total_cost)),
-                                           reply_markup=final_inline_keyboard)
+                                           reply_markup=final_inline_keyboard, parse_mode="HTML")
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
                 # Get the selected product, ensuring it exists
@@ -412,7 +412,7 @@ class ChatWorker(threading.Thread):
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final.message_id,
                                            text=strings.conversation_confirm_cart.format(product_list=product_list,
                                                                                          total_cost=str(total_cost)),
-                                           reply_markup=final_inline_keyboard)
+                                           reply_markup=final_inline_keyboard, parse_mode="HTML")
             # If the done button has been pressed...
             elif callback.data == "cart_done":
                 # End the loop
@@ -636,7 +636,8 @@ class ChatWorker(threading.Thread):
                 keyboard.append([strings.menu_edit_credit])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
-                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
+                                  parse_mode="HTML")
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_products, strings.menu_orders,
                                                           strings.menu_user_mode, strings.menu_edit_credit])
@@ -820,7 +821,8 @@ class ChatWorker(threading.Thread):
         cancel_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
                                                                                         callback_data="cmd_cancel")]])
         # Send a small intro message on the Live Orders mode
-        self.bot.send_message(self.chat.id, strings.conversation_live_orders_start, reply_markup=stop_keyboard)
+        self.bot.send_message(self.chat.id, strings.conversation_live_orders_start, reply_markup=stop_keyboard,
+                              parse_mode="HTML")
         # Create the order keyboard
         order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_complete,
                                                                                        callback_data="order_complete")],

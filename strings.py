@@ -26,12 +26,12 @@ order_number = "Ordine #{id}"
 
 # Order info displayed string
 order_format_string = "di {user}\n" \
-                      "{value}\n" \
                       "Creato {date}\n" \
                       "\n" \
                       "{items}\n" \
+                      "TOTALE: {value}\n" \
                       "\n" \
-                      "{notes}"
+                      "Note del cliente: {notes}"
 
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
@@ -42,11 +42,19 @@ conversation_after_start = "Ciao!\n" \
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Cosa vorresti fare?\n" \
-                              "Hai <b>{credit}</b> sul portafoglio."
+                              "Hai <b>{credit}</b> sul portafoglio.\n" \
+                              "\n" \
+                              "<i>Per selezionare un'operazione, premi un tasto nella tastiera in basso.\n" \
+                              "Se la tastiera non si è aperta, puoi aprirla premendo il tasto con quattro quadratini" \
+                              " nella barra dei messaggi.</i>"
 
 # Conversation: like above, but for administrators
 conversation_open_admin_menu = "Sei un amministratore di greed!\n" \
-                               "Cosa vorresti fare?"
+                               "Cosa vorresti fare?\n" \
+                               "\n" \
+                               "<i>Per selezionare un'operazione, premi un tasto nella tastiera in basso.\n" \
+                               "Se la tastiera non si è aperta, puoi aprirla premendo il tasto con quattro quadratini" \
+                               " nella barra dei messaggi.</i>"
 
 # Conversation: select a payment method
 conversation_payment_method = "Come vuoi aggiungere fondi al tuo portafoglio?"
@@ -58,7 +66,7 @@ conversation_admin_select_product = "✏️ Che prodotto vuoi modificare?"
 conversation_admin_select_product_to_delete = "❌ Che prodotto vuoi eliminare?"
 
 # Conversation: select a user to edit
-conversation_admin_select_user = "✏️ Che utente vuoi modificare?"
+conversation_admin_select_user = "Seleziona l'utente a cui vuoi aggiungere o togliere credito."
 
 # Conversation: add extra notes to the order
 conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
@@ -69,13 +77,18 @@ conversation_cart_actions = "Quando hai finito di aggiungere prodotti al carrell
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
                             "{product_list}" \
+                            "Totale: <b>{total_cost}</b>\n" \
                             "\n" \
-                            "Totale: {total_cost}\n" \
-                            "Procedere?"
+                            "<i>Se vuoi procedere, premi il tasto Conferma sotto a questo messaggio.\n" \
+                            "Per annullare, premi il tasto Annulla.</i>"
 
 # Conversation: the user activated the live orders mode
-conversation_live_orders_start = "Hai avviato la modalità Ordini Live!\n" \
-                                 "Per interrompere il flusso di ordini, manda un qualsiasi messaggio in chat."
+conversation_live_orders_start = "Sei in modalità di <b>Ricezione Ordini</b>!\n" \
+                                 "Tutti i nuovi ordini piazzati dai clienti ti appariranno in tempo reale in questa" \
+                                 " chat, e potrai segnarli come completati oppure rimborsare il credito al cliente.\n" \
+                                 "\n" \
+                                 "<i>Premi il tasto Interrompi sotto a questo messaggio per interrompere la" \
+                                 " ricezione.</i>"
 
 # Conversation: help menu has been opened
 conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
@@ -88,7 +101,7 @@ conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo
 menu_order = "🛒 Ordina"
 
 # User menu: order status
-menu_order_status = "🛍 Stato ordini"
+menu_order_status = "🛍 I miei ordini"
 
 # User menu: add credit
 menu_add_credit = "💵 Aggiungi fondi"
@@ -182,8 +195,11 @@ ask_product_price = "Quanto deve costare il prodotto?\n" \
 ask_product_image = "Che immagine vuoi che abbia il prodotto?"
 
 # Order product: notes?
-ask_order_notes = "Vuoi lasciare un messaggio insieme all'ordine?\n" \
-                  "Sarà visibile al negoziante."
+ask_order_notes = "Vuoi lasciare una nota insieme all'ordine?\n" \
+                  "Sarà visibile agli addetti del negozio.\n" \
+                  "\n" \
+                  "<i>Invia un messaggio con la nota che vuoi lasciare, oppure premi il pulsante Salta sotto a questo" \
+                  " messaggio per non lasciare nulla.</i>"
 
 # Refund product: reason?
 ask_refund_reason = "Allega una motivazione a questo rimborso.\n" \
@@ -219,9 +235,9 @@ payment_invoice_title = "Aggiunta di fondi"
 
 # Payment: add funds invoice description
 payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio.\n\n" \
-                              "Visto che sei nella versione Alpha del software, puoi effettuare pagamenti con la " \
-                              "carta di credito di prova `4242 4242 4242 4242`, con qualsiasi CVV e una data di " \
-                              "scadenza valida."
+                              "Visto che sei nella versione Alpha del software, puoi effettuare pagamenti infiniti" \
+                              " con la carta di credito di prova `4242 4242 4242 4242`," \
+                              " con qualsiasi CVV e una qualsiasi data di scadenza valida."
 
 # Payment: label of the labeled price on the invoice
 payment_invoice_label = "Ricarica"
@@ -262,7 +278,7 @@ help_msg = "La guida del bot non è ancora disponibile.\n" \
 # Help: contact shopkeeper
 contact_shopkeeper = "Attualmente, il personale disponibile ad offrire assistenza agli utenti è composto da:\n" \
                      "{shopkeepers}\n" \
-                     "Tocca sul nome di uno di loro per contattarli in una chat di Telegram."
+                     "<i>Clicca / Tocca uno dei loro nomi per contattarli in una chat di Telegram.</i>"
 
 # Success: product has been added/edited to the database
 success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con successo!"
@@ -312,7 +328,7 @@ error_not_enough_credit = "⚠️ Non hai credito sufficiente per effettuare l'o
 error_order_already_cleared = "⚠️  Questo ordine è già stato processato."
 
 # Error: no orders have been placed, so none can be shown
-error_no_orders = "⚠️  Non hai ancora piazzato ordini, quindi non c'è niente da visualizzare!"
+error_no_orders = "⚠️  Non hai ancora piazzato ordini, quindi non c'è niente da visualizzare."
 
 # Error: selected user does not exist
 error_user_does_not_exist = "⚠️  L'utente selezionato non esiste."
@@ -320,6 +336,5 @@ error_user_does_not_exist = "⚠️  L'utente selezionato non esiste."
 # Fatal: conversation raised an exception
 fatal_conversation_exception = "☢️ Il bot ha riscontrato un errore fatale durante l'esecuzione e ha interrotto la" \
                                " conversazione.\n" \
-                               "L'errore è stato segnalato allo sviluppatore di greed," \
-                               " in modo che possa sistemarlo.\n" \
+                               "L'errore è stato segnalato allo sviluppatore di greed in modo che possa sistemarlo.\n" \
                                "Per avviare una nuova conversazione, invia il comando /start."
