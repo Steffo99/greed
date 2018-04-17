@@ -457,7 +457,7 @@ class ChatWorker(threading.Thread):
         # Commit all the changes
         self.session.commit()
         # Notify the user of the order result
-        self.bot.send_message(self.chat.id, strings.success_order_created)
+        self.bot.send_message(self.chat.id, strings.success_order_created.format(order=order.get_text(self.session)))
         # Notify the admins (in Live Orders mode) of the new order
         admins = self.session.query(db.Admin).filter_by(live_mode=True).all()
         # Create the order keyboard

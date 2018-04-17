@@ -297,7 +297,9 @@ success_product_edited = "✅ Il prodotto è stato aggiunto/modificato con succe
 success_product_deleted = "✅ Il prodotto è stato eliminato con successo!"
 
 # Success: order has been created
-success_order_created = "✅ L'ordine è stato inviato con successo!"
+success_order_created = "✅ L'ordine è stato inviato con successo!\n" \
+                        "\n" \
+                        "{order}"
 
 # Success: order was marked as completed
 success_order_completed = "✅ Hai segnato l'ordine #{order_id} come completato."
