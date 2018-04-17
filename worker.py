@@ -331,8 +331,8 @@ class ChatWorker(threading.Thread):
                 # Create the product inline keyboard
                 product_inline_keyboard = telegram.InlineKeyboardMarkup(
                     [
-                        [telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add")],
-                        [telegram.InlineKeyboardButton(strings.menu_remove_from_cart, callback_data="cart_remove")]
+                        [telegram.InlineKeyboardButton(strings.menu_add_to_cart, callback_data="cart_add"),
+                         telegram.InlineKeyboardButton(strings.menu_remove_from_cart, callback_data="cart_remove")]
                     ])
                 # Create the final inline keyboard
                 final_inline_keyboard = telegram.InlineKeyboardMarkup(
@@ -380,8 +380,8 @@ class ChatWorker(threading.Thread):
                 product_inline_list = [[telegram.InlineKeyboardButton(strings.menu_add_to_cart,
                                                                       callback_data="cart_add")]]
                 if cart[callback.message.message_id][1] > 0:
-                    product_inline_list.append([telegram.InlineKeyboardButton(strings.menu_remove_from_cart,
-                                                                              callback_data="cart_remove")])
+                    product_inline_list[0].append(telegram.InlineKeyboardButton(strings.menu_remove_from_cart,
+                                                                                callback_data="cart_remove"))
                 product_inline_keyboard = telegram.InlineKeyboardMarkup(product_inline_list)
                 # Create the final inline keyboard
                 final_inline_list = [[telegram.InlineKeyboardButton(strings.menu_cancel, callback_data="cart_cancel")]]
