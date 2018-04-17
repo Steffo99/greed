@@ -1,6 +1,5 @@
 # Strings / localization file for greed
 # Can be edited, but DON'T REMOVE THE REPLACEMENT FIELDS (words surrounded by {curly braces})
-# TODO: maybe add a preformat to all strings in this file
 
 # Currency symbol
 currency_symbol = "€"
@@ -72,7 +71,9 @@ conversation_admin_select_user = "Seleziona l'utente a cui vuoi aggiungere o tog
 conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
 
 # Conversation: click below to pay for the purchase
-conversation_cart_actions = "Quando hai finito di aggiungere prodotti al carrello, clicca uno dei pulsanti qui sotto!"
+conversation_cart_actions = "<i>Aggiungi prodotti al carrello scorrendo in su e premendo il pulsante Aggiungi sotto" \
+                            " i prodotti che desideri acquistare. Quando avrai terminato, torna a questo messaggio e" \
+                            " premi il tasto Conferma.</i>"
 
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
@@ -192,7 +193,10 @@ ask_product_price = "Quanto deve costare il prodotto?\n" \
                     "Scrivi <code>X</code> se vuoi che il prodotto non sia ancora in vendita."
 
 # Add product: image?
-ask_product_image = "Che immagine vuoi che abbia il prodotto?"
+ask_product_image = "Che immagine vuoi che abbia il prodotto?\n" \
+                    "\n" \
+                    "<i>Invia la foto, o se preferisci lasciare il prodotto senza immagine premi il tasto Salta qui" \
+                    " sotto.</i>"
 
 # Order product: notes?
 ask_order_notes = "Vuoi lasciare una nota insieme all'ordine?\n" \
@@ -210,8 +214,11 @@ ask_transaction_notes = "Allega una nota a questa transazione.\n" \
                         "Sarà visibile al cliente in seguito all'accredito / addebito e nel registro delle transazioni."
 
 # Edit credit: amount?
-ask_credit = "Di quanto vuoi modificare il credito dell'utente?\n" \
-             "(Se vuoi addebitargli soldi, aggiungi un - davanti al numero.)"
+ask_credit = "Di quanto vuoi modificare il credito del cliente?\n" \
+             "\n" \
+             "<i>Invia un messaggio contenente l'importo.\n" \
+             "Metti un segno </i><code>+</code><i> se vuoi aggiungere credito all'account del cliente," \
+             " oppure un segno </i><code>-</code><i> se vuoi dedurlo.</i>"
 
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \
@@ -228,7 +235,10 @@ payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
                "<b>{user_cash_id}</b>"
 
 # Payment: invoice amount
-payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?"
+payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?\n" \
+                    "\n" \
+                    "<i>Seleziona un importo con i bottoni sotto, oppure inseriscilo manualmente con la tastiera" \
+                    " normale.</i>"
 
 # Payment: add funds invoice title
 payment_invoice_title = "Aggiunta di fondi"
