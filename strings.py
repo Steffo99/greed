@@ -1,5 +1,6 @@
 # Strings / localization file for greed
 # Can be edited, but DON'T REMOVE THE REPLACEMENT FIELDS (words surrounded by {curly braces})
+# Current localization is Italian
 
 # Currency symbol
 currency_symbol = "€"
@@ -30,6 +31,15 @@ order_format_string = "di {user}\n" \
                       "TOTALE: {value}\n" \
                       "\n" \
                       "Note del cliente: {notes}"
+
+# Transaction page is loading
+loading_transactions = "<i>Caricamento delle transazioni in corso...\n" \
+                       "Attendi qualche secondo, per piacere.</i>"
+
+# Transactions page
+transactions_page = "Pagina <b>{page}</b>:\n" \
+                    "\n" \
+                    "{transactions}"
 
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
@@ -119,7 +129,7 @@ menu_products = "📝️ Prodotti"
 menu_orders = "📦 Ordini"
 
 # Menu: transactions
-menu_transactions = "💳 Transazioni"
+menu_transactions = "💳 Elenco transazioni"
 
 # Menu: edit credit
 menu_edit_credit = "💰 Crea transazione"
@@ -165,6 +175,12 @@ menu_help = "❓ Aiuto e assistenza"
 
 # Menu: guide
 menu_guide = "📖 Guida"
+
+# Menu: next page
+menu_next = "▶️ Avanti"
+
+# Menu: previous page
+menu_previous = "◀️ Indietro"
 
 # Menu: contact the shopkeeper
 menu_contact_shopkeeper = "👨‍💼 Contatta il negozio"

@@ -634,13 +634,15 @@ class ChatWorker(threading.Thread):
                 keyboard.append([strings.menu_orders])
             if self.admin.create_transactions:
                 keyboard.append([strings.menu_edit_credit])
+                keyboard.append([strings.menu_transactions])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
                                   parse_mode="HTML")
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_products, strings.menu_orders,
-                                                          strings.menu_user_mode, strings.menu_edit_credit])
+                                                          strings.menu_user_mode, strings.menu_edit_credit,
+                                                          strings.menu_transactions])
             # If the user has selected the Products option...
             if selection == strings.menu_products:
                 # Open the products menu
@@ -657,6 +659,10 @@ class ChatWorker(threading.Thread):
             elif selection == strings.menu_user_mode:
                 # Start the bot in user mode
                 self.__user_menu()
+            # If the user has selected the Transactions option...
+            elif selection == strings.menu_transactions:
+                # Open the transaction pages
+                self.__transaction_pages()
 
     def __products_menu(self):
         """Display the admin menu to select a product to edit."""
@@ -990,12 +996,67 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.contact_shopkeeper.format(shopkeepers=shopkeepers_string))
         # If the user has selected the Cancel option the function will return immediately
 
+    def __transaction_pages(self):
+        """Display the latest transactions, in pages."""
+        # Page number
+        page = 0
+        # Create and send a placeholder message to be populated
+        message = self.bot.send_message(self.chat.id, strings.loading_transactions, parse_mode="HTML")
+        # Loop used to move between pages
+        while True:
+            # Retrieve the 10 transactions in that page
+            transactions = self.session.query(db.Transaction)\
+                .order_by(db.Transaction.transaction_id.desc())\
+                .limit(10)\
+                .offset(10 * page)\
+                .all()
+            # Create a list to be converted in inline keyboard markup
+            inline_keyboard_list = [[]]
+            # Don't add a previous page button if this is the first page
+            if page != 0:
+                # Add a previous page button
+                inline_keyboard_list[0].append(
+                    telegram.InlineKeyboardButton(strings.menu_previous, callback_data="cmd_previous")
+                )
+            # Don't add a next page button if this is the last page
+            if len(transactions) == 10:
+                # Add a next page button
+                inline_keyboard_list[0].append(
+                    telegram.InlineKeyboardButton(strings.menu_next, callback_data="cmd_next")
+                )
+            # Add a Done button
+            inline_keyboard_list.append([telegram.InlineKeyboardButton(strings.menu_done, callback_data="cmd_done")])
+            # Create the inline keyboard markup
+            inline_keyboard = telegram.InlineKeyboardMarkup(inline_keyboard_list)
+            # Create the message text
+            transactions_string = "\n".join([str(transaction) for transaction in transactions])
+            text = strings.transactions_page.format(page=page+1,
+                                                    transactions=transactions_string)
+            # Update the previously sent message
+            self.bot.edit_message_text(chat_id=self.chat.id, message_id=message.message_id, text=text,
+                                       reply_markup=inline_keyboard, parse_mode="HTML")
+            # Wait for user input
+            selection = self.__wait_for_inlinekeyboard_callback()
+            # If Previous was selected...
+            if selection.data == "cmd_previous" and page != 0:
+                # Go back one page
+                page -= 1
+            # If Next was selected...
+            elif selection.data == "cmd_next" and len(transactions) == 10:
+                # Go to the next page
+                page += 1
+            # If Done was selected...
+            elif selection.data == "cmd_done":
+                # Break the loop
+                break
+
     def __graceful_stop(self, stop_trigger: StopSignal):
         """Handle the graceful stop of the thread."""
         # If the session has expired...
         if stop_trigger.reason == "timeout":
             # Notify the user that the session has expired and remove the keyboard
-            self.bot.send_message(self.chat.id, strings.conversation_expired, reply_markup=telegram.ReplyKeyboardRemove())
+            self.bot.send_message(self.chat.id, strings.conversation_expired,
+                                  reply_markup=telegram.ReplyKeyboardRemove())
         # If a restart has been requested...
         # Do nothing.
         # Close the database session
