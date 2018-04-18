@@ -16,7 +16,6 @@ in_cart_format_string = "{quantity} nel carrello"
 # Product information
 product_format_string = "<b>{name}</b>\n" \
                         "{description}\n" \
-                        "{stock}\n" \
                         "{price}\n" \
                         "<b>{cart}</b>"
 
@@ -66,9 +65,6 @@ conversation_admin_select_product_to_delete = "❌ Che prodotto vuoi eliminare?"
 
 # Conversation: select a user to edit
 conversation_admin_select_user = "Seleziona l'utente a cui vuoi aggiungere o togliere credito."
-
-# Conversation: add extra notes to the order
-conversation_extra_notes = "Che messaggio vuoi lasciare insieme al tuo ordine?"
 
 # Conversation: click below to pay for the purchase
 conversation_cart_actions = "<i>Aggiungi prodotti al carrello scorrendo in su e premendo il pulsante Aggiungi sotto" \
@@ -227,7 +223,9 @@ downloading_image = "Sto scaricando la tua foto!\n" \
 
 # Edit product: current value
 edit_current_value = "Il valore attuale è:\n" \
-                     "<pre>{value}</pre>"
+                     "<pre>{value}</pre>\n" \
+                     "\n" \
+                     "<i>Premi il tasto Salta sotto questo messaggio per mantenere lo stesso valore.</i>"
 
 # Payment: cash payment info
 payment_cash = "Puoi pagare in contanti alla sede fisica del negozio.\n" \
@@ -308,7 +306,8 @@ success_order_completed = "✅ Hai segnato l'ordine #{order_id} come completato.
 success_order_refunded = "✴️ L'ordine #{order_id} è stato rimborsato con successo."
 
 # Success: transaction was created successfully
-success_transaction_created = "✅ La transazione è stata creata con successo!"
+success_transaction_created = "✅ La transazione è stata creata con successo!\n" \
+                              "{transaction}"
 
 # Error: message received not in a private chat
 error_nonprivate_chat = "⚠️ Questo bot funziona solo in chat private."

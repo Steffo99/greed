@@ -584,7 +584,7 @@ class ChatWorker(threading.Thread):
                               description=strings.payment_invoice_description.format(amount=str(value)),
                               payload=self.invoice_payload,
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
-                              start_parameter="tempdeeplink",  # TODO: no idea on how deeplinks should work
+                              start_parameter="tempdeeplink",
                               currency=configloader.config["Payments"]["currency"],
                               prices=prices,
                               need_name=configloader.config["Credit Card"]["name_required"] == "yes",
@@ -852,7 +852,6 @@ class ChatWorker(threading.Thread):
                 self.admin.live_mode = False
                 break
             # Find the order
-            # TODO: debug the regex?
             order_id = re.search(strings.order_number.replace("{id}", "([0-9]+)"), update.message.text).group(1)
             order = self.session.query(db.Order).filter(db.Order.order_id == order_id).one()
             # Check if the order hasn't been already cleared
@@ -912,7 +911,6 @@ class ChatWorker(threading.Thread):
         # Add to the list all the users
         for user in users:
             keyboard_buttons.append([user.identifiable_str()])
-        # TODO: handle more than 99 users
         # Create the keyboard
         keyboard = telegram.ReplyKeyboardMarkup(keyboard_buttons, one_time_keyboard=True)
         # Send the keyboard
@@ -961,7 +959,7 @@ class ChatWorker(threading.Thread):
                               strings.notification_transaction_created.format(transaction=str(transaction)),
                               parse_mode="HTML")
         # Notify the admin of the success
-        self.bot.send_message(self.chat.id, strings.success_transaction_created)
+        self.bot.send_message(self.chat.id, strings.success_transaction_created.format(transaction=str(transaction)))
 
     def __help_menu(self):
         """Help menu. Allows the user to ask for assistance, get a guide or see some info about the bot."""

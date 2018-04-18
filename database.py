@@ -85,8 +85,6 @@ class Product(TableDeclarativeBase):
     image = Column(LargeBinary)
     # Product has been deleted
     deleted = Column(Boolean, nullable=False)
-    # Stock quantity, if null product has infinite stock
-    stock = Column(Integer)
 
     # Extra table parameters
     __tablename__ = "products"
@@ -101,17 +99,12 @@ class Product(TableDeclarativeBase):
         if style == "short":
             return f"{cart_qty}x {utils.telegram_html_escape(self.name)} - {str(utils.Price(self.price) * cart_qty)}"
         elif style == "full":
-            if self.stock is not None:
-                stock = strings.in_stock_format_string.format(quantity=self.stock)
-            else:
-                stock = ''
             if cart_qty is not None:
                 cart = strings.in_cart_format_string.format(quantity=cart_qty)
             else:
                 cart = ''
             return strings.product_format_string.format(name=utils.telegram_html_escape(self.name),
                                                         description=utils.telegram_html_escape(self.description),
-                                                        stock=stock,
                                                         price=str(utils.Price(self.price)),
                                                         cart=cart)
         else:
