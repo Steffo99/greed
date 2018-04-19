@@ -1069,25 +1069,25 @@ class ChatWorker(threading.Thread):
         # Write on the previously created file
         with open(f"transactions_{self.chat.id}.csv", "w") as file:
             # Write an header line
-            file.write(f"UserID,"
-                       f"TransactionValue,"
-                       f"TransactionNotes,"
-                       f"Provider,"
-                       f"ChargeID,"
-                       f"SpecifiedName,"
-                       f"SpecifiedPhone,"
-                       f"SpecifiedEmail,"
+            file.write(f"UserID;"
+                       f"TransactionValue;"
+                       f"TransactionNotes;"
+                       f"Provider;"
+                       f"ChargeID;"
+                       f"SpecifiedName;"
+                       f"SpecifiedPhone;"
+                       f"SpecifiedEmail;"
                        f"Refunded?\n")
-            # For each transaction, write a new line on file
+            # For each transaction; write a new line on file
             for transaction in transactions:
-                file.write(f"{transaction.user_id if transaction.user_id is not None else ''},"
-                           f"{transaction.value if transaction.value is not None else ''},"
-                           f"{transaction.notes if transaction.notes is not None else ''},"
-                           f"{transaction.provider if transaction.provider is not None else ''},"
-                           f"{transaction.provider_charge_id if transaction.provider_charge_id is not None else ''},"
-                           f"{transaction.payment_name if transaction.payment_name is not None else ''},"
-                           f"{transaction.payment_phone if transaction.payment_phone is not None else ''},"
-                           f"{transaction.payment_email if transaction.payment_email is not None else ''},"
+                file.write(f"{transaction.user_id if transaction.user_id is not None else ''};"
+                           f"{transaction.value if transaction.value is not None else ''};"
+                           f"{transaction.notes if transaction.notes is not None else ''};"
+                           f"{transaction.provider if transaction.provider is not None else ''};"
+                           f"{transaction.provider_charge_id if transaction.provider_charge_id is not None else ''};"
+                           f"{transaction.payment_name if transaction.payment_name is not None else ''};"
+                           f"{transaction.payment_phone if transaction.payment_phone is not None else ''};"
+                           f"{transaction.payment_email if transaction.payment_email is not None else ''};"
                            f"{transaction.refunded if transaction.refunded is not None else ''}\n")
         # Describe the file to the user
         self.bot.send_message(self.chat.id, strings.csv_caption)
