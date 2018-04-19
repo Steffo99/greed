@@ -49,9 +49,9 @@ csv_caption = "E' stato generato un file .csv contenente tutte le transazioni ar
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!\n" \
-                           "Quella che vedi qui è la versione Alpha del software.\n" \
+                           "Quella che vedi qui è la versione <b>Alpha</b> del software.\n" \
                            "Pertanto, funzioni potranno essere aggiunte o rimosse in qualsiasi momento," \
-                           " e l'interfaccia utente potrebbe risultare incompleta."
+                           " e l'interfaccia utente potrebbe essere incompleta."
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Cosa vorresti fare?\n" \
@@ -62,7 +62,7 @@ conversation_open_user_menu = "Cosa vorresti fare?\n" \
                               " nella barra dei messaggi.</i>"
 
 # Conversation: like above, but for administrators
-conversation_open_admin_menu = "Sei un amministratore di greed!\n" \
+conversation_open_admin_menu = "Sei un <b>amministratore</b> di greed!\n" \
                                "Cosa vorresti fare?\n" \
                                "\n" \
                                "<i>Per selezionare un'operazione, premi un tasto nella tastiera in basso.\n" \
@@ -106,8 +106,9 @@ conversation_live_orders_start = "Sei in modalità di <b>Ricezione Ordini</b>!\n
 conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
 
 # Notification: the conversation has expired
-conversation_expired = "🕐 Il bot non ha ricevuto messaggi per un po' di tempo, quindi ha chiuso la conversazione.\n" \
-                       "Per riavviarne una nuova, invia il comando /start."
+conversation_expired = "🕐 Non ho ricevuto messaggi da un po' di tempo, quindi per risparmiare energia" \
+                       " ho chiuso la conversazione.\n" \
+                       "Se vuoi avviarne una nuova, invia di nuovo il comando /start."
 
 # User menu: order
 menu_order = "🛒 Ordina"
@@ -369,7 +370,6 @@ error_no_orders = "⚠️  Non hai ancora piazzato ordini, quindi non c'è nient
 error_user_does_not_exist = "⚠️  L'utente selezionato non esiste."
 
 # Fatal: conversation raised an exception
-fatal_conversation_exception = "☢️ Il bot ha riscontrato un errore fatale durante l'esecuzione e ha interrotto la" \
-                               " conversazione.\n" \
+fatal_conversation_exception = "☢️ Oh no! Un <b>errore</b> ha interrotto questa conversazione.\n" \
                                "L'errore è stato segnalato allo sviluppatore di greed in modo che possa sistemarlo.\n" \
                                "Per avviare una nuova conversazione, invia il comando /start."
