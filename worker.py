@@ -254,6 +254,8 @@ class ChatWorker(threading.Thread):
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
                                                           strings.menu_add_credit, strings.menu_bot_info,
                                                           strings.menu_help])
+            # After the user reply, update the user data
+            self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id)
             # If the user has selected the Order option...
             if selection == strings.menu_order:
                 # Open the order menu
@@ -966,7 +968,6 @@ class ChatWorker(threading.Thread):
         # Create a keyboard with the user help menu
         keyboard = [[telegram.KeyboardButton(strings.menu_guide)],
                     [telegram.KeyboardButton(strings.menu_contact_shopkeeper)],
-                    [telegram.KeyboardButton(strings.menu_bot_info)],
                     [telegram.KeyboardButton(strings.menu_cancel)]]
         # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
         self.bot.send_message(self.chat.id,
