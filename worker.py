@@ -12,6 +12,8 @@ import re
 import utils
 import os
 from html import escape
+import io
+import requests
 
 
 class StopSignal:
@@ -634,7 +636,7 @@ class ChatWorker(threading.Thread):
                 keyboard.append([strings.menu_orders])
             if self.admin.create_transactions:
                 keyboard.append([strings.menu_edit_credit])
-                keyboard.append([strings.menu_transactions])
+                keyboard.append([strings.menu_transactions, strings.menu_csv])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
@@ -642,7 +644,7 @@ class ChatWorker(threading.Thread):
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_products, strings.menu_orders,
                                                           strings.menu_user_mode, strings.menu_edit_credit,
-                                                          strings.menu_transactions])
+                                                          strings.menu_transactions, strings.menu_csv])
             # If the user has selected the Products option...
             if selection == strings.menu_products:
                 # Open the products menu
@@ -663,6 +665,10 @@ class ChatWorker(threading.Thread):
             elif selection == strings.menu_transactions:
                 # Open the transaction pages
                 self.__transaction_pages()
+            # If the user has selected the .csv option...
+            elif selection == strings.menu_csv:
+                # Generate the .csv file
+                self.__transactions_file()
 
     def __products_menu(self):
         """Display the admin menu to select a product to edit."""
@@ -1049,6 +1055,51 @@ class ChatWorker(threading.Thread):
             elif selection.data == "cmd_done":
                 # Break the loop
                 break
+
+    def __transactions_file(self):
+        """Generate a .csv file containing the list of all transactions."""
+        # Retrieve all the transactions
+        transactions = self.session.query(db.Transaction).order_by(db.Transaction.transaction_id.asc()).all()
+        # Create the file if it doesn't exists
+        try:
+            with open(f"transactions_{self.chat.id}.csv", "x"):
+                pass
+        except IOError:
+            pass
+        # Write on the previously created file
+        with open(f"transactions_{self.chat.id}.csv", "w") as file:
+            # Write an header line
+            file.write(f"UserID,"
+                       f"TransactionValue,"
+                       f"TransactionNotes,"
+                       f"Provider,"
+                       f"ChargeID,"
+                       f"SpecifiedName,"
+                       f"SpecifiedPhone,"
+                       f"SpecifiedEmail,"
+                       f"Refunded?\n")
+            # For each transaction, write a new line on file
+            for transaction in transactions:
+                file.write(f"{transaction.user_id if transaction.user_id is not None else ''},"
+                           f"{transaction.value if transaction.value is not None else ''},"
+                           f"{transaction.notes if transaction.notes is not None else ''},"
+                           f"{transaction.provider if transaction.provider is not None else ''},"
+                           f"{transaction.provider_charge_id if transaction.provider_charge_id is not None else ''},"
+                           f"{transaction.payment_name if transaction.payment_name is not None else ''},"
+                           f"{transaction.payment_phone if transaction.payment_phone is not None else ''},"
+                           f"{transaction.payment_email if transaction.payment_email is not None else ''},"
+                           f"{transaction.refunded if transaction.refunded is not None else ''}\n")
+        # Describe the file to the user
+        self.bot.send_message(self.chat.id, strings.csv_caption)
+        # Reopen the file for reading
+        with open(f"transactions_{self.chat.id}.csv") as file:
+            # Send the file via a manual request to Telegram
+            requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendDocument",
+                          files={"document": file},
+                          params={"chat_id": self.chat.id,
+                                  "parse_mode": "HTML"})
+        # Delete the created file
+        os.remove(f"transactions_{self.chat.id}.csv")
 
     def __graceful_stop(self, stop_trigger: StopSignal):
         """Handle the graceful stop of the thread."""

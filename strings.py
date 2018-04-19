@@ -41,6 +41,11 @@ transactions_page = "Pagina <b>{page}</b>:\n" \
                     "\n" \
                     "{transactions}"
 
+# transactions.csv caption
+csv_caption = "E' stato generato un file .csv contenente tutte le transazioni archiviate nel database del bot.\n" \
+              "E' possibile aprire questo file con altri programmi, come ad esempio LibreOffice Calc, per elaborare" \
+              " i dati."
+
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!\n" \
@@ -184,6 +189,9 @@ menu_previous = "◀️ Indietro"
 
 # Menu: contact the shopkeeper
 menu_contact_shopkeeper = "👨‍💼 Contatta il negozio"
+
+# Menu: generate transactions .csv file
+menu_csv = "📄 .csv"
 
 # Emoji: unprocessed order
 emoji_not_processed = "*️⃣"

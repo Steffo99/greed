@@ -189,4 +189,8 @@ class DuckBot:
     def delete_message(self, *args, **kwargs):
         return self.bot.delete_message(*args, **kwargs)
 
+    @catch_telegram_errors
+    def send_document(self, *args, **kwargs):
+        return self.bot.send_document(*args, **kwargs)
+
     # TODO: add more methods

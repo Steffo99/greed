@@ -103,3 +103,4 @@ ENV/
 
 config/config.ini
 *.sqlite
+*.sqlite-journal
