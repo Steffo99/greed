@@ -143,15 +143,18 @@ class DuckBot:
 
     @catch_telegram_errors
     def send_message(self, *args, **kwargs):
-        return self.bot.send_message(*args, **kwargs)
+        # All messages are sent in HTML parse mode
+        return self.bot.send_message(parse_mode="HTML", *args, **kwargs)
 
     @catch_telegram_errors
     def edit_message_text(self, *args, **kwargs):
-        return self.bot.edit_message_text(*args, **kwargs)
+        # All messages are sent in HTML parse mode
+        return self.bot.edit_message_text(parse_mode="HTML", *args, **kwargs)
 
     @catch_telegram_errors
     def edit_message_caption(self, *args, **kwargs):
-        return self.bot.edit_message_caption(*args, **kwargs)
+        # All messages are sent in HTML parse mode
+        return self.bot.edit_message_caption(parse_mode="HTML", *args, **kwargs)
 
     @catch_telegram_errors
     def edit_message_reply_markup(self, *args, **kwargs):
