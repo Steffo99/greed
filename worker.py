@@ -255,7 +255,7 @@ class ChatWorker(threading.Thread):
                                                           strings.menu_add_credit, strings.menu_bot_info,
                                                           strings.menu_help])
             # After the user reply, update the user data
-            self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id)
+            self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
             # If the user has selected the Order option...
             if selection == strings.menu_order:
                 # Open the order menu
