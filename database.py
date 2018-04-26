@@ -239,25 +239,36 @@ class Order(TableDeclarativeBase):
     def __repr__(self):
         return f"<Order {self.order_id} placed by User {self.user_id}>"
 
-    def get_text(self, session):
+    def get_text(self, session, user=False):
         joined_self = session.query(Order).filter_by(order_id=self.order_id).join(Transaction).one()
         items = ""
         for item in self.items:
             items += str(item) + "\n"
         if self.delivery_date is not None:
             status_emoji = strings.emoji_completed
+            status_text = strings.text_completed
         elif self.refund_date is not None:
             status_emoji = strings.emoji_refunded
+            status_text = strings.text_refunded
         else:
             status_emoji = strings.emoji_not_processed
-        return status_emoji + " " + \
-            strings.order_number.format(id=self.order_id) + "\n" + \
-            strings.order_format_string.format(user=self.user.mention(),
-                                               date=self.creation_date.isoformat(),
-                                               items=items,
-                                               notes=self.notes if self.notes is not None else "",
-                                               value=str(utils.Price(-joined_self.transaction.value))) + \
-            (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
+            status_text = strings.text_not_processed
+        if user and configloader.config["Appearance"]["full_order_info"] == "yes":
+            return strings.user_order_format_string.format(status_emoji=status_emoji,
+                                                           status_text=status_text,
+                                                           items=items,
+                                                           notes=self.notes,
+                                                           value=str(utils.Price(-joined_self.transaction.value))) + \
+                (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
+        else:
+            return status_emoji + " " + \
+                strings.order_number.format(id=self.order_id) + "\n" + \
+                strings.order_format_string.format(user=self.user.mention(),
+                                                   date=self.creation_date.isoformat(),
+                                                   items=items,
+                                                   notes=self.notes if self.notes is not None else "",
+                                                   value=str(utils.Price(-joined_self.transaction.value))) + \
+                (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
 
 
 class OrderItem(TableDeclarativeBase):

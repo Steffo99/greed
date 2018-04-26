@@ -21,9 +21,9 @@ product_format_string = "<b>{name}</b>\n" \
                         "<b>{cart}</b>"
 
 # Order number, displayed in the order info
-order_number = "Ordine #{id}"
+order_number = "<b>Ordine #{id}</b>"
 
-# Order info displayed string
+# Order info string, shown to the admins
 order_format_string = "di {user}\n" \
                       "Creato {date}\n" \
                       "\n" \
@@ -31,6 +31,13 @@ order_format_string = "di {user}\n" \
                       "TOTALE: {value}\n" \
                       "\n" \
                       "Note del cliente: {notes}"
+
+# Order info string, shown to the user
+user_order_format_string = "{status_emoji} <b>Ordine {status_text}</b>\n" \
+                           "{items}\n" \
+                           "TOTALE: {value}\n" \
+                           "\n" \
+                           "Note: {notes}"
 
 # Transaction page is loading
 loading_transactions = "<i>Caricamento delle transazioni in corso...\n" \
@@ -202,6 +209,15 @@ emoji_completed = "✅"
 
 # Emoji: refunded order
 emoji_refunded = "✴️"
+
+# Text: unprocessed order
+text_not_processed = "in sospeso"
+
+# Text: completed order
+text_completed = "completato"
+
+# Text: refunded order
+text_refunded = "rimborsato"
 
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
