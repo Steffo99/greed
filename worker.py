@@ -65,10 +65,24 @@ class ChatWorker(threading.Thread):
         self.admin = self.session.query(db.Admin).filter(db.Admin.user_id == self.chat.id).one_or_none()
         # If the user isn't registered, create a new record and add it to the db
         if self.user is None:
+            # Check if there are other registered users: if there aren't any, the first user will be owner of the bot
+            will_be_owner = (self.session.query(db.User).first() is None)
             # Create the new record
             self.user = db.User(self.chat)
             # Add the new record to the db
             self.session.add(self.user)
+            # Flush the session to get an userid
+            self.session.flush()
+            # If the will be owner flag is set
+            if will_be_owner:
+                # Become owner
+                self.admin = db.Admin(user_id=self.user.user_id,
+                                      edit_products=True,
+                                      receive_orders=True,
+                                      create_transactions=True,
+                                      display_on_help=True,
+                                      is_owner=True,
+                                      live_mode=False)
             # Commit the transaction
             self.session.commit()
         # Capture exceptions that occour during the conversation
@@ -873,7 +887,8 @@ class ChatWorker(threading.Thread):
                                            message_id=update.message.message_id)
                 # Notify the user of the completition
                 self.bot.send_message(order.user_id,
-                                      strings.notification_order_completed.format(order=order.get_text(self.session)))
+                                      strings.notification_order_completed.format(order=order.get_text(self.session,
+                                                                                                       user=True)))
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
                 # Ask for a refund reason
@@ -902,7 +917,8 @@ class ChatWorker(threading.Thread):
                                            message_id=update.message.message_id)
                 # Notify the user of the refund
                 self.bot.send_message(order.user_id,
-                                      strings.notification_order_refunded.format(order=order.get_text(self.session)))
+                                      strings.notification_order_refunded.format(order=order.get_text(self.session,
+                                                                                                      user=True)))
                 # Notify the admin of the refund
                 self.bot.send_message(self.chat.id, strings.success_order_refunded.format(order_id=order.order_id))
 

@@ -28,16 +28,16 @@ order_format_string = "di {user}\n" \
                       "Creato {date}\n" \
                       "\n" \
                       "{items}\n" \
-                      "TOTALE: {value}\n" \
+                      "TOTALE: <b>{value}</b>\n" \
                       "\n" \
-                      "Note del cliente: {notes}"
+                      "Note del cliente: {notes}\n"
 
 # Order info string, shown to the user
 user_order_format_string = "{status_emoji} <b>Ordine {status_text}</b>\n" \
                            "{items}\n" \
-                           "TOTALE: {value}\n" \
+                           "TOTALE: <b>{value}</b>\n" \
                            "\n" \
-                           "Note: {notes}"
+                           "Note: {notes}\n"
 
 # Transaction page is loading
 loading_transactions = "<i>Caricamento delle transazioni in corso...\n" \

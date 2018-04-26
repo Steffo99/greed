@@ -253,7 +253,7 @@ class Order(TableDeclarativeBase):
         else:
             status_emoji = strings.emoji_not_processed
             status_text = strings.text_not_processed
-        if user and configloader.config["Appearance"]["full_order_info"] == "yes":
+        if user and configloader.config["Appearance"]["full_order_info"] == "no":
             return strings.user_order_format_string.format(status_emoji=status_emoji,
                                                            status_text=status_text,
                                                            items=items,
