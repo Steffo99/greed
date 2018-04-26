@@ -128,12 +128,19 @@ def catch_telegram_errors(func):
                 print(f"Network error while calling {func.__name__}(), retrying in 5 secs...")
                 time.sleep(5)
             # Unknown error
-            except telegram.error.TelegramError:
-                print(f"Telegram error while calling {func.__name__}(), retrying in 5 secs...")
-                # Send the error to the Sentry server
-                if sentry_client is not None:
-                    sentry_client.captureException(exc_info=sys.exc_info())
-                time.sleep(5)
+            except telegram.error.TelegramError as error:
+                if error.message.lower() == "bad gateway":
+                    print(f"Bad Gateway while calling {func.__name__}(), retrying in 5 secs...")
+                    time.sleep(5)
+                elif error.message.lower() == "timed out":
+                    print(f"Timed out while calling {func.__name__}(), retrying in 1 sec...")
+                    time.sleep(1)
+                else:
+                    print(f"Telegram error while calling {func.__name__}(), retrying in 5 secs...")
+                    # Send the error to the Sentry server
+                    if sentry_client is not None:
+                        sentry_client.captureException(exc_info=sys.exc_info())
+                    time.sleep(5)
     return result_func
 
 
