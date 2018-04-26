@@ -129,7 +129,7 @@ def catch_telegram_errors(func):
                 time.sleep(5)
             # Unknown error
             except telegram.error.TelegramError as error:
-                if error.message.lower() == "bad gateway":
+                if error.message.lower() in ["bad gateway", "invalid server response"]:
                     print(f"Bad Gateway while calling {func.__name__}(), retrying in 5 secs...")
                     time.sleep(5)
                 elif error.message.lower() == "timed out":
