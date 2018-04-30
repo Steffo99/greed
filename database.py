@@ -194,9 +194,9 @@ class Admin(TableDeclarativeBase):
     user_id = Column(BigInteger, ForeignKey("users.user_id"), primary_key=True)
     user = relationship("User")
     # Permissions
-    edit_products = Column(Boolean, default=True)
-    receive_orders = Column(Boolean, default=True)
-    create_transactions = Column(Boolean, default=True)
+    edit_products = Column(Boolean, default=False)
+    receive_orders = Column(Boolean, default=False)
+    create_transactions = Column(Boolean, default=False)
     display_on_help = Column(Boolean, default=False)
     is_owner = Column(Boolean, default=False)
     # Live mode enabled

@@ -210,6 +210,12 @@ emoji_completed = "✅"
 # Emoji: refunded order
 emoji_refunded = "✴️"
 
+# Emoji: yes
+emoji_yes = "✅"
+
+# Emoji: no
+emoji_no = "🚫"
+
 # Text: unprocessed order
 text_not_processed = "in sospeso"
 
@@ -256,6 +262,18 @@ ask_credit = "Di quanto vuoi modificare il credito del cliente?\n" \
              "<i>Invia un messaggio contenente l'importo.\n" \
              "Metti un segno </i><code>+</code><i> se vuoi aggiungere credito all'account del cliente," \
              " oppure un segno </i><code>-</code><i> se vuoi dedurlo.</i>"
+
+# Edit admin: can edit products?
+ask_edit_products = "Vuoi che l'amministratore sia autorizzato a modificare la configurazione dei prodotti?"
+
+# Edit admin: can receive orders?
+ask_receive_orders = "Vuoi che l'amministratore sia autorizzato a ricevere e gestire gli ordini?"
+
+# Edit admin: can create transactions?
+ask_create_transactions = "Vuoi che l'amministratore sia autorizzato a creare nuove transazioni?"
+
+# Edit admin: should be displayed on help
+ask_display_on_help = "Vuoi che l'amministratore venga visualizzato nella sezione Contatta il negozio?"
 
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \

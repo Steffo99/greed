@@ -250,6 +250,34 @@ class ChatWorker(threading.Thread):
             # Return the callbackquery
             return update.callback_query
 
+    def __user_select(self) -> typing.Union[db.User, CancelSignal]:
+        """Select an user from the ones in the database."""
+        # Find all the users in the database
+        users = self.session.query(db.User).order_by(db.User.user_id).all()
+        # Create a list containing all the keyboard button strings
+        keyboard_buttons = [[strings.menu_cancel]]
+        # Add to the list all the users
+        for user in users:
+            keyboard_buttons.append([user.identifiable_str()])
+        # Create the keyboard
+        keyboard = telegram.ReplyKeyboardMarkup(keyboard_buttons, one_time_keyboard=True)
+        # Keep asking until a result is returned
+        while True:
+            # Send the keyboard
+            self.bot.send_message(self.chat.id, strings.conversation_admin_select_user, reply_markup=keyboard)
+            # Wait for a reply
+            reply = self.__wait_for_regex("user_([0-9]+)", cancellable=True)
+            # Allow the cancellation of the operation
+            if reply == strings.menu_cancel:
+                return CancelSignal()
+            # Find the user in the database
+            user = self.session.query(db.User).filter_by(user_id=int(reply)).one_or_none()
+            # Ensure the user exists
+            if not user:
+                self.bot.send_message(self.chat.id, strings.error_user_does_not_exist)
+                continue
+            return user
+
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
         Normal bot actions should be placed here."""
@@ -924,27 +952,8 @@ class ChatWorker(threading.Thread):
 
     def __create_transaction(self):
         """Edit manually the credit of an user."""
-        # Find all the users in the database
-        users = self.session.query(db.User).order_by(db.User.user_id).all()
-        # Create a list containing all the keyboard button strings
-        keyboard_buttons = [[strings.menu_cancel]]
-        # Add to the list all the users
-        for user in users:
-            keyboard_buttons.append([user.identifiable_str()])
-        # Create the keyboard
-        keyboard = telegram.ReplyKeyboardMarkup(keyboard_buttons, one_time_keyboard=True)
-        # Send the keyboard
-        self.bot.send_message(self.chat.id, strings.conversation_admin_select_user, reply_markup=keyboard)
-        # Wait for a reply
-        reply = self.__wait_for_regex("user_([0-9]+)", cancellable=True)
-        # Allow the cancellation of the operation
-        if reply == strings.menu_cancel:
-            return
-        # Find the user in the database
-        user = self.session.query(db.User).filter_by(user_id=int(reply)).one_or_none()
-        # Ensure the user exists
-        if not user:
-            self.bot.send_message(self.chat.id, strings.error_user_does_not_exist)
+        # Make the admin select an user
+        user = self.__user_select()
         # Create an inline keyboard with a single cancel button
         cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
                                                                                callback_data="cmd_cancel")]])
