@@ -21,7 +21,7 @@ product_format_string = "<b>{name}</b>\n" \
                         "<b>{cart}</b>"
 
 # Order number, displayed in the order info
-order_number = "<b>Ordine #{id}</b>"
+order_number = "Ordine #{id}"
 
 # Order info string, shown to the admins
 order_format_string = "di {user}\n" \
