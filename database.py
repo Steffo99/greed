@@ -292,8 +292,4 @@ class OrderItem(TableDeclarativeBase):
         return f"<OrderItem {self.item_id}>"
 
 
-# If this script is ran as main, try to create all the tables in the database
-if __name__ == "__main__":
-    print("Creating tables...")
-    TableDeclarativeBase.metadata.create_all()
-    print("Done!")
+TableDeclarativeBase.metadata.create_all()

@@ -66,7 +66,7 @@ class ChatWorker(threading.Thread):
         # If the user isn't registered, create a new record and add it to the db
         if self.user is None:
             # Check if there are other registered users: if there aren't any, the first user will be owner of the bot
-            will_be_owner = (self.session.query(db.User).first() is None)
+            will_be_owner = (self.session.query(db.Admin).first() is None)
             # Create the new record
             self.user = db.User(self.chat)
             # Add the new record to the db
