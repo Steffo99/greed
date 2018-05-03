@@ -341,7 +341,8 @@ refund_reason = "Motivazione del rimborso:\n" \
 # Info: informazioni sul bot
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
-           ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE">Affero General Public License 3.0</a>.\n' \
+           ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE.txt">' \
+           'Affero General Public License 3.0</a>.\n' \
            'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
 
 # Help: guide
