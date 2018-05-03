@@ -49,27 +49,27 @@ transactions_page = "Pagina <b>{page}</b>:\n" \
                     "{transactions}"
 
 # transactions.csv caption
-csv_caption = "E' stato generato un file .csv contenente tutte le transazioni archiviate nel database del bot.\n" \
+csv_caption = "E' stato generato un 📄 file .csv contenente tutte le transazioni archiviate nel database del bot.\n" \
               "E' possibile aprire questo file con altri programmi, come ad esempio LibreOffice Calc, per elaborare" \
               " i dati."
 
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!\n" \
-                           "Quella che vedi qui è la versione <b>Alpha</b> del software.\n" \
+                           "Quella che vedi qui è la versione 🅰️ <b>Alpha</b> del software.\n" \
                            "Pertanto, funzioni potranno essere aggiunte o rimosse in qualsiasi momento," \
                            " e l'interfaccia utente potrebbe essere incompleta."
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Cosa vorresti fare?\n" \
-                              "Hai <b>{credit}</b> sul portafoglio.\n" \
+                              "💰 Hai <b>{credit}</b> sul portafoglio.\n" \
                               "\n" \
                               "<i>Per selezionare un'operazione, premi un tasto nella tastiera in basso.\n" \
                               "Se la tastiera non si è aperta, puoi aprirla premendo il tasto con quattro quadratini" \
                               " nella barra dei messaggi.</i>"
 
 # Conversation: like above, but for administrators
-conversation_open_admin_menu = "Sei un <b>amministratore</b> di greed!\n" \
+conversation_open_admin_menu = "Sei un 💼 <b>Gestore</b> di questo negozio!\n" \
                                "Cosa vorresti fare?\n" \
                                "\n" \
                                "<i>Per selezionare un'operazione, premi un tasto nella tastiera in basso.\n" \
@@ -94,7 +94,7 @@ conversation_cart_actions = "<i>Aggiungi prodotti al carrello scorrendo in su e 
                             " premi il tasto Conferma.</i>"
 
 # Conversation: confirm the cart contents
-conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
+conversation_confirm_cart = "🛒 Il tuo carrello contiene questi prodotti:\n" \
                             "{product_list}" \
                             "Totale: <b>{total_cost}</b>\n" \
                             "\n" \
@@ -104,13 +104,18 @@ conversation_confirm_cart = "Il tuo carrello contiene questi prodotti:\n" \
 # Conversation: the user activated the live orders mode
 conversation_live_orders_start = "Sei in modalità di <b>Ricezione Ordini</b>!\n" \
                                  "Tutti i nuovi ordini piazzati dai clienti ti appariranno in tempo reale in questa" \
-                                 " chat, e potrai segnarli come completati oppure rimborsare il credito al cliente.\n" \
+                                 " chat, e potrai segnarli come ✅ completati" \
+                                 " oppure ✴️ rimborsare il credito al cliente.\n" \
                                  "\n" \
                                  "<i>Premi il tasto Interrompi sotto a questo messaggio per interrompere la" \
                                  " ricezione.</i>"
 
 # Conversation: help menu has been opened
 conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
+
+# Conversation: switching to user mode
+conversation_switch_to_user_mode = "Stai passando alla modalità 👤 Cliente.\n" \
+                                   "Se vuoi riassumere il ruolo di 💼 Gestore, riavvia la conversazione con /start."
 
 # Notification: the conversation has expired
 conversation_expired = "🕐 Non ho ricevuto messaggi da un po' di tempo, quindi per risparmiare energia" \
@@ -148,7 +153,7 @@ menu_transactions = "💳 Elenco transazioni"
 menu_edit_credit = "💰 Crea transazione"
 
 # Admin menu: go to user mode
-menu_user_mode = "👤 Passa alla modalità utente"
+menu_user_mode = "👤 Passa alla modalità cliente"
 
 # Admin menu: add product
 menu_add_product = "✨ Nuovo prodotto"
@@ -236,25 +241,26 @@ ask_product_price = "Quanto deve costare il prodotto?\n" \
                     "Scrivi <code>X</code> se vuoi che il prodotto non sia ancora in vendita."
 
 # Add product: image?
-ask_product_image = "Che immagine vuoi che abbia il prodotto?\n" \
+ask_product_image = "🖼 Che immagine vuoi che abbia il prodotto?\n" \
                     "\n" \
                     "<i>Invia la foto, o se preferisci lasciare il prodotto senza immagine premi il tasto Salta qui" \
                     " sotto.</i>"
 
 # Order product: notes?
 ask_order_notes = "Vuoi lasciare una nota insieme all'ordine?\n" \
-                  "Sarà visibile agli addetti del negozio.\n" \
+                  "💼 Sarà visibile ai gestori del negozio.\n" \
                   "\n" \
                   "<i>Invia un messaggio con la nota che vuoi lasciare, oppure premi il pulsante Salta sotto a questo" \
                   " messaggio per non lasciare nulla.</i>"
 
 # Refund product: reason?
 ask_refund_reason = "Allega una motivazione a questo rimborso.\n" \
-                    "Sarà visibile al cliente."
+                    "👤 Sarà visibile al cliente."
 
 # Edit credit: notes?
 ask_transaction_notes = "Allega una nota a questa transazione.\n" \
-                        "Sarà visibile al cliente in seguito all'accredito / addebito e nel registro delle transazioni."
+                        "👤 Sarà visibile al cliente in seguito all'accredito / addebito" \
+                        " e ai 💼 Gestori nel registro delle transazioni."
 
 # Edit credit: amount?
 ask_credit = "Di quanto vuoi modificare il credito del cliente?\n" \
@@ -264,16 +270,16 @@ ask_credit = "Di quanto vuoi modificare il credito del cliente?\n" \
              " oppure un segno </i><code>-</code><i> se vuoi dedurlo.</i>"
 
 # Edit admin: can edit products?
-ask_edit_products = "Vuoi che l'amministratore sia autorizzato a modificare la configurazione dei prodotti?"
+ask_edit_products = "Vuoi che questo 💼 Gestore sia autorizzato a modificare la configurazione dei prodotti?"
 
 # Edit admin: can receive orders?
-ask_receive_orders = "Vuoi che l'amministratore sia autorizzato a ricevere e gestire gli ordini?"
+ask_receive_orders = "Vuoi che questo 💼 Gestore sia autorizzato a ricevere e gestire gli ordini?"
 
 # Edit admin: can create transactions?
-ask_create_transactions = "Vuoi che l'amministratore sia autorizzato a creare nuove transazioni?"
+ask_create_transactions = "Vuoi che questo 💼 Gestore sia autorizzato a creare nuove transazioni?"
 
 # Edit admin: should be displayed on help
-ask_display_on_help = "Vuoi che l'amministratore venga visualizzato nella sezione Contatta il negozio?"
+ask_display_on_help = "Vuoi che questo 💼 Gestore venga visualizzato nella sezione Contatta il negozio?"
 
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \
@@ -303,7 +309,7 @@ payment_invoice_title = "Aggiunta di fondi"
 # Payment: add funds invoice description
 payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio.\n\n" \
                               "Visto che sei nella versione Alpha del software, puoi effettuare pagamenti infiniti" \
-                              " con la carta di credito di prova `4242 4242 4242 4242`," \
+                              " con la carta di credito di prova 4242 4242 4242 4242," \
                               " con qualsiasi CVV e una qualsiasi data di scadenza valida."
 
 # Payment: label of the labeled price on the invoice
@@ -325,7 +331,7 @@ notification_order_refunded = "Un tuo ordine è stato rimborsato!\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied
-notification_transaction_created = "E' stata applicata una nuova transazione al tuo portafoglio:\n" \
+notification_transaction_created = "ℹ️ E' stata applicata una nuova transazione al tuo portafoglio:\n" \
                                    "{transaction}"
 
 # Refund reason
@@ -339,8 +345,8 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
            'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
 
 # Help: guide
-help_msg = "La guida del bot non è ancora disponibile.\n" \
-           "Riprova più avanti!"
+help_msg = "La guida del bot sarà disponibile in futuro a questo indirizzo:\n" \
+           "https://github.com/Steffo99/greed/wiki"
 
 # Help: contact shopkeeper
 contact_shopkeeper = "Attualmente, il personale disponibile ad offrire assistenza agli utenti è composto da:\n" \

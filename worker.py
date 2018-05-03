@@ -83,6 +83,8 @@ class ChatWorker(threading.Thread):
                                       display_on_help=True,
                                       is_owner=True,
                                       live_mode=False)
+                # Add the admin to the transaction
+                self.session.add(self.admin)
             # Commit the transaction
             self.session.commit()
         # Capture exceptions that occour during the conversation
@@ -114,6 +116,12 @@ class ChatWorker(threading.Thread):
         self.queue.put(StopSignal(reason))
         # Wait for the thread to stop
         self.join()
+
+    def update_user(self) -> db.User:
+        """Update the user data.
+        Note that this method will cause crashes if used in different threads with sqlite databases."""
+        self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
+        return self.user
 
     # noinspection PyUnboundLocalVariable
     def __receive_next_update(self) -> telegram.Update:
@@ -297,7 +305,7 @@ class ChatWorker(threading.Thread):
                                                           strings.menu_add_credit, strings.menu_bot_info,
                                                           strings.menu_help])
             # After the user reply, update the user data
-            self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
+            self._update_user()
             # If the user has selected the Order option...
             if selection == strings.menu_order:
                 # Open the order menu
@@ -667,7 +675,7 @@ class ChatWorker(threading.Thread):
         # Loop used to return to the menu after executing a command
         while True:
             # Create a keyboard with the admin main menu based on the admin permissions specified in the db
-            keyboard = [[strings.menu_user_mode]]
+            keyboard = []
             if self.admin.edit_products:
                 keyboard.append([strings.menu_products])
             if self.admin.receive_orders:
@@ -675,6 +683,7 @@ class ChatWorker(threading.Thread):
             if self.admin.create_transactions:
                 keyboard.append([strings.menu_edit_credit])
                 keyboard.append([strings.menu_transactions, strings.menu_csv])
+            keyboard.append([strings.menu_user_mode])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
@@ -697,6 +706,8 @@ class ChatWorker(threading.Thread):
                 self.__create_transaction()
             # If the user has selected the User mode option...
             elif selection == strings.menu_user_mode:
+                # Tell the user how to go back to admin menu
+                self.bot.send_message(self.chat.id, strings.conversation_switch_to_user_mode)
                 # Start the bot in user mode
                 self.__user_menu()
             # If the user has selected the Transactions option...
@@ -804,7 +815,7 @@ class ChatWorker(threading.Thread):
             # noinspection PyTypeChecker
             product = db.Product(name=name,
                                  description=description,
-                                 price=int(price),
+                                 price=int(price) if price is not None else None,
                                  deleted=False)
             # Add the record to the database
             self.session.add(product)
