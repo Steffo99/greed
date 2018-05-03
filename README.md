@@ -1,5 +1,5 @@
 # greed
-A customizable Telegram shop bot, developed for the High School oral exam
+A customizable Telegram shop bot, developed as a project for the final exam.
 
 ![](https://img.shields.io/badge/version-alpha-blue.svg)
 

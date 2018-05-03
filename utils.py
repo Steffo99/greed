@@ -19,6 +19,8 @@ else:
 
 
 class Price:
+    """The base class for the prices in greed.
+    Its int value is in minimum units, while its float and str values are in decimal format.int("""
     def __init__(self, value: typing.Union[int, float, str, "Price"]=0):
         if isinstance(value, int):
             # Keep the value as it is
@@ -121,26 +123,31 @@ def catch_telegram_errors(func):
                 break
             # Telegram API didn't answer in time
             except telegram.error.TimedOut:
-                print(f"Timed out while calling {func.__name__}(), retrying in 1 sec...")
-                time.sleep(1)
+                print(f"Timed out while calling {func.__name__}(),"
+                      f" retrying in {config['Telegram']['timed_out_pause']} secs...")
+                time.sleep(int(config["Telegram"]["timed_out_pause"]))
             # Telegram is not reachable
             except telegram.error.NetworkError:
-                print(f"Network error while calling {func.__name__}(), retrying in 5 secs...")
-                time.sleep(5)
+                print(f"Network error while calling {func.__name__}(),"
+                      f" retrying in {config['Telegram']['error_pause']} secs...")
+                time.sleep(int(config["Telegram"]["error_pause"]))
             # Unknown error
             except telegram.error.TelegramError as error:
                 if error.message.lower() in ["bad gateway", "invalid server response"]:
-                    print(f"Bad Gateway while calling {func.__name__}(), retrying in 5 secs...")
-                    time.sleep(5)
+                    print(f"Bad Gateway while calling {func.__name__}(),"
+                          f" retrying in {config['Telegram']['error_pause']} secs...")
+                    time.sleep(int(config["Telegram"]["error_pause"]))
                 elif error.message.lower() == "timed out":
-                    print(f"Timed out while calling {func.__name__}(), retrying in 1 sec...")
-                    time.sleep(1)
+                    print(f"Timed out while calling {func.__name__}(),"
+                          f" retrying in {config['Telegram']['timed_out_pause']} secs...")
+                    time.sleep(int(config["Telegram"]["timed_out_pause"]))
                 else:
-                    print(f"Telegram error while calling {func.__name__}(), retrying in 5 secs...")
+                    print(f"Telegram error while calling {func.__name__}(),"
+                          f" retrying in {config['Telegram']['error_pause']} secs...")
                     # Send the error to the Sentry server
                     if sentry_client is not None:
                         sentry_client.captureException(exc_info=sys.exc_info())
-                    time.sleep(5)
+                    time.sleep(int(config["Telegram"]["error_pause"]))
     return result_func
 
 
@@ -203,4 +210,4 @@ class DuckBot:
     def send_document(self, *args, **kwargs):
         return self.bot.send_document(*args, **kwargs)
 
-    # TODO: add more methods
+    # More methods can be added here
