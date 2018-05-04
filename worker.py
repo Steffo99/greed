@@ -1126,6 +1126,64 @@ class ChatWorker(threading.Thread):
         # Delete the created file
         os.remove(f"transactions_{self.chat.id}.csv")
 
+    def __add_admin(self):
+        """Add an administrator to the bot."""
+        # Let the admin select an administrator to promote
+        user = self.__user_select()
+        # Check if the user is already an administrator
+        admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
+        if admin is None:
+            # Create the keyboard to be sent
+            keyboard = telegram.ReplyKeyboardMarkup([[strings.emoji_yes, strings.emoji_no]])
+            # Ask for confirmation
+            self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_promotion, reply_markup=keyboard)
+            # Wait for an answer
+            selection = self.__wait_for_specific_message([strings.emoji_yes, strings.emoji_no])
+            # Proceed only if the answer is yes
+            if selection == strings.emoji_no:
+                return
+            # Create a new admin
+            admin = db.Admin(user=user,
+                             edit_products=False,
+                             receive_orders=False,
+                             create_transactions=False,
+                             is_owner=False,
+                             display_on_help=False)
+        # Send the empty admin message and record the id
+        message = self.bot.send_message(self.chat.id, strings.admin_properties.format(name=str(admin.user)))
+        # Start accepting edits
+        while True:
+            # Create the inline keyboard with the admin status
+            inline_keyboard = telegram.InlineKeyboardMarkup([
+                [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.edit_products)} {strings.prop_edit_products}",
+                                              callback_data="toggle_edit_products")],
+                [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.receive_orders)} {strings.prop_receive_orders}",
+                                              callback_data="toggle_receive_orders")],
+                [telegram.InlineKeyboardButton(
+                    f"{utils.boolmoji(admin.create_transactions)} {strings.prop_create_transactions}",
+                    callback_data="toggle_create_transactions")],
+                [telegram.InlineKeyboardButton(
+                    f"{utils.boolmoji(admin.display_on_help)} {strings.prop_display_on_help}",
+                    callback_data="toggle_display_on_help")],
+                [telegram.InlineKeyboardButton(strings.menu_done, callback_data="cmd_done")]
+            ])
+            # Update the inline keyboard
+            self.bot.edit_message_reply_markup(message, reply_markup=inline_keyboard)
+            # Wait for an user answer
+            callback = self.__wait_for_inlinekeyboard_callback()
+            # Toggle the correct property
+            if callback.data == "toggle_edit_products":
+                admin.edit_products = not admin.edit_products
+            elif callback.data == "toggle_receive_orders":
+                admin.receive_orders = not admin.receive_orders
+            elif callback.data == "toggle_create_transactions":
+                admin.create_transactions = not admin.create_transactions
+            elif callback.data == "toggle_display_on_help":
+                admin.display_on_help = not admin.display_on_help
+            elif callback.data == "cmd_done":
+                break
+        self.session.commit()
+
     def __graceful_stop(self, stop_trigger: StopSignal):
         """Handle the graceful stop of the thread."""
         # If the session has expired...

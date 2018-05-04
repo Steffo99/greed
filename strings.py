@@ -269,17 +269,20 @@ ask_credit = "Di quanto vuoi modificare il credito del cliente?\n" \
              "Metti un segno </i><code>+</code><i> se vuoi aggiungere credito all'account del cliente," \
              " oppure un segno </i><code>-</code><i> se vuoi dedurlo.</i>"
 
+# Header for the edit admin message
+admin_properties = "<b>Permessi di {name}:</b>"
+
 # Edit admin: can edit products?
-ask_edit_products = "Vuoi che questo 💼 Gestore sia autorizzato a modificare la configurazione dei prodotti?"
+prop_edit_products = "Modifica prodotti"
 
 # Edit admin: can receive orders?
-ask_receive_orders = "Vuoi che questo 💼 Gestore sia autorizzato a ricevere e gestire gli ordini?"
+prop_receive_orders = "Gestisci ordini"
 
 # Edit admin: can create transactions?
-ask_create_transactions = "Vuoi che questo 💼 Gestore sia autorizzato a creare nuove transazioni?"
+prop_create_transactions = "Crea transazioni"
 
-# Edit admin: should be displayed on help
-ask_display_on_help = "Vuoi che questo 💼 Gestore venga visualizzato nella sezione Contatta il negozio?"
+# Edit admin: show on help message?
+prop_display_on_help = "Assistenza cliente"
 
 # Thread has started downloading an image and might be unresponsive
 downloading_image = "Sto scaricando la tua foto!\n" \

@@ -6,6 +6,7 @@ from strings import currency_format_string, currency_symbol
 import typing
 import os
 import sys
+import strings
 
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
@@ -211,3 +212,7 @@ class DuckBot:
         return self.bot.send_document(*args, **kwargs)
 
     # More methods can be added here
+
+
+def boolmoji(boolean: bool):
+    return strings.emoji_yes if boolean else strings.emoji_no
