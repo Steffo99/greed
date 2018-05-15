@@ -486,9 +486,9 @@ class ChatWorker(threading.Thread):
             value -= cart[product][0].price * cart[product][1]
             # Create {quantity} new OrderItems
             for i in range(0, cart[product][1]):
-                orderitem = db.OrderItem(product=cart[product][0],
-                                         order_id=order.order_id)
-                self.session.add(orderitem)
+                order_item = db.OrderItem(product=cart[product][0],
+                                          order_id=order.order_id)
+                self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
         if self.user.credit + value < 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
@@ -1141,7 +1141,7 @@ class ChatWorker(threading.Thread):
         admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
         if admin is None:
             # Create the keyboard to be sent
-            keyboard = telegram.ReplyKeyboardMarkup([[strings.emoji_yes, strings.emoji_no]])
+            keyboard = telegram.ReplyKeyboardMarkup([[strings.emoji_yes, strings.emoji_no]], one_time_keyboard=True)
             # Ask for confirmation
             self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_promotion, reply_markup=keyboard)
             # Wait for an answer
@@ -1156,6 +1156,7 @@ class ChatWorker(threading.Thread):
                              create_transactions=False,
                              is_owner=False,
                              display_on_help=False)
+            self.session.add(admin)
         # Send the empty admin message and record the id
         message = self.bot.send_message(self.chat.id, strings.admin_properties.format(name=str(admin.user)))
         # Start accepting edits
