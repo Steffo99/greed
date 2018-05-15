@@ -305,7 +305,7 @@ class ChatWorker(threading.Thread):
                                                           strings.menu_add_credit, strings.menu_bot_info,
                                                           strings.menu_help])
             # After the user reply, update the user data
-            self._update_user()
+            self.update_user()
             # If the user has selected the Order option...
             if selection == strings.menu_order:
                 # Open the order menu
@@ -683,6 +683,8 @@ class ChatWorker(threading.Thread):
             if self.admin.create_transactions:
                 keyboard.append([strings.menu_edit_credit])
                 keyboard.append([strings.menu_transactions, strings.menu_csv])
+            if self.admin.is_owner:
+                keyboard.append([strings.menu_edit_admins])
             keyboard.append([strings.menu_user_mode])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, strings.conversation_open_admin_menu,
@@ -691,7 +693,8 @@ class ChatWorker(threading.Thread):
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_products, strings.menu_orders,
                                                           strings.menu_user_mode, strings.menu_edit_credit,
-                                                          strings.menu_transactions, strings.menu_csv])
+                                                          strings.menu_transactions, strings.menu_csv,
+                                                          strings.menu_edit_admins])
             # If the user has selected the Products option...
             if selection == strings.menu_products:
                 # Open the products menu
@@ -710,6 +713,10 @@ class ChatWorker(threading.Thread):
                 self.bot.send_message(self.chat.id, strings.conversation_switch_to_user_mode)
                 # Start the bot in user mode
                 self.__user_menu()
+            # If the user has selected the Add Admin option...
+            elif selection == strings.menu_edit_admins:
+                # Open the edit admin menu
+                self.__add_admin()
             # If the user has selected the Transactions option...
             elif selection == strings.menu_transactions:
                 # Open the transaction pages
@@ -1156,9 +1163,9 @@ class ChatWorker(threading.Thread):
             # Create the inline keyboard with the admin status
             inline_keyboard = telegram.InlineKeyboardMarkup([
                 [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.edit_products)} {strings.prop_edit_products}",
-                                              callback_data="toggle_edit_products")],
+                                               callback_data="toggle_edit_products")],
                 [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.receive_orders)} {strings.prop_receive_orders}",
-                                              callback_data="toggle_receive_orders")],
+                                               callback_data="toggle_receive_orders")],
                 [telegram.InlineKeyboardButton(
                     f"{utils.boolmoji(admin.create_transactions)} {strings.prop_create_transactions}",
                     callback_data="toggle_create_transactions")],
@@ -1168,7 +1175,9 @@ class ChatWorker(threading.Thread):
                 [telegram.InlineKeyboardButton(strings.menu_done, callback_data="cmd_done")]
             ])
             # Update the inline keyboard
-            self.bot.edit_message_reply_markup(message, reply_markup=inline_keyboard)
+            self.bot.edit_message_reply_markup(message_id=message.message_id,
+                                               chat_id=self.chat.id,
+                                               reply_markup=inline_keyboard)
             # Wait for an user answer
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property

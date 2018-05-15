@@ -86,7 +86,7 @@ conversation_admin_select_product = "✏️ Che prodotto vuoi modificare?"
 conversation_admin_select_product_to_delete = "❌ Che prodotto vuoi eliminare?"
 
 # Conversation: select a user to edit
-conversation_admin_select_user = "Seleziona l'utente a cui vuoi aggiungere o togliere credito."
+conversation_admin_select_user = "Seleziona un utente su cui effettuare l'azione selezionata."
 
 # Conversation: click below to pay for the purchase
 conversation_cart_actions = "<i>Aggiungi prodotti al carrello scorrendo in su e premendo il pulsante Aggiungi sotto" \
@@ -205,6 +205,9 @@ menu_contact_shopkeeper = "👨‍💼 Contatta il negozio"
 
 # Menu: generate transactions .csv file
 menu_csv = "📄 .csv"
+
+# Menu: edit admins list
+menu_edit_admins = "🏵 Modifica gestori"
 
 # Emoji: unprocessed order
 emoji_not_processed = "*️⃣"
