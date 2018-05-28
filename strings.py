@@ -283,10 +283,10 @@ admin_properties = "<b>Permessi di {name}:</b>"
 prop_edit_products = "Modifica prodotti"
 
 # Edit admin: can receive orders?
-prop_receive_orders = "Gestisci ordini"
+prop_receive_orders = "Ricevi ordini"
 
 # Edit admin: can create transactions?
-prop_create_transactions = "Crea transazioni"
+prop_create_transactions = "Gestisci transazioni"
 
 # Edit admin: show on help message?
 prop_display_on_help = "Assistenza cliente"
