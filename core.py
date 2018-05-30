@@ -4,10 +4,14 @@ import strings
 import worker
 import configloader
 import utils
+import threading
 
 
 def main():
     """The core code of the program. Should be run only in the main process!"""
+
+    # Rename the main thread for presentation purposes
+    threading.current_thread().name = "Core"
 
     # Create a bot instance
     bot = utils.DuckBot(configloader.config["Telegram"]["token"])

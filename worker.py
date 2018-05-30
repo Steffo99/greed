@@ -32,7 +32,7 @@ class ChatWorker(threading.Thread):
 
     def __init__(self, bot: utils.DuckBot, chat: telegram.Chat, *args, **kwargs):
         # Initialize the thread
-        super().__init__(name=f"ChatThread {chat.first_name}", *args, **kwargs)
+        super().__init__(name=f"Worker {chat.id}", *args, **kwargs)
         # Store the bot and chat info inside the class
         self.bot: utils.DuckBot = bot
         self.chat: telegram.Chat = chat

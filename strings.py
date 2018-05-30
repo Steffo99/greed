@@ -56,9 +56,10 @@ csv_caption = "E' stato generato un 📄 file .csv contenente tutte le transazio
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "Ciao!\n" \
                            "Benvenuto su greed!\n" \
-                           "Quella che vedi qui è la versione 🅰️ <b>Alpha</b> del software.\n" \
-                           "Pertanto, funzioni potranno essere aggiunte o rimosse in qualsiasi momento," \
-                           " e l'interfaccia utente potrebbe essere incompleta."
+                           "Quella che vedi qui è la versione 🅱️ <b>Beta</b> del software.\n" \
+                           "E' completamente utilizzabile, ma è possibile che siano ancora presenti alcuni bug.\n" \
+                           "Se li trovate, potete collaborare con gli sviluppatori per risolverli descrivendo cosa è" \
+                           "successo a https://github.com/Steffo99/greed/issues."
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "Cosa vorresti fare?\n" \
