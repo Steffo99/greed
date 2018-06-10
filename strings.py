@@ -92,14 +92,14 @@ conversation_admin_select_user = "Seleziona un utente su cui effettuare l'azione
 # Conversation: click below to pay for the purchase
 conversation_cart_actions = "<i>Aggiungi prodotti al carrello scorrendo in su e premendo il pulsante Aggiungi sotto" \
                             " i prodotti che desideri acquistare. Quando avrai terminato, torna a questo messaggio e" \
-                            " premi il tasto Conferma.</i>"
+                            " premi il tasto Fatto.</i>"
 
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "🛒 Il tuo carrello contiene questi prodotti:\n" \
                             "{product_list}" \
                             "Totale: <b>{total_cost}</b>\n" \
                             "\n" \
-                            "<i>Se vuoi procedere, premi il tasto Conferma sotto a questo messaggio.\n" \
+                            "<i>Se vuoi procedere, premi il tasto Fatto sotto a questo messaggio.\n" \
                             "Per annullare, premi il tasto Annulla.</i>"
 
 # Conversation: the user activated the live orders mode

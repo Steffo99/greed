@@ -833,7 +833,7 @@ class ChatWorker(threading.Thread):
             product.description = description if not isinstance(description, CancelSignal) else product.description
             product.price = price if not isinstance(price, CancelSignal) else product.price
         # If a photo has been sent...
-        if not isinstance(photo_list, CancelSignal):
+        if isinstance(photo_list, telegram.PhotoSize):
             # Find the largest photo id
             largest_photo = photo_list[0]
             for photo in photo_list[1:]:
