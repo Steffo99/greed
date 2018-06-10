@@ -831,9 +831,9 @@ class ChatWorker(threading.Thread):
             # Edit the record with the new values
             product.name = name if not isinstance(name, CancelSignal) else product.name
             product.description = description if not isinstance(description, CancelSignal) else product.description
-            product.price = price if not isinstance(price, CancelSignal) else product.price
+            product.price = int(price) if not isinstance(price, CancelSignal) else product.price
         # If a photo has been sent...
-        if isinstance(photo_list, telegram.PhotoSize):
+        if isinstance(photo_list, list):
             # Find the largest photo id
             largest_photo = photo_list[0]
             for photo in photo_list[1:]:
