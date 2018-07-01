@@ -7,9 +7,9 @@ For the full final exam test, check _some file that does not exist yet_.
 ## Requirements
 * Python 3.6 (or higher)
 * The packages specified in `requirements.txt` (install with `pip install -r requirements.txt`)
-* A Internet connection
+* An Internet connection
 * A Telegram bot token (obtainable at [@Botfather](https://t.me/Botfather))
-* A payment provider token (obtainable by [connecting Stripe with your bot](https://t.me/Botfather))
+* A payment provider token (obtainable by [connecting a provider with your bot](https://t.me/Botfather))
 * _Optional: a [sentry.io](https://sentry.io) token_
 
 ## Installation
