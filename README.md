@@ -2,7 +2,7 @@
 A customizable Telegram shop bot, developed as a project for the final exam.  
 For the full final exam test, check _some file that does not exist yet_.
 
-![](https://img.shields.io/badge/version-alpha-blue.svg)
+![](https://img.shields.io/badge/version-beta-blue.svg)
 
 ## Requirements
 * Python 3.6 (or higher)
