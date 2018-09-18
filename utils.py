@@ -128,9 +128,12 @@ def catch_telegram_errors(func):
                       f" retrying in {config['Telegram']['timed_out_pause']} secs...")
                 time.sleep(int(config["Telegram"]["timed_out_pause"]))
             # Telegram is not reachable
-            except telegram.error.NetworkError:
+            except telegram.error.NetworkError as error:
                 print(f"Network error while calling {func.__name__}(),"
                       f" retrying in {config['Telegram']['error_pause']} secs...")
+                # Display the full NetworkError if in debug mode
+                if __debug__:
+                    print(f"Full error: {error.message}")
                 time.sleep(int(config["Telegram"]["error_pause"]))
             # Unknown error
             except telegram.error.TelegramError as error:
@@ -145,8 +148,11 @@ def catch_telegram_errors(func):
                 else:
                     print(f"Telegram error while calling {func.__name__}(),"
                           f" retrying in {config['Telegram']['error_pause']} secs...")
+                    # Display the full TelegramError if in debug mode
+                    if __debug__:
+                        print(f"Full error: {error.message}")
                     # Send the error to the Sentry server
-                    if sentry_client is not None:
+                    elif sentry_client is not None:
                         sentry_client.captureException(exc_info=sys.exc_info())
                     time.sleep(int(config["Telegram"]["error_pause"]))
     return result_func
