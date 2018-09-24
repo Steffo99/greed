@@ -17,9 +17,10 @@ A customizable Telegram shop bot, developed as a project for the final exam.
 3. Run `python -OO core.py` to generate the configuration file.
 4. Open the config folder and edit the `config.ini` file following the contained instructions.  
 Ensure the `is_template` field is set to `no`.
-5. _Optional: customize the `strings.py` file_
-6. Run `python -OO core.py` again to run the bot.
-7. Open Telegram, and send a `/start` command to your bot to be promoted to administrator.
+5. Run `python -OO database.py` to generate the database tables. 
+6. _Optional: customize the `strings.py` file_
+7. Run `python -OO core.py` again to run the bot.
+8. Open Telegram, and send a `/start` command to your bot to be promoted to administrator.
 
 ## Usage
 All the bot features are available through Telegram.   
