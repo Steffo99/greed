@@ -2,13 +2,14 @@ import sys
 import os
 import configparser
 
-# Check if a configuration file exists, create one if it doesn't and get the template version number.
-with open("config/template_config.ini") as template_file:
-    # Check if the config file exists
-    if not os.path.isfile("config/config.ini"):
+# Check if the config file exists, and create one if it doesn't
+if not os.path.isfile("config/config.ini"):
+    # Open the template file and create the config file
+    with open("config/template_config.ini") as template_file, open("config/config.ini", "w") as config_file:
         # Copy the template file to the config file
-        with open("config/config.ini", "w") as config_file:
-            config_file.write(template_file.read())
+        config_file.write(template_file.read())
+
+with open("config/template_config.ini") as template_file:
     # Find the template version number
     config = configparser.ConfigParser()
     config.read_file(template_file)
