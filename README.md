@@ -26,3 +26,7 @@ Ensure the `is_template` field is set to `no`.
 All the bot features are available through Telegram.   
 As the administrator, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
 Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
+
+## Documentation
+
+`greed` currently does not have a documentation page, but you can try to read the [paper](https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/edit?usp=sharing) (in Italian) I wrote for my final Scuola Superiore exam about it.
