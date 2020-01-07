@@ -14,6 +14,7 @@ import os
 from html import escape
 import requests
 
+from websocket import create_connection
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
@@ -45,6 +46,10 @@ class ChatWorker(threading.Thread):
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
+        # The current btc amount for the chat
+        self.btc_price = 0
+        # The current btc address for the chat
+        self.btc_address = ""
         # The Sentry client for reporting errors encountered by the user
         if configloader.config["Error Reporting"]["sentry_token"] != \
            "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
@@ -208,6 +213,29 @@ class ChatWorker(threading.Thread):
             # Return the precheckoutquery
             return update.pre_checkout_query
 
+    def __fetch_new_btc_price(self):
+        url = 'https://www.blockonomics.co/api/price'
+        params = {'currency':configloader.config["Payments"]["currency"]}
+        r = requests.get(url,params)
+        if r.status_code == 200:
+          price = r.json()['price']
+          print ('Bitcoin price ' + str(price))
+          self.btc_price = price
+        else:
+          print(r.status_code, r.text)
+
+    def __fetch_new_btc_address(self):
+        api_key = configloader.config["Bitcoin"]["api_key"]
+        url = 'https://www.blockonomics.co/api/new_address'
+        headers = {'Authorization': "Bearer " + api_key}
+        r = requests.post(url, headers=headers)
+        if r.status_code == 200:
+          address = r.json()['address']
+          print ('Payment receiving address ' + address)
+          self.btc_address = address
+        else:
+          print(r.status_code, r.text)
+
     def __wait_for_successfulpayment(self) -> telegram.SuccessfulPayment:
         """Continue getting updates until a successfulpayment is received."""
         while True:
@@ -221,6 +249,16 @@ class ChatWorker(threading.Thread):
                 continue
             # Return the successfulpayment
             return update.message.successful_payment
+
+    def __wait_for_successfulbtcpayment(self, address):
+        while True:
+            timestamp = datetime.datetime.now()
+            ws = create_connection("wss://www.blockonomics.co/payment/" + address)
+            print("Connected to websocket...")
+            result =  ws.recv()
+            print("Received '%s'" % result)
+            ws.close()
+            return result
 
     def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
@@ -547,13 +585,16 @@ class ChatWorker(threading.Thread):
         # Telegram Payments
         if configloader.config["Credit Card"]["credit_card_token"] != "":
             keyboard.append([telegram.KeyboardButton(strings.menu_credit_card)])
+        # Bitcoin Payments
+        if configloader.config["Bitcoin"]["api_key"] != "":
+            keyboard.append([telegram.KeyboardButton(strings.menu_bitcoin)])
         # Keyboard: go back to the previous menu
         keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
         # Send the keyboard to the user
         self.bot.send_message(self.chat.id, strings.conversation_payment_method,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel])
+        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_bitcoin, strings.menu_cancel])
         # If the user has selected the Cash option...
         if selection == strings.menu_cash:
             # Go to the pay with cash function
@@ -563,6 +604,10 @@ class ChatWorker(threading.Thread):
         elif selection == strings.menu_credit_card:
             # Go to the pay with credit card function
             self.__add_credit_cc()
+        # If the user has selected the Bitcoin option...
+        elif selection == strings.menu_bitcoin:
+            # Go to the pay with bitcoin function
+            self.__add_credit_btc()
         # If the user has selected the Cancel option...
         elif selection == strings.menu_cancel:
             # Send him back to the previous menu
@@ -664,6 +709,73 @@ class ChatWorker(threading.Thread):
         # Add and commit the transaction
         self.session.add(transaction)
         self.session.commit()
+
+    def __add_credit_btc(self):
+        """Add money to the wallet through a credit card payment."""
+        # Create a keyboard to be sent later
+        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
+                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
+                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
+                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
+                    [telegram.KeyboardButton(strings.menu_cancel)]]
+        # Boolean variable to check if the user has cancelled the action
+        cancelled = False
+        raw_value = 0
+        # Loop used to continue asking if there's an error during the input
+        while not cancelled:
+            # Send the message and the keyboard
+            self.bot.send_message(self.chat.id, strings.payment_cc_amount,
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+            # Wait until a valid amount is sent
+            # TODO: check and debug the regex
+            selection = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]+)?|" + strings.menu_cancel + r")")
+            # If the user cancelled the action
+            if selection == strings.menu_cancel:
+                # Exit the loop
+                cancelled = True
+                continue
+            raw_value = selection
+            # Convert the amount to an integer
+            value = utils.Price(selection)
+            break
+        # If the user cancelled the action...
+        else:
+            # Exit the function
+            return
+        # Set the invoice active invoice payload
+        self.invoice_payload = str(uuid.uuid4())
+        # Create the price array
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
+        # Create the invoice keyboard
+        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
+                                                         [telegram.InlineKeyboardButton(strings.menu_cancel,
+                                                                                        callback_data="cmd_cancel")]])
+        # The amount is valid, fetch btc amount and address
+        self.__fetch_new_btc_price()
+        satoshi_amount = int(1.0e8*float(raw_value)/float(self.btc_price))
+        btc_amount = satoshi_amount/1.0e8
+        self.__fetch_new_btc_address()
+        self.bot.send_message(self.chat.id, "To pay, send this amount:\n" + str(btc_amount) +
+                                            "\nto this bitcoin address:\n" + self.btc_address)
+        # Wait for the bitcoin payment
+        # asyncio.get_event_loop().run_until_complete(self.__wait_for_successfulbtcpayment())
+        successfulpayment = self.__wait_for_successfulbtcpayment(self.btc_address)
+        self.bot.send_message(self.chat.id, "Payment recieved!\nYour account will be credited on confirmation.")
+        # Create a new database transaction
+        # transaction = db.Transaction(user=self.user,
+        #                              value=successfulpayment.total_amount,
+        #                              provider="Bitcoin",
+        #                              telegram_charge_id="",
+        #                              provider_charge_id="")
+        # if successfulpayment.order_info is not None:
+        #     transaction.payment_name = successfulpayment.order_info.name
+        #     transaction.payment_email = successfulpayment.order_info.email
+        #     transaction.payment_phone = successfulpayment.order_info.phone_number
+        # Add the credit to the user account
+        # self.user.credit += successfulpayment.total_amount
+        # Add and commit the transaction
+        # self.session.add(transaction)
+        # self.session.commit()
 
     def __bot_info(self):
         """Send information about the bot."""
