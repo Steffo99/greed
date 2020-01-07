@@ -2,4 +2,4 @@ python-telegram-bot
 sqlalchemy
 requests
 raven
-websocket
+websocket_client
