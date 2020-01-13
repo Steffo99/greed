@@ -16,7 +16,6 @@ import requests
 from blockonomics import Blockonomics
 from websocket import create_connection
 import time
-import queue
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""

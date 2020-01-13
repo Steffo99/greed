@@ -124,7 +124,7 @@ def main():
 app = flask.Flask(__name__)
 @app.route('/callback', methods=['GET'])
 def callback():
-    network_confirmations = 2
+    network_confirmations = configloader.config["Bitcoin"]["network_confirmations"]
     # Fetch the callback parameters
     secret = flask.request.args.get("secret")
     status = int(flask.request.args.get("status"))
