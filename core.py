@@ -129,21 +129,21 @@ def callback():
     secret = flask.request.args.get("secret")
     status = int(flask.request.args.get("status"))
     address = flask.request.args.get("addr")
-    # Check the status and secret
+    # Check the secret
     if secret == configloader.config["Bitcoin"]["secret"]:
         # Fetch the current transaction by address
         dbsession = db.Session()
         transaction = dbsession.query(db.BtcTransaction).filter(db.BtcTransaction.address == address).one_or_none()
-        if status >= network_confirmations:
-            if transaction.txid == "":
-                # Check timestamp
-                # If timeout period has past update and use new btc price
+        if transaction.txid == "":
+            # Check the status
+            if status == 0:
                 current_time = datetime.datetime.now()
                 timeout = 30
-                print (transaction)
+                # If timeout has passed, use new btc price
                 if current_time - datetime.timedelta(minutes = timeout) > datetime.datetime.strptime(transaction.timestamp, '%Y-%m-%d %H:%M:%S.%f'):
                     transaction.price = Blockonomics.fetch_new_btc_price()
-
+                transaction.timestamp = current_time
+            if status >= network_confirmations:
                 # Convert satoshi to fiat
                 satoshi = float(flask.request.args.get("value"))
                 received_btc = satoshi/1.0e8
@@ -157,8 +157,6 @@ def callback():
                 transaction.value += received_value
                 transaction.txid = flask.request.args.get("txid")
                 transaction.status = status
-                transaction.timestamp = current_time
-                print (transaction.value)
                 # Add a transaction to list
                 new_transaction = db.Transaction(user=user,
                                              value=received_value,
@@ -166,12 +164,12 @@ def callback():
                                              notes = address)
                 # Add and commit the transaction
                 dbsession.add(new_transaction)
-                dbsession.commit()
                 return "Success"
             else:
-                return "Transaction already proccessed"
+                return "Not enough confirmations"
         else:
-            return "Not enough confirmations"
+            return "Transaction already proccessed"
+        dbsession.commit()
     else:
         return "Incorrect secret"
 
@@ -249,8 +247,8 @@ def test_setup():
     else:
         return "No access, enable test_setup in config.ini"
 
+# Run the main bot function in thread
 threading.Thread(target=main).start()
-# Run the main function only in the main process
+# Run the flask app in the main process
 if __name__ == "__main__":
-    # Start callback in thread
     app.run()
