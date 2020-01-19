@@ -231,6 +231,7 @@ class ChatWorker(threading.Thread):
         response = ""
 
         def cancel_thread(stop_event):
+            global response
             while not stop_event.is_set():
                 # Wait for inline keyboard
                 stuff_complete = self.__wait_for_inlinekeyboard_callback()
@@ -241,6 +242,7 @@ class ChatWorker(threading.Thread):
                     break
 
         def __wait_for_websocket(stop_event):
+            global response
             result =  ws.recv()
             print("Received '%s'" % result)
             response = "Received"
@@ -249,6 +251,7 @@ class ChatWorker(threading.Thread):
             stop_event.set()
 
         def run_threads():
+            global response
             # create a thread event
             a_stop_event = threading.Event()
             # start the cancel thread
@@ -262,9 +265,10 @@ class ChatWorker(threading.Thread):
                 time.sleep(0.1)
             print ("At least one thread is done")
 
-        run_threads()
-        ws.close()
-        return response
+            ws.close()
+            return response
+
+        return run_threads()
 
     def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
