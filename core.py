@@ -173,8 +173,16 @@ def callback():
     else:
         return "Incorrect secret"
 
-# Run the main bot function in thread
-threading.Thread(target=main).start()
-# Run the flask app in the main process
+# check config for use_websocket
+use_websocket = configloader.config["Bitcoin"]["use_websocket"]
+if use_websocket == True:
+    # Run the main bot in thread
+    threading.Thread(target=main).start()
+
 if __name__ == "__main__":
-    app.run()
+    if use_websocket == True:
+        # Run the main bot in the main process
+        main()
+    else:
+        # Run the flask app in the main process
+        app.run()

@@ -231,23 +231,20 @@ class ChatWorker(threading.Thread):
         response = ""
 
         def cancel_thread(stop_event):
-            global response
             while not stop_event.is_set():
                 # Wait for inline keyboard
                 stuff_complete = self.__wait_for_inlinekeyboard_callback()
                 # some check if stuff is complete
                 if stuff_complete:
-                    response = "Cancelled"
                     stop_event.set()
                     break
 
         def __wait_for_websocket(stop_event):
             global response
             result =  ws.recv()
-            print("Received '%s'" % result)
-            response = "Received"
-            # wait for 2 seconds for callback
-            time.sleep(2)
+            if result:
+                print("Received '%s'" % result)
+                response = result
             stop_event.set()
 
         def run_threads():
@@ -264,11 +261,11 @@ class ChatWorker(threading.Thread):
             while not a_stop_event.is_set():
                 time.sleep(0.1)
             print ("At least one thread is done")
-
-            ws.close()
             return response
-
-        return run_threads()
+        
+        return_status = run_threads()
+        ws.close()
+        return return_status
 
     def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
@@ -766,18 +763,27 @@ class ChatWorker(threading.Thread):
         btc_price = Blockonomics.fetch_new_btc_price()
         satoshi_amount = int(1.0e8*float(raw_value)/float(btc_price))
         btc_amount = satoshi_amount/1.0e8
-        # Should check to re-use addresses in future
-        btc_address = Blockonomics.new_address().json()["address"]
-        # Create a new database btc transaction
-        transaction = db.BtcTransaction(user=self.user,
-                                     price = btc_price,
-                                     value=0,
-                                     satoshi = satoshi_amount,
-                                     currency = configloader.config["Payments"]["currency"],
-                                     status = -1,
-                                     timestamp = datetime.datetime.now(),
-                                     address=btc_address,
-                                     txid='')
+        # Check to re-use address
+        transaction = self.session.query(db.BtcTransaction).filter(db.BtcTransaction.user_id == self.user.user_id).filter(db.BtcTransaction.status == -1).one_or_none()
+        if transaction:
+            btc_address = transaction.address
+            # Update btc_price, satoshi, currency, timestamp
+            transaction.btc_price = btc_price
+            transaction.satoshi = satoshi_amount
+            transaction.currency = configloader.config["Payments"]["currency"]
+            transaction.timestamp = datetime.datetime.now()
+        else:
+            btc_address = Blockonomics.new_address().json()["address"]
+            # Create a new database btc transaction
+            transaction = db.BtcTransaction(user=self.user,
+                                         price = btc_price,
+                                         value=0,
+                                         satoshi = satoshi_amount,
+                                         currency = configloader.config["Payments"]["currency"],
+                                         status = -1,
+                                         timestamp = datetime.datetime.now(),
+                                         address=btc_address,
+                                         txid='')
         #Add and commit the btc transaction
         self.session.add(transaction)
         self.session.commit()
@@ -792,8 +798,62 @@ class ChatWorker(threading.Thread):
                                                     + btc_address + "`", reply_markup=inline_keyboard)
         # Wait for the bitcoin payment
         successfulpayment = self.__wait_for_successfulbtcpayment(btc_address)
-        if successfulpayment == "Received":
-            self.bot.send_message(self.chat.id, "Payment recieved!\nYour account will be credited on confirmation.")
+        if successfulpayment:
+            # check config for use_websocket
+            use_websocket = configloader.config["Bitcoin"]["use_websocket"]
+            if use_websocket == True:
+                # fund the account instantly
+                status = successfulpayment.json()['status']
+                value = successfulpayment.json()['value']
+                # Fetch the current transaction by address
+                transaction = self.session.query(db.BtcTransaction).filter(db.BtcTransaction.address == address).one_or_none()
+                # Check not processed
+                if transaction.status != 2:
+                    # Check the status
+                    if transaction.status == -1:
+                        current_time = datetime.datetime.now()
+                        timeout = 30
+                        # If timeout has passed, use new btc price
+                        if current_time - datetime.timedelta(minutes = timeout) > datetime.datetime.strptime(transaction.timestamp, '%Y-%m-%d %H:%M:%S.%f'):
+                            transaction.price = Blockonomics.fetch_new_btc_price()
+                        transaction.timestamp = current_time
+                        transaction.status = 0
+                    if status >= 0:
+                        # Convert satoshi to fiat
+                        received_btc = value/1.0e8
+                        received_value = received_btc*transaction.price
+                        print ("Recieved "+str(received_value)+" "+configloader.config["Payments"]["currency"]+" on address "+btc_address)
+
+                        # Add the credit to the user account
+                        user = self.session.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
+                        user.credit += received_value
+                        # Update the value + status + timestamp for transaction in DB
+                        transaction.value += received_value
+                        transaction.status = 2
+                        # Add a transaction to list
+                        new_transaction = db.Transaction(user=user,
+                                                     value=received_value,
+                                                     satoshi=confirmed,
+                                                     provider="Bitcoin",
+                                                     notes = address)
+                        # Add and commit the transaction
+                        self.session.add(new_transaction)
+                        self.session.commit()
+                        response = "Confirmed"
+                        break
+                    else:
+                        # Not confirmed yet
+                        self.session.commit()
+                        time.sleep(30)
+                        continue
+                else:
+                    # Already processed
+                    self.session.commit()
+                    response = "Confirmed"
+                    break
+                self.bot.send_message(self.chat.id, "Payment recieved!\nYour account has been credited.")
+            else:
+                self.bot.send_message(self.chat.id, "Payment recieved!\nYour account will be credited on confirmation.")
         else:
             self.bot.send_message(self.chat.id, "Payment cancelled")
         # successfulpayment = {"status": 0, "timestamp": 1578567378, "value": "100000", "txid": "WarningThisIsAGeneratedTestPaymentAndNotARealBitcoinTransaction"}
