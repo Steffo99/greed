@@ -839,18 +839,18 @@ class ChatWorker(threading.Thread):
                         # Add and commit the transaction
                         self.session.add(new_transaction)
                         self.session.commit()
-                        response = "Confirmed"
-                        break
+                        #response = "Confirmed"
+                        #break
                     else:
                         # Not confirmed yet
                         self.session.commit()
-                        time.sleep(30)
-                        continue
+                        #time.sleep(30)
+                        #continue
                 else:
                     # Already processed
                     self.session.commit()
-                    response = "Confirmed"
-                    break
+                    #response = "Confirmed"
+                    #break
                 self.bot.send_message(self.chat.id, "Payment recieved!\nYour account has been credited.")
             else:
                 self.bot.send_message(self.chat.id, "Payment recieved!\nYour account will be credited on confirmation.")
