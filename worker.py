@@ -229,6 +229,15 @@ class ChatWorker(threading.Thread):
         ws = create_connection("wss://www.blockonomics.co/payment/" + address)
         print("Connected to websocket...")
         response = ""
+        #inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton("Open In Wallet",url="https://google.com")]])
+        # Create the keyboard with the cancel button
+        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
+                                                                                        callback_data="cart_cancel")]])
+        # Send a message containing the button to cancel or pay
+        self.bot.send_message_markdown(self.chat.id, "To pay, send this amount:\n`" 
+                                                    + str(btc_amount) 
+                                                    + "`\nto this bitcoin address:\n`" 
+                                                    + btc_address + "`", reply_markup=inline_keyboard)
 
         def cancel_thread(stop_event):
             while not stop_event.is_set():
@@ -787,15 +796,6 @@ class ChatWorker(threading.Thread):
         #Add and commit the btc transaction
         self.session.add(transaction)
         self.session.commit()
-        #inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton("Open In Wallet",url="https://google.com")]])
-        # Create the keyboard with the cancel button
-        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
-                                                                                        callback_data="cart_cancel")]])
-        # Send a message containing the button to cancel or pay
-        self.bot.send_message_markdown(self.chat.id, "To pay, send this amount:\n`" 
-                                                    + str(btc_amount) 
-                                                    + "`\nto this bitcoin address:\n`" 
-                                                    + btc_address + "`", reply_markup=inline_keyboard)
         # Wait for the bitcoin payment
         successfulpayment = self.__wait_for_successfulbtcpayment(btc_address)
         if successfulpayment:
