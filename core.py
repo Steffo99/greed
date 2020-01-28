@@ -175,14 +175,13 @@ def callback():
 
 # check config for use_websocket
 use_websocket = configloader.config["Bitcoin"]["use_websocket"]
-if use_websocket == True:
-    # Run the main bot in thread
+if use_websocket == "False":
     threading.Thread(target=main).start()
 
 if __name__ == "__main__":
-    if use_websocket == True:
-        # Run the main bot in the main process
-        main()
-    else:
+    if use_websocket == "False":
         # Run the flask app in the main process
         app.run()
+    else:
+        # Run the main bot in the main process
+        main()
