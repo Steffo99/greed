@@ -415,7 +415,7 @@ class ChatWorker(threading.Thread):
                         [telegram.KeyboardButton(strings.menu_help), telegram.KeyboardButton(strings.menu_bot_info)]]
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id,
-                                  strings.conversation_open_user_menu.format(credit=utils.Price(self.user.credit)),
+                                  strings.conversation_open_user_menu.format(credit=utils.Price(str(self.user.credit))),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
