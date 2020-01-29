@@ -853,7 +853,7 @@ class ChatWorker(threading.Thread):
         else:
             btc_address = Blockonomics.new_address().json()["address"]
             # Create a new database btc transaction
-            transaction = db.BtcTransaction(user=self.user,
+            new_transaction = db.BtcTransaction(user=self.user,
                                          price = btc_price,
                                          value=0,
                                          satoshi = satoshi_amount,
@@ -863,7 +863,7 @@ class ChatWorker(threading.Thread):
                                          address=btc_address,
                                          txid='')
             #Add and commit the btc transaction
-            self.session.add(transaction)
+            self.session.add(new_transaction)
         self.session.commit()
         # Wait for the bitcoin payment
         self.__wait_for_successfulbtcpayment(btc_address, btc_amount)
