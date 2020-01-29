@@ -159,7 +159,7 @@ def callback():
                 # Convert satoshi to fiat
                 satoshi = float(flask.request.args.get("value"))
                 received_btc = satoshi/1.0e8
-                received_value = received_btc*transaction.price
+                received_value = round(received_btc*transaction.price, 2)
                 print ("Recieved "+str(received_value)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
                 # Add the credit to the user account
                 user = dbsession.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()

@@ -281,13 +281,12 @@ class ChatWorker(threading.Thread):
                         if status >= 0:
                             # Convert satoshi to fiat
                             received_btc = value/1.0e8
-                            received_value = received_btc*transaction.price
+                            received_value = round(received_btc*transaction.price, 2)
 
                             # Add the credit to the user account
                             user = self.session.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
                             user.credit += received_value
                             # Update the value + status + timestamp for transaction in DB
-                            transaction.satoshi = value
                             transaction.value += received_value
                             transaction.status = 2
                             # Add a transaction to list
@@ -836,7 +835,6 @@ class ChatWorker(threading.Thread):
             btc_address = transaction.address
             # Update btc_price, satoshi, currency, timestamp
             transaction.btc_price = btc_price
-            transaction.satoshi = satoshi_amount
             transaction.currency = configloader.config["Payments"]["currency"]
             transaction.timestamp = datetime.datetime.now()
         else:
@@ -845,7 +843,6 @@ class ChatWorker(threading.Thread):
             new_transaction = db.BtcTransaction(user=self.user,
                                          price = btc_price,
                                          value=0,
-                                         satoshi = satoshi_amount,
                                          currency = configloader.config["Payments"]["currency"],
                                          status = -1,
                                          timestamp = datetime.datetime.now(),
