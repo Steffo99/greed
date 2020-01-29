@@ -408,8 +408,6 @@ class ChatWorker(threading.Thread):
         Normal bot actions should be placed here."""
         # Loop used to returning to the menu after executing a command
         while True:
-            # Before the user reply, update the user data
-            self.update_user()
             # Create a keyboard with the user main menu
             keyboard = [[telegram.KeyboardButton(strings.menu_order)],
                         [telegram.KeyboardButton(strings.menu_order_status)],
