@@ -281,7 +281,7 @@ class ChatWorker(threading.Thread):
                         if status >= 0:
                             # Convert satoshi to fiat
                             received_btc = value/1.0e8
-                            received_value = round(received_btc*transaction.price, 2)
+                            received_value = round(received_btc*transaction.price, configloader.config["Payments"]["currency_exp"])
 
                             # Add the credit to the user account
                             user = self.session.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
