@@ -187,7 +187,7 @@ class Transaction(TableDeclarativeBase):
         return f"<Transaction {self.transaction_id} for User {self.user_id} {str(self)}>"
 
 class BtcTransaction(TableDeclarativeBase):
-    """A greed wallet transaction.
+    """A btc wallet transaction.
     Wallet credit ISN'T calculated from these, but they can be used to recalculate it."""
     # TODO: split this into multiple tables
 
@@ -199,7 +199,6 @@ class BtcTransaction(TableDeclarativeBase):
     # The value of this transaction. Can be both negative and positive.
     price = Column(Float)
     value = Column(Float)
-    satoshi = Column(Integer, nullable=False)
     currency = Column(Text)
     status = Column(Integer, nullable=False)
     timestamp = Column(Integer)
@@ -212,8 +211,6 @@ class BtcTransaction(TableDeclarativeBase):
 
     def __str__(self):
         string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {str(self.price)} | {str(self.value)} | {str(self.currency)} | {str(self.status)} | {str(self.timestamp)} | {str(self.address)}"
-        if self.satoshi:
-            string += f" | {self.satoshi}"
         if self.txid:
             string += f" | {self.txid}"
         return string

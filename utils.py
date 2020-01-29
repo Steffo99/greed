@@ -219,7 +219,7 @@ class DuckBot:
 
     @catch_telegram_errors
     def send_message_markdown(self, *args, **kwargs):
-        # All messages are sent in HTML parse mode
+        # Send message in markdown parse mode
         return self.bot.send_message(parse_mode="Markdown", *args, **kwargs)
     
     # More methods can be added here

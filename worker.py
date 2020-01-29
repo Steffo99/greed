@@ -228,8 +228,6 @@ class ChatWorker(threading.Thread):
     def __wait_for_websocket(self, address, amount):
         # Start the websocket
         ws = create_connection("wss://www.blockonomics.co/payment/" + address)
-        print("Connected to websocket...")
-        #inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton("Open In Wallet",url="https://google.com")]])
         # Create the keyboard with the cancel button
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
                                                                                         callback_data="cart_cancel")]])
@@ -263,7 +261,6 @@ class ChatWorker(threading.Thread):
             while not stop_event.is_set():
                 result =  ws.recv()
                 if result:
-                    print("Received '%s'" % result)
                     result = json.loads(result)
                     # fund the account instantly
                     status = result['status']
@@ -285,7 +282,6 @@ class ChatWorker(threading.Thread):
                             # Convert satoshi to fiat
                             received_btc = value/1.0e8
                             received_value = received_btc*transaction.price
-                            print ("Recieved "+str(received_value)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
 
                             # Add the credit to the user account
                             user = self.session.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
@@ -322,7 +318,6 @@ class ChatWorker(threading.Thread):
             # wait for an event
             while not a_stop_event.is_set():
                 time.sleep(0.1)
-            print ("At least one thread is done")
             return
         
         run_threads()
@@ -831,12 +826,6 @@ class ChatWorker(threading.Thread):
             return
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
-        # Create the price array
-        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
-        # Create the invoice keyboard
-        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
-                                                         [telegram.InlineKeyboardButton(strings.menu_cancel,
-                                                                                        callback_data="cmd_cancel")]])
         # The amount is valid, fetch btc amount and address
         btc_price = Blockonomics.fetch_new_btc_price()
         satoshi_amount = int(1.0e8*float(raw_value)/float(btc_price))
@@ -867,8 +856,6 @@ class ChatWorker(threading.Thread):
         self.session.commit()
         # Wait for the bitcoin payment
         self.__wait_for_successfulbtcpayment(btc_address, btc_amount)
-        # successfulpayment = {"status": 0, "timestamp": 1578567378, "value": "100000", "txid": "WarningThisIsAGeneratedTestPaymentAndNotARealBitcoinTransaction"}
-        print("completed")
 
     def __bot_info(self):
         """Send information about the bot."""
