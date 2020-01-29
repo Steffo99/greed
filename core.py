@@ -134,7 +134,7 @@ def callback():
         print("The token you have entered in the config file is invalid.\n"
               "Fix it, then restart this script.")
         sys.exit(1)
-    network_confirmations = int(configloader.config["Bitcoin"]["network_confirmations"])
+
     # Fetch the callback parameters
     secret = flask.request.args.get("secret")
     status = int(flask.request.args.get("status"))
