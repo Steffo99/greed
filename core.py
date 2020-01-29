@@ -124,6 +124,16 @@ def main():
 app = flask.Flask(__name__)
 @app.route('/callback', methods=['GET'])
 def callback():
+    # Create a bot instance
+    bot = utils.DuckBot(configloader.config["Telegram"]["token"])
+
+    # Test the specified token
+    try:
+        bot.get_me()
+    except telegram.error.Unauthorized:
+        print("The token you have entered in the config file is invalid.\n"
+              "Fix it, then restart this script.")
+        sys.exit(1)
     network_confirmations = int(configloader.config["Bitcoin"]["network_confirmations"])
     # Fetch the callback parameters
     secret = flask.request.args.get("secret")
@@ -136,27 +146,24 @@ def callback():
         transaction = dbsession.query(db.BtcTransaction).filter(db.BtcTransaction.address == address).one_or_none()
         if transaction.txid == "":
             # Check the status
-            if status == 0:
+            if transaction.status == -1:
                 current_time = datetime.datetime.now()
                 timeout = 30
                 # If timeout has passed, use new btc price
                 if current_time - datetime.timedelta(minutes = timeout) > datetime.datetime.strptime(transaction.timestamp, '%Y-%m-%d %H:%M:%S.%f'):
                     transaction.price = Blockonomics.fetch_new_btc_price()
                 transaction.timestamp = current_time
-            if status >= network_confirmations:
+                transaction.status = 0
+                bot.send_message(transaction.user_id, "Payment recieved!\nYour account will be credited on confirmation.")
+            if status == 2:
                 # Convert satoshi to fiat
                 satoshi = float(flask.request.args.get("value"))
                 received_btc = satoshi/1.0e8
                 received_value = received_btc*transaction.price
                 print ("Recieved "+str(received_value)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
-
                 # Add the credit to the user account
                 user = dbsession.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
                 user.credit += received_value
-                # Update the value + txid + status + timestamp for transaction in DB
-                transaction.value += received_value
-                transaction.txid = flask.request.args.get("txid")
-                transaction.status = status
                 # Add a transaction to list
                 new_transaction = db.Transaction(user=user,
                                              value=received_value,
@@ -164,13 +171,21 @@ def callback():
                                              notes = address)
                 # Add and commit the transaction
                 dbsession.add(new_transaction)
+                # Update the received_value for address in DB
+                transaction.value += received_value
+                transaction.txid = flask.request.args.get("txid")
+                transaction.status = 2
+                dbsession.commit()
+                bot.send_message(transaction.user_id, "Payment confirmed!\nYour account has been credited.")
                 return "Success"
             else:
+                dbsession.commit()
                 return "Not enough confirmations"
         else:
+            dbsession.commit()
             return "Transaction already proccessed"
-        dbsession.commit()
     else:
+        dbsession.commit()
         return "Incorrect secret"
 
 # check config for use_websocket
@@ -185,3 +200,4 @@ if __name__ == "__main__":
     else:
         # Run the main bot in the main process
         main()
+
