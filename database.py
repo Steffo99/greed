@@ -5,9 +5,12 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
-import strings
 import requests
 import utils
+import importlib
+
+language = configloader.config["Config"]["language"]
+strings = importlib.import_module("strings." + language)
 
 # Create a (lazy) database engine
 engine = create_engine(configloader.config["Database"]["engine"])

@@ -2,11 +2,13 @@ import telegram
 import telegram.error
 import time
 from configloader import config
-from strings import currency_format_string, currency_symbol
 import typing
 import os
 import sys
-import strings
+import importlib
+
+language = config["Config"]["language"]
+strings = importlib.import_module("strings." + language)
 
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
@@ -40,7 +42,7 @@ class Price:
         return f"<Price of value {self.value}>"
 
     def __str__(self):
-        return currency_format_string.format(symbol=currency_symbol,
+        return strings.currency_format_string.format(symbol=strings.currency_symbol,
                                              value="{0:.2f}".format(
                                                  self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 

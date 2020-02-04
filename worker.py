@@ -3,7 +3,6 @@ import typing
 import uuid
 import datetime
 import telegram
-import strings
 import configloader
 import sys
 import queue as queuem
@@ -13,7 +12,10 @@ import utils
 import os
 from html import escape
 import requests
+import importlib
 
+language = configloader.config["Config"]["language"]
+strings = importlib.import_module("strings." + language)
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
