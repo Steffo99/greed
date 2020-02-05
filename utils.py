@@ -8,7 +8,11 @@ import sys
 import importlib
 
 language = config["Config"]["language"]
-strings = importlib.import_module("strings." + language)
+try:
+    strings = importlib.import_module("strings." + language)
+except ModuleNotFoundError:
+    print("The strings file you specified in the config file does not exist.")
+    sys.exit(1)
 
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
