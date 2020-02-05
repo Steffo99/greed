@@ -321,10 +321,7 @@ payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?\n" \
 payment_invoice_title = "Aggiunta di fondi"
 
 # Payment: add funds invoice description
-payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio.\n\n" \
-                              "Visto che sei nella versione Alpha del software, puoi effettuare pagamenti infiniti" \
-                              " con la carta di credito di prova 4242 4242 4242 4242," \
-                              " con qualsiasi CVV e una qualsiasi data di scadenza valida."
+payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio."
 
 # Payment: label of the labeled price on the invoice
 payment_invoice_label = "Ricarica"
