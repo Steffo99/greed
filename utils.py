@@ -1,40 +1,31 @@
 import telegram
 import telegram.error
 import time
-from configloader import config
 from strings import currency_format_string, currency_symbol
 import typing
-import os
 import sys
 import strings
-
-if config["Error Reporting"]["sentry_token"] != \
-        "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
-    import raven
-
-    sentry_client = raven.Client(config["Error Reporting"]["sentry_token"],
-                                 release=raven.fetch_git_sha(os.path.dirname(__file__)),
-                                 environment="Dev" if __debug__ else "Prod")
-else:
-    sentry_client = None
 
 
 class Price:
     """The base class for the prices in greed.
     Its int value is in minimum units, while its float and str values are in decimal format.int("""
-    def __init__(self, value: typing.Union[int, float, str, "Price"]=0):
+    def __init__(self, value: typing.Union[int, float, str, "Price"], exp: int):
         if isinstance(value, int):
             # Keep the value as it is
             self.value = int(value)
         elif isinstance(value, float):
             # Convert the value to minimum units
-            self.value = int(value * (10 ** int(config["Payments"]["currency_exp"])))
+            self.value = int(value * (10 ** exp))
         elif isinstance(value, str):
             # Remove decimal points, then cast to int
-            self.value = int(float(value.replace(",", ".")) * (10 ** int(config["Payments"]["currency_exp"])))
+            self.value = int(float(value.replace(",", ".")) * (10 ** exp))
         elif isinstance(value, Price):
             # Copy self
             self.value = value.value
+        else:
+            raise TypeError("Value is of an unsupported type")
+        self.exp: int = exp
 
     def __repr__(self):
         return f"<Price of value {self.value}>"
@@ -42,57 +33,69 @@ class Price:
     def __str__(self):
         return currency_format_string.format(symbol=currency_symbol,
                                              value="{0:.2f}".format(
-                                                 self.value / (10 ** int(config["Payments"]["currency_exp"]))))
+                                                 self.value / (10 ** self.exp)))
 
     def __int__(self):
         return self.value
 
     def __float__(self):
-        return self.value / (10 ** int(config["Payments"]["currency_exp"]))
+        return self.value / (10 ** self.exp)
 
     def __ge__(self, other):
-        return self.value >= Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        return self.value >= Price(other, self.exp).value
 
     def __le__(self, other):
-        return self.value <= Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        return self.value <= Price(other, self.exp).value
 
     def __eq__(self, other):
-        return self.value == Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        return self.value == Price(other, self.exp).value
 
     def __gt__(self, other):
-        return self.value > Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        return self.value > Price(other, self.exp).value
 
     def __lt__(self, other):
-        return self.value < Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        return self.value < Price(other, self.exp).value
 
     def __add__(self, other):
-        return Price(self.value + Price(other).value)
+        # Assuming currency exp is the same for the compared prices
+        return Price(self.value + Price(other, self.exp).value, self.exp)
 
     def __sub__(self, other):
-        return Price(self.value - Price(other).value)
+        # Assuming currency exp is the same for the compared prices
+        return Price(self.value - Price(other, self.exp).value, self.exp)
 
     def __mul__(self, other):
-        return Price(int(self.value * other))
+        # Assuming currency exp is the same for the compared prices
+        return Price(int(self.value * other), self.exp)
 
     def __floordiv__(self, other):
-        return Price(int(self.value // other))
+        # Assuming currency exp is the same for the compared prices
+        return Price(int(self.value // other), self.exp)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __rsub__(self, other):
-        return Price(Price(other).value - self.value)
+        # Assuming currency exp is the same for the compared prices
+        return Price(Price(other, self.exp).value - self.value, self.exp)
 
     def __rmul__(self, other):
 
         return self.__mul__(other)
 
     def __iadd__(self, other):
-        self.value += Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        self.value += Price(other, self.exp).value
         return self
 
     def __isub__(self, other):
-        self.value -= Price(other).value
+        # Assuming currency exp is the same for the compared prices
+        self.value -= Price(other, self.exp).value
         return self
 
     def __imul__(self, other):

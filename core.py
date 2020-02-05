@@ -13,8 +13,11 @@ def main():
     # Rename the main thread for presentation purposes
     threading.current_thread().name = "Core"
 
+    # Load the config
+    config = configloader.load_config()
+
     # Create a bot instance
-    bot = utils.DuckBot(configloader.config["Telegram"]["token"])
+    bot = utils.DuckBot(config["Telegram"]["token"])
 
     # Test the specified token
     try:
@@ -38,7 +41,7 @@ def main():
     while True:
         # Get a new batch of 100 updates and mark the last 100 parsed as read
         updates = bot.get_updates(offset=next_update,
-                                  timeout=int(configloader.config["Telegram"]["long_polling_timeout"]))
+                                  timeout=int(config["Telegram"]["long_polling_timeout"]))
         # Parse all the updates
         for update in updates:
             # If the update is a message...
@@ -57,7 +60,7 @@ def main():
                     if old_worker:
                         old_worker.stop("request")
                     # Initialize a new worker for the chat
-                    new_worker = worker.ChatWorker(bot, update.message.chat)
+                    new_worker = worker.ChatWorker(bot=bot, chat=update.message.chat, config=config)
                     # Start the worker
                     new_worker.start()
                     # Store the worker in the dictionary

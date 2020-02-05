@@ -4,7 +4,7 @@ import uuid
 import datetime
 import telegram
 import strings
-import configloader
+import configparser
 import sys
 import queue as queuem
 import database as db
@@ -18,7 +18,7 @@ import requests
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
 
-    def __init__(self, reason: str=""):
+    def __init__(self, reason: str = ""):
         self.reason = reason
 
 
@@ -30,12 +30,20 @@ class CancelSignal:
 class ChatWorker(threading.Thread):
     """A worker for a single conversation. A new one is created every time the /start command is sent."""
 
-    def __init__(self, bot: utils.DuckBot, chat: telegram.Chat, *args, **kwargs):
+    def __init__(self,
+                 bot: utils.DuckBot,
+                 chat: telegram.Chat,
+                 config: configparser.ConfigParser,
+                 *args,
+                 **kwargs):
         # Initialize the thread
         super().__init__(name=f"Worker {chat.id}", *args, **kwargs)
-        # Store the bot and chat info inside the class
+        # Store the bot, chat info and config inside the class
         self.bot: utils.DuckBot = bot
         self.chat: telegram.Chat = chat
+        self.config: configparser.ConfigParser = config
+        # A shortcut to currency_exp
+        self._exp: int = int(config["Payments"]["currency_exp"])
         # Open a new database session
         self.session = db.Session()
         # Get the user db data from the users and admin tables
@@ -46,10 +54,10 @@ class ChatWorker(threading.Thread):
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
         # The Sentry client for reporting errors encountered by the user
-        if configloader.config["Error Reporting"]["sentry_token"] != \
-           "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
+        if self.config["Error Reporting"]["sentry_token"] != \
+                "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
             import raven
-            self.sentry_client = raven.Client(configloader.config["Error Reporting"]["sentry_token"],
+            self.sentry_client = raven.Client(self.config["Error Reporting"]["sentry_token"],
                                               release=raven.fetch_git_sha(os.path.dirname(__file__)),
                                               environment="Dev" if __debug__ else "Prod")
         else:
@@ -91,7 +99,7 @@ class ChatWorker(threading.Thread):
         try:
             # If the user is not an admin, send him to the user menu
             if self.admin is None:
-                    self.__user_menu()
+                self.__user_menu()
             # If the user is an admin, send him to the admin menu
             else:
                 # Clear the live orders flag
@@ -110,7 +118,7 @@ class ChatWorker(threading.Thread):
             if self.sentry_client is not None:
                 self.sentry_client.captureException()
 
-    def stop(self, reason: str=""):
+    def stop(self, reason: str = ""):
         """Gracefully stop the worker process"""
         # Send a stop message to the thread
         self.queue.put(StopSignal(reason))
@@ -130,7 +138,7 @@ class ChatWorker(threading.Thread):
         If a stop signal is sent, try to gracefully stop the thread."""
         # Pop data from the queue
         try:
-            data = self.queue.get(timeout=int(configloader.config["Telegram"]["conversation_timeout"]))
+            data = self.queue.get(timeout=int(self.config["Telegram"]["conversation_timeout"]))
         except queuem.Empty:
             # If the conversation times out, gracefully stop the thread
             self.__graceful_stop(StopSignal("timeout"))
@@ -143,7 +151,7 @@ class ChatWorker(threading.Thread):
 
     def __wait_for_specific_message(self,
                                     items: typing.List[str],
-                                    cancellable: bool=False) -> typing.Union[str, CancelSignal]:
+                                    cancellable: bool = False) -> typing.Union[str, CancelSignal]:
         """Continue getting updates until until one of the strings contained in the list is received as a message."""
         while True:
             # Get the next update
@@ -168,7 +176,7 @@ class ChatWorker(threading.Thread):
             # Return the message text
             return update.message.text
 
-    def __wait_for_regex(self, regex: str, cancellable: bool=False) -> typing.Union[str, CancelSignal]:
+    def __wait_for_regex(self, regex: str, cancellable: bool = False) -> typing.Union[str, CancelSignal]:
         """Continue getting updates until the regex finds a match in a message, then return the first capture group."""
         while True:
             # Get the next update
@@ -192,7 +200,7 @@ class ChatWorker(threading.Thread):
             return match.group(1)
 
     def __wait_for_precheckoutquery(self,
-                                    cancellable: bool=False) -> typing.Union[telegram.PreCheckoutQuery, CancelSignal]:
+                                    cancellable: bool = False) -> typing.Union[telegram.PreCheckoutQuery, CancelSignal]:
         """Continue getting updates until a precheckoutquery is received.
         The payload is checked by the core before forwarding the message."""
         while True:
@@ -222,7 +230,8 @@ class ChatWorker(threading.Thread):
             # Return the successfulpayment
             return update.message.successful_payment
 
-    def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
+    def __wait_for_photo(self, cancellable: bool = False) -> typing.Union[
+        typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
         while True:
             # Get the next update
@@ -240,7 +249,7 @@ class ChatWorker(threading.Thread):
             # Return the photo array
             return update.message.photo
 
-    def __wait_for_inlinekeyboard_callback(self, cancellable: bool=True) \
+    def __wait_for_inlinekeyboard_callback(self, cancellable: bool = True) \
             -> typing.Union[telegram.CallbackQuery, CancelSignal]:
         """Continue getting updates until an inline keyboard callback is received, then return it."""
         while True:
@@ -298,7 +307,8 @@ class ChatWorker(threading.Thread):
                         [telegram.KeyboardButton(strings.menu_help), telegram.KeyboardButton(strings.menu_bot_info)]]
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id,
-                                  strings.conversation_open_user_menu.format(credit=utils.Price(self.user.credit)),
+                                  strings.conversation_open_user_menu.format(credit=utils.Price(self.user.credit,
+                                                                                                self._exp)),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([strings.menu_order, strings.menu_order_status,
@@ -404,7 +414,7 @@ class ChatWorker(threading.Thread):
                                                   reply_markup=product_inline_keyboard)
                 # Create the cart summary
                 product_list = ""
-                total_cost = utils.Price(0)
+                total_cost = utils.Price(0, self._exp)
                 for product_id in cart:
                     if cart[product_id][1] > 0:
                         product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
@@ -452,7 +462,7 @@ class ChatWorker(threading.Thread):
                                                   reply_markup=product_inline_keyboard)
                 # Create the cart summary
                 product_list = ""
-                total_cost = utils.Price(0)
+                total_cost = utils.Price(0, self._exp)
                 for product_id in cart:
                     if cart[product_id][1] > 0:
                         product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
@@ -524,10 +534,10 @@ class ChatWorker(threading.Thread):
     def __order_status(self):
         """Display the status of the sent orders."""
         # Find the latest orders
-        orders = self.session.query(db.Order)\
-            .filter(db.Order.user == self.user)\
-            .order_by(db.Order.creation_date.desc())\
-            .limit(20)\
+        orders = self.session.query(db.Order) \
+            .filter(db.Order.user == self.user) \
+            .order_by(db.Order.creation_date.desc()) \
+            .limit(20) \
             .all()
         # Ensure there is at least one order to display
         if len(orders) == 0:
@@ -545,7 +555,7 @@ class ChatWorker(threading.Thread):
         # Cash
         keyboard.append([telegram.KeyboardButton(strings.menu_cash)])
         # Telegram Payments
-        if configloader.config["Credit Card"]["credit_card_token"] != "":
+        if self.config["Credit Card"]["credit_card_token"] != "":
             keyboard.append([telegram.KeyboardButton(strings.menu_credit_card)])
         # Keyboard: go back to the previous menu
         keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
@@ -571,10 +581,10 @@ class ChatWorker(threading.Thread):
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
+        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00", self._exp)))],
+                    [telegram.KeyboardButton(str(utils.Price("25.00", self._exp)))],
+                    [telegram.KeyboardButton(str(utils.Price("50.00", self._exp)))],
+                    [telegram.KeyboardButton(str(utils.Price("100.00", self._exp)))],
                     [telegram.KeyboardButton(strings.menu_cancel)]]
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
@@ -592,17 +602,17 @@ class ChatWorker(threading.Thread):
                 cancelled = True
                 continue
             # Convert the amount to an integer
-            value = utils.Price(selection)
+            value = utils.Price(selection, self._exp)
             # Ensure the amount is within the range
-            if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
+            if value > utils.Price(int(self.config["Credit Card"]["max_amount"]), self._exp):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_over_max.format(
-                                          max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
+                                          max_amount=utils.Price(self.config["Payments"]["max_amount"], self._exp)))
                 continue
-            elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
+            elif value < utils.Price(int(self.config["Credit Card"]["min_amount"]), self._exp):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_under_min.format(
-                                          min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
+                                          min_amount=utils.Price(self.config["Payments"]["min_amount"], self._exp)))
                 continue
             break
         # If the user cancelled the action...
@@ -614,8 +624,8 @@ class ChatWorker(threading.Thread):
         # Create the price array
         prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
+        fee_percentage = float(self.config["Credit Card"]["fee_percentage"]) / 100
+        fee_fixed = int(self.config["Credit Card"]["fee_fixed"])
         total_fee = value * fee_percentage + fee_fixed
         if total_fee > 0:
             prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
@@ -631,13 +641,13 @@ class ChatWorker(threading.Thread):
                               title=strings.payment_invoice_title,
                               description=strings.payment_invoice_description.format(amount=str(value)),
                               payload=self.invoice_payload,
-                              provider_token=configloader.config["Credit Card"]["credit_card_token"],
+                              provider_token=self.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",
-                              currency=configloader.config["Payments"]["currency"],
+                              currency=self.config["Payments"]["currency"],
                               prices=prices,
-                              need_name=configloader.config["Credit Card"]["name_required"] == "yes",
-                              need_email=configloader.config["Credit Card"]["email_required"] == "yes",
-                              need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes",
+                              need_name=self.config["Credit Card"]["name_required"] == "yes",
+                              need_email=self.config["Credit Card"]["email_required"] == "yes",
+                              need_phone_number=self.config["Credit Card"]["phone_required"] == "yes",
                               reply_markup=inline_keyboard)
         # Wait for the invoice
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
@@ -762,7 +772,7 @@ class ChatWorker(threading.Thread):
             # Open the edit menu for that specific product
             self.__edit_product_menu(product=product)
 
-    def __edit_product_menu(self, product: typing.Optional[db.Product]=None):
+    def __edit_product_menu(self, product: typing.Optional[db.Product] = None):
         """Add a product to the database or edit an existing one."""
         # Create an inline keyboard with a single skip button
         cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip,
@@ -778,7 +788,7 @@ class ChatWorker(threading.Thread):
             # Wait for an answer
             name = self.__wait_for_regex(r"(.*)", cancellable=bool(product))
             # Ensure a product with that name doesn't already exist
-            if (product and isinstance(name, CancelSignal)) or\
+            if (product and isinstance(name, CancelSignal)) or \
                     self.session.query(db.Product).filter_by(name=name, deleted=False).one_or_none() in [None, product]:
                 # Exit the loop
                 break
@@ -799,7 +809,7 @@ class ChatWorker(threading.Thread):
         if product:
             self.bot.send_message(self.chat.id,
                                   strings.edit_current_value.format(
-                                      value=(str(utils.Price(product.price))
+                                      value=(str(utils.Price(product.price, self._exp))
                                              if product.price is not None else 'Non in vendita')),
                                   reply_markup=cancel)
         # Wait for an answer
@@ -811,7 +821,7 @@ class ChatWorker(threading.Thread):
         elif price.lower() == "x":
             price = None
         else:
-            price = utils.Price(price)
+            price = utils.Price(price, self._exp)
         # Ask for the product image
         self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
         # Wait for an answer
@@ -892,10 +902,10 @@ class ChatWorker(threading.Thread):
                                                         [telegram.InlineKeyboardButton(strings.menu_refund,
                                                                                        callback_data="order_refund")]])
         # Display the past pending orders
-        orders = self.session.query(db.Order)\
-            .filter_by(delivery_date=None, refund_date=None)\
-            .join(db.Transaction)\
-            .join(db.User)\
+        orders = self.session.query(db.Order) \
+            .filter_by(delivery_date=None, refund_date=None) \
+            .join(db.Transaction) \
+            .join(db.User) \
             .all()
         # Create a message for every one of them
         for order in orders:
@@ -1043,10 +1053,10 @@ class ChatWorker(threading.Thread):
         # Loop used to move between pages
         while True:
             # Retrieve the 10 transactions in that page
-            transactions = self.session.query(db.Transaction)\
-                .order_by(db.Transaction.transaction_id.desc())\
-                .limit(10)\
-                .offset(10 * page)\
+            transactions = self.session.query(db.Transaction) \
+                .order_by(db.Transaction.transaction_id.desc()) \
+                .limit(10) \
+                .offset(10 * page) \
                 .all()
             # Create a list to be converted in inline keyboard markup
             inline_keyboard_list = [[]]
@@ -1068,7 +1078,7 @@ class ChatWorker(threading.Thread):
             inline_keyboard = telegram.InlineKeyboardMarkup(inline_keyboard_list)
             # Create the message text
             transactions_string = "\n".join([str(transaction) for transaction in transactions])
-            text = strings.transactions_page.format(page=page+1,
+            text = strings.transactions_page.format(page=page + 1,
                                                     transactions=transactions_string)
             # Update the previously sent message
             self.bot.edit_message_text(chat_id=self.chat.id, message_id=message.message_id, text=text,
@@ -1126,7 +1136,7 @@ class ChatWorker(threading.Thread):
         # Reopen the file for reading
         with open(f"transactions_{self.chat.id}.csv") as file:
             # Send the file via a manual request to Telegram
-            requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendDocument",
+            requests.post(f"https://api.telegram.org/bot{self.config['Telegram']['token']}/sendDocument",
                           files={"document": file},
                           params={"chat_id": self.chat.id,
                                   "parse_mode": "HTML"})
