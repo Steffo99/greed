@@ -28,7 +28,8 @@ else:
 class Price:
     """The base class for the prices in greed.
     Its int value is in minimum units, while its float and str values are in decimal format.int("""
-    def __init__(self, value: typing.Union[int, float, str, "Price"]=0):
+
+    def __init__(self, value: typing.Union[int, float, str, "Price"] = 0):
         if isinstance(value, int):
             # Keep the value as it is
             self.value = int(value)
@@ -47,8 +48,8 @@ class Price:
 
     def __str__(self):
         return strings.currency_format_string.format(symbol=strings.currency_symbol,
-                                             value="{0:.2f}".format(
-                                                 self.value / (10 ** int(config["Payments"]["currency_exp"]))))
+                                                     value="{0:.2f}".format(
+                                                         self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 
     def __int__(self):
         return self.value
@@ -112,14 +113,15 @@ class Price:
 
 
 def telegram_html_escape(string: str):
-    return string.replace("<", "&lt;")\
-                 .replace(">", "&gt;")\
-                 .replace("&", "&amp;")\
-                 .replace('"', "&quot;")
+    return string.replace("<", "&lt;") \
+        .replace(">", "&gt;") \
+        .replace("&", "&amp;") \
+        .replace('"', "&quot;")
 
 
 def catch_telegram_errors(func):
     """Decorator, can be applied to any function to retry in case of Telegram errors."""
+
     def result_func(*args, **kwargs):
         while True:
             try:
@@ -137,9 +139,8 @@ def catch_telegram_errors(func):
             except telegram.error.NetworkError as error:
                 print(f"Network error while calling {func.__name__}(),"
                       f" retrying in {config['Telegram']['error_pause']} secs...")
-                # Display the full NetworkError if in debug mode
-                if __debug__:
-                    print(f"Full error: {error.message}")
+                # Display the full NetworkError
+                print(f"Full error: {error.message}")
                 time.sleep(int(config["Telegram"]["error_pause"]))
             # Unknown error
             except telegram.error.TelegramError as error:
@@ -154,13 +155,13 @@ def catch_telegram_errors(func):
                 else:
                     print(f"Telegram error while calling {func.__name__}(),"
                           f" retrying in {config['Telegram']['error_pause']} secs...")
-                    # Display the full TelegramError if in debug mode
-                    if __debug__:
-                        print(f"Full error: {error.message}")
+                    # Display the full TelegramError
+                    print(f"Full error: {error.message}")
                     # Send the error to the Sentry server
-                    elif sentry_client is not None:
+                    if sentry_client is not None:
                         sentry_client.captureException(exc_info=sys.exc_info())
                     time.sleep(int(config["Telegram"]["error_pause"]))
+
     return result_func
 
 
