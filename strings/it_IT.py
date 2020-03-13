@@ -145,6 +145,9 @@ menu_cash = "💵 In contanti"
 # User menu: credit card
 menu_credit_card = "💳 Con una carta di credito"
 
+# User menu: bitcoin
+menu_bitcoin = "🛡 Bitcoin"
+
 # Admin menu: products
 menu_products = "📝️ Prodotti"
 
@@ -318,10 +321,7 @@ payment_cc_amount = "Quanti fondi vuoi aggiungere al tuo portafoglio?\n" \
 payment_invoice_title = "Aggiunta di fondi"
 
 # Payment: add funds invoice description
-payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio.\n\n" \
-                              "Visto che sei nella versione Alpha del software, puoi effettuare pagamenti infiniti" \
-                              " con la carta di credito di prova 4242 4242 4242 4242," \
-                              " con qualsiasi CVV e una qualsiasi data di scadenza valida."
+payment_invoice_description = "Pagando questa ricevuta verranno aggiunti {amount} al portafoglio."
 
 # Payment: label of the labeled price on the invoice
 payment_invoice_label = "Ricarica"
@@ -353,12 +353,11 @@ refund_reason = "Motivazione del rimborso:\n" \
 bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">greed</a>,' \
            ' un framework di @Steffo per i pagamenti su Telegram rilasciato sotto la' \
            ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE.txt">' \
-           'Affero General Public License 3.0</a>.\n' \
-           'Il codice sorgente di questa versione è disponibile <i>qui</i>.\n'
+           'Affero General Public License 3.0</a>.\n'
 
 # Help: guide
 help_msg = "La guida del bot è disponibile a questo indirizzo:\n" \
-           "https://github.com/Steffo99/greed/wiki"
+           "https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/"
 
 # Help: contact shopkeeper
 contact_shopkeeper = "Attualmente, il personale disponibile ad offrire assistenza agli utenti è composto da:\n" \
@@ -404,7 +403,7 @@ error_payment_amount_under_min = "⚠️ Il minimo di fondi che possono essere a
 
 # Error: the invoice has expired and can't be paid
 error_invoice_expired = "⚠️ Questo pagamento è scaduto ed è stato annullato. Se vuoi ancora aggiungere fondi, " \
-                        "usa l'opzione Aggiungi fondi del menu. "
+                        "usa l'opzione Aggiungi fondi del menu."
 
 # Error: a product with that name already exists
 error_duplicate_name = "️⚠️ Esiste già un prodotto con questo nome."
@@ -423,5 +422,5 @@ error_user_does_not_exist = "⚠️  L'utente selezionato non esiste."
 
 # Fatal: conversation raised an exception
 fatal_conversation_exception = "☢️ Oh no! Un <b>errore</b> ha interrotto questa conversazione.\n" \
-                               "L'errore è stato segnalato allo sviluppatore di greed in modo che possa sistemarlo.\n" \
+                               "L'errore è stato segnalato al proprietario del bot in modo che possa sistemarlo.\n" \
                                "Per avviare una nuova conversazione, invia il comando /start."

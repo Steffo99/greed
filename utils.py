@@ -2,11 +2,17 @@ import telegram
 import telegram.error
 import time
 from configloader import config
-from strings import currency_format_string, currency_symbol
 import typing
 import os
 import sys
-import strings
+import importlib
+
+language = config["Config"]["language"]
+try:
+    strings = importlib.import_module("strings." + language)
+except ModuleNotFoundError:
+    print("The strings file you specified in the config file does not exist.")
+    sys.exit(1)
 
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
@@ -40,7 +46,7 @@ class Price:
         return f"<Price of value {self.value}>"
 
     def __str__(self):
-        return currency_format_string.format(symbol=currency_symbol,
+        return strings.currency_format_string.format(symbol=strings.currency_symbol,
                                              value="{0:.2f}".format(
                                                  self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 
@@ -217,6 +223,11 @@ class DuckBot:
     def send_document(self, *args, **kwargs):
         return self.bot.send_document(*args, **kwargs)
 
+    @catch_telegram_errors
+    def send_message_markdown(self, *args, **kwargs):
+        # Send message in markdown parse mode
+        return self.bot.send_message(parse_mode="Markdown", *args, **kwargs)
+    
     # More methods can be added here
 
 

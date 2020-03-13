@@ -1,13 +1,16 @@
 import typing
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
-from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
+from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean, Float
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
-import strings
 import requests
 import utils
+import importlib
+
+language = configloader.config["Config"]["language"]
+strings = importlib.import_module("strings." + language)
 
 # Create a (lazy) database engine
 engine = create_engine(configloader.config["Database"]["engine"])
@@ -186,6 +189,37 @@ class Transaction(TableDeclarativeBase):
     def __repr__(self):
         return f"<Transaction {self.transaction_id} for User {self.user_id} {str(self)}>"
 
+class BtcTransaction(TableDeclarativeBase):
+    """A btc wallet transaction.
+    Wallet credit ISN'T calculated from these, but they can be used to recalculate it."""
+    # TODO: split this into multiple tables
+
+    # The internal transaction ID
+    transaction_id = Column(Integer, primary_key=True)
+    # The user whose credit is affected by this transaction
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+    user = relationship("User")
+    # The value of this transaction. Can be both negative and positive.
+    price = Column(Float)
+    value = Column(Float)
+    currency = Column(Text)
+    status = Column(Integer, nullable=False)
+    timestamp = Column(Integer)
+    # Extra notes on the transaction
+    address = Column(Text)
+    txid = Column(Text)
+
+    # Extra table parameters
+    __tablename__ = "btc_transactions"
+
+    def __str__(self):
+        string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {str(self.price)} | {str(self.value)} | {str(self.currency)} | {str(self.status)} | {str(self.timestamp)} | {str(self.address)}"
+        if self.txid:
+            string += f" | {self.txid}"
+        return string
+
+    def __repr__(self):
+        return f"<Transaction {self.transaction_id} for User {self.user_id} {str(self)}>"
 
 class Admin(TableDeclarativeBase):
     """A greed administrator with his permissions."""
