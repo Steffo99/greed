@@ -45,7 +45,7 @@ Users will be able to add credit to their wallet, place orders and contact you i
 
 ### Integrating Bitcoin
 
-> If you plan on accepting Bitcoin payments:
+If you plan on accepting Bitcoin payments:
 
 1. Complete merchant setup wizard by clicking on Get Started for Free on Blockonomics Merchants Page.
 2. Depending on where you are deploying, you should set the callback URL on Blockonomics merchants page.
