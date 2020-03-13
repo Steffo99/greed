@@ -42,3 +42,16 @@ Users will be able to add credit to their wallet, place orders and contact you i
 ### Bitcoin - Blockonomics
 
 [DarrenWestwood](https://github.com/DarrenWestwood) is currently maintaining a [`greed`](https://github.com/DarrenWestwood/greed) fork with **Bitcoin support** through [Blockonomics](https://www.blockonomics.co/).
+
+### Integrating Bitcoin
+
+> If you plan on accepting Bitcoin payments:
+
+1. Complete merchant setup wizard by clicking on Get Started for Free on Blockonomics Merchants Page.
+2. Depending on where you are deploying, you should set the callback URL on Blockonomics merchants page.
+	* Testing: http://localhost/callback?secret=YOUR_SECRET (you can use any dummy host in place of localhost, important thing is secret should match the one in config.ini
+	* Production: You need a publicly reachable URL like this https://greed.herokuapp.com/callback?secret=YOUR_SECRET
+3. Configure settings in config.ini file
+	* Set api_key seen on Blockonomics Merchants Page
+	* Set secret as YOUR_SECRET
+	* For testing, leave use_websockets = True. For production set use_websockets = False
