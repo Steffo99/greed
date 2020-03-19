@@ -1,6 +1,6 @@
 # greed
 
-A customizable Telegram shop bot that accepts bitcoin payments. View demo at https://t.me/TgShopDemoBot
+A customizable Telegram shop bot that accepts bitcoin payments. Demo at https://t.me/TgShopDemoBot
 
 ![](https://img.shields.io/badge/version-beta-blue.svg) ![](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen)
 
