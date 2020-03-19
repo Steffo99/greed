@@ -1,6 +1,6 @@
 # greed
 
-A customizable Telegram shop bot, developed as a project for the final exam.  
+A customizable Telegram shop bot that accepts bitcoin payments. View demo at https://t.me/TgShopDemoBot
 
 ![](https://img.shields.io/badge/version-beta-blue.svg) ![](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen)
 
@@ -15,7 +15,7 @@ A customizable Telegram shop bot, developed as a project for the final exam.
 
 ## Installation
 
-1. Download the project files through `git clone https://github.com/Steffo99/greed.git` or [this link](https://github.com/Steffo99/greed/archive/master.zip).
+1. Download the project files through `git clone https://github.com/DarrenWestwood/greed.git` or [this link](https://github.com/DarrenWestwood/greed/archive/master.zip).
 2. Install the project requirements with `pip install -r requirements.txt`
 3. Run `python -OO core.py` to generate the configuration file.
 4. Open the config folder and edit the `config.ini` file following the contained instructions.  
@@ -31,18 +31,6 @@ All the bot features are available through Telegram.
 As the administrator, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
 Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
 
-## Documentation
-
-`greed` currently does not have a documentation page, but you can try to read the [paper](https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/edit?usp=sharing) (in Italian) I wrote for my final Scuola Superiore exam about it.
-
-## Forks
-
-> Please note that @Steffo99, the developer of `greed`, does not endorse any of these forks.
-
-### Bitcoin - Blockonomics
-
-[DarrenWestwood](https://github.com/DarrenWestwood) is currently maintaining a [`greed`](https://github.com/DarrenWestwood/greed) fork with **Bitcoin support** through [Blockonomics](https://www.blockonomics.co/).
-
 ### Integrating Bitcoin
 
 If you plan on accepting Bitcoin payments:
@@ -54,4 +42,7 @@ If you plan on accepting Bitcoin payments:
 3. Configure settings in config.ini file
 	* Set api_key seen on Blockonomics Merchants Page
 	* Set secret as YOUR_SECRET
-	* For testing, leave use_websockets = True. For production set use_websockets = False
+	* For testing, leave use_websockets = True. For production set use_websockets = False	
+
+## Credits
+This project is a fork of [greed project](https://github.com/Steffo99/greed) by @Steffo99. We would like to thank @Steffo99 for putting this in public domain. 
