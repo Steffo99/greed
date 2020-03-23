@@ -289,7 +289,6 @@ class ChatWorker(threading.Thread):
                                                     + str(amount) 
                                                     + "`\nto this bitcoin address:\n`" 
                                                     + address + "`")
-        time.sleep(10)
 
     def __wait_for_successfulbtcpayment(self, address, amount):
         # check config for use_websocket
