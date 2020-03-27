@@ -505,8 +505,10 @@ class ChatWorker(threading.Thread):
                                      value=value,
                                      order_id=order.order_id)
         self.session.add(transaction)
-        # Subtract credit from the user
-        self.user.credit += value
+        # Commit all the changes
+        self.session.commit()
+        # Update the user's credit
+        self.user.recalculate_credit()
         # Commit all the changes
         self.session.commit()
         # Notify the user of the order result
@@ -663,10 +665,9 @@ class ChatWorker(threading.Thread):
             transaction.payment_name = successfulpayment.order_info.name
             transaction.payment_email = successfulpayment.order_info.email
             transaction.payment_phone = successfulpayment.order_info.phone_number
-        # Add the credit to the user account
-        self.user.credit += successfulpayment.total_amount - int(total_fee)
-        # Add and commit the transaction
-        self.session.add(transaction)
+        # Update the user's credit
+        self.user.recalculate_credit()
+        # Commit all the changes
         self.session.commit()
 
     def __bot_info(self):
@@ -957,8 +958,8 @@ class ChatWorker(threading.Thread):
                 order.refund_reason = reply
                 # Refund the credit, reverting the old transaction
                 order.transaction.refunded = True
-                # Restore the credit to the user
-                order.user.credit -= order.transaction.value
+                # Update the user's credit
+                order.user.recalculate_credit()
                 # Commit the changes
                 self.session.commit()
                 # Update the order message
@@ -1005,7 +1006,7 @@ class ChatWorker(threading.Thread):
                                      notes=reply)
         self.session.add(transaction)
         # Change the user credit
-        user.credit += int(price)
+        user.recalculate_credit()
         # Commit the changes
         self.session.commit()
         # Notify the user of the credit/debit
