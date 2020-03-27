@@ -149,7 +149,7 @@ class Transaction(TableDeclarativeBase):
     transaction_id = Column(Integer, primary_key=True)
     # The user whose credit is affected by this transaction
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    user = relationship("User")
+    user = relationship("User", backref=backref("transactions"))
     # The value of this transaction. Can be both negative and positive.
     value = Column(Integer, nullable=False)
     # Refunded status: if True, ignore the value of this transaction when recalculating
