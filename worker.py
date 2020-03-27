@@ -113,6 +113,7 @@ class ChatWorker(threading.Thread):
             # If the Sentry integration is enabled, log the exception
             if self.sentry_client is not None:
                 self.sentry_client.captureException()
+            traceback.print_exception(*sys.exc_info())
 
     def stop(self, reason: str = ""):
         """Gracefully stop the worker process"""
