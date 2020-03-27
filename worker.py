@@ -10,6 +10,7 @@ import database as db
 import re
 import utils
 import os
+import traceback
 from html import escape
 import requests
 import importlib
@@ -278,9 +279,9 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.conversation_admin_select_user, reply_markup=keyboard)
             # Wait for a reply
             reply = self.__wait_for_regex("user_([0-9]+)", cancellable=True)
-            # Allow the cancellation of the operation
-            if reply == strings.menu_cancel:
-                return CancelSignal()
+            # Propagate CancelSignals
+            if isinstance(reply, CancelSignal):
+                return reply
             # Find the user in the database
             user = self.session.query(db.User).filter_by(user_id=int(reply)).one_or_none()
             # Ensure the user exists
@@ -974,6 +975,9 @@ class ChatWorker(threading.Thread):
         """Edit manually the credit of an user."""
         # Make the admin select an user
         user = self.__user_select()
+        # Allow the cancellation of the operation
+        if isinstance(user, CancelSignal):
+            return
         # Create an inline keyboard with a single cancel button
         cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_cancel,
                                                                                callback_data="cmd_cancel")]])
@@ -1139,6 +1143,9 @@ class ChatWorker(threading.Thread):
         """Add an administrator to the bot."""
         # Let the admin select an administrator to promote
         user = self.__user_select()
+        # Allow the cancellation of the operation
+        if isinstance(user, CancelSignal):
+            return
         # Check if the user is already an administrator
         admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
         if admin is None:

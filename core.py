@@ -76,8 +76,13 @@ def main():
                                      reply_markup=telegram.ReplyKeyboardRemove())
                     # Skip the update
                     continue
-                # Forward the update to the worker
-                receiving_worker.queue.put(update)
+                # If the message contains the "Cancel" string defined in the strings file...
+                if update.message.text == strings.menu_cancel:
+                    # Send a CancelSignal to the worker instead of the update
+                    receiving_worker.queue.put(worker.CancelSignal())
+                else:
+                    # Forward the update to the worker
+                    receiving_worker.queue.put(update)
             # If the update is a inline keyboard press...
             if isinstance(update.callback_query, telegram.CallbackQuery):
                 # Forward the update to the corresponding worker
