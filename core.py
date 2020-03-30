@@ -53,7 +53,7 @@ def main():
                     # Skip the update
                     continue
                 # If the message is a start command...
-                if isinstance(update.message.text, str) and update.message.text == "/start":
+                if isinstance(update.message.text, str) and update.message.text.startswith("/start"):
                     # Check if a worker already exists for that chat
                     old_worker = chat_workers.get(update.message.chat.id)
                     # If it exists, gracefully stop the worker
