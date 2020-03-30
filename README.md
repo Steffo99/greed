@@ -17,6 +17,7 @@ A customizable Telegram shop bot, developed as a project for the final exam.
 
 1. Download the project files through `git clone https://github.com/Steffo99/greed.git` or [this link](https://github.com/Steffo99/greed/archive/master.zip).
 2. Install the project requirements with `pip install -r requirements.txt`
+3. _Optional: run `pip install coloredlogs` to have colored logging output._
 3. Run `python -OO core.py` to generate the configuration file.
 4. Open the config folder and edit the `config.ini` file following the contained instructions.  
 Ensure the `is_template` field is set to `no`.
