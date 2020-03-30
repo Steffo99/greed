@@ -9,6 +9,7 @@ from blockonomics import Blockonomics
 import database as db
 import datetime
 import importlib
+from decimal import Decimal
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -162,11 +163,13 @@ def callback():
                 # Convert satoshi to fiat
                 satoshi = float(flask.request.args.get("value"))
                 received_btc = satoshi/1.0e8
-                received_value = round(received_btc*transaction.price, int(configloader.config["Payments"]["currency_exp"]))
-                print ("Recieved "+str(received_value)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
+                received_dec = round(Decimal(received_btc * transaction.price), int(configloader.config["Payments"]["currency_exp"]))
+                received_value = int(received_dec * (10 ** int(configloader.config["Payments"]["currency_exp"])))
+                received_float = float(received_dec)
+                print ("Recieved "+str(received_float)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
                 # Add the credit to the user account
                 user = dbsession.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
-                user.credit += received_value
+                user.credit += received_float
                 # Add a transaction to list
                 new_transaction = db.Transaction(user=user,
                                              value=received_value,
@@ -175,11 +178,11 @@ def callback():
                 # Add and commit the transaction
                 dbsession.add(new_transaction)
                 # Update the received_value for address in DB
-                transaction.value += received_value
+                transaction.value += received_float
                 transaction.txid = flask.request.args.get("txid")
                 transaction.status = 2
                 dbsession.commit()
-                bot.send_message(transaction.user_id, "Payment confirmed!\nYour account has been credited.")
+                bot.send_message(transaction.user_id, "Payment confirmed!\nYour account has been credited with "+str(received_float)+" "+configloader.config["Payments"]["currency"]+".")
                 return "Success"
             else:
                 dbsession.commit()
