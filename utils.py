@@ -6,6 +6,12 @@ import typing
 import os
 import sys
 import importlib
+import logging
+import traceback
+
+
+log = logging.getLogger(__name__)
+
 
 language = config["Config"]["language"]
 try:
@@ -128,38 +134,38 @@ def catch_telegram_errors(func):
                 return func(*args, **kwargs)
             # Bot was blocked by the user
             except telegram.error.Unauthorized:
-                print(f"Unauthorized to call {func.__name__}(), skipping.")
+                log.debug(f"Unauthorized to call {func.__name__}(), skipping.")
                 break
             # Telegram API didn't answer in time
             except telegram.error.TimedOut:
-                print(f"Timed out while calling {func.__name__}(),"
-                      f" retrying in {config['Telegram']['timed_out_pause']} secs...")
+                log.warning(f"Timed out while calling {func.__name__}(),"
+                            f" retrying in {config['Telegram']['timed_out_pause']} secs...")
                 time.sleep(int(config["Telegram"]["timed_out_pause"]))
             # Telegram is not reachable
             except telegram.error.NetworkError as error:
-                print(f"Network error while calling {func.__name__}(),"
-                      f" retrying in {config['Telegram']['error_pause']} secs...")
-                # Display the full NetworkError
-                print(f"Full error: {error.message}")
+                log.error(f"Network error while calling {func.__name__}(),"
+                          f" retrying in {config['Telegram']['error_pause']} secs...\n"
+                          f"Full error: {error.message}")
                 time.sleep(int(config["Telegram"]["error_pause"]))
             # Unknown error
             except telegram.error.TelegramError as error:
                 if error.message.lower() in ["bad gateway", "invalid server response"]:
-                    print(f"Bad Gateway while calling {func.__name__}(),"
-                          f" retrying in {config['Telegram']['error_pause']} secs...")
+                    log.warning(f"Bad Gateway while calling {func.__name__}(),"
+                                f" retrying in {config['Telegram']['error_pause']} secs...")
                     time.sleep(int(config["Telegram"]["error_pause"]))
                 elif error.message.lower() == "timed out":
-                    print(f"Timed out while calling {func.__name__}(),"
-                          f" retrying in {config['Telegram']['timed_out_pause']} secs...")
+                    log.warning(f"Timed out while calling {func.__name__}(),"
+                                f" retrying in {config['Telegram']['timed_out_pause']} secs...")
                     time.sleep(int(config["Telegram"]["timed_out_pause"]))
                 else:
-                    print(f"Telegram error while calling {func.__name__}(),"
-                          f" retrying in {config['Telegram']['error_pause']} secs...")
-                    # Display the full TelegramError
-                    print(f"Full error: {error.message}")
+                    log.error(f"Telegram error while calling {func.__name__}(),"
+                              f" retrying in {config['Telegram']['error_pause']} secs...\n"
+                              f"Full error: {error.message}")
                     # Send the error to the Sentry server
                     if sentry_client is not None:
                         sentry_client.captureException(exc_info=sys.exc_info())
+                    else:
+                        traceback.print_exception(*sys.exc_info())
                     time.sleep(int(config["Telegram"]["error_pause"]))
 
     return result_func
