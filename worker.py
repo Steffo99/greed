@@ -560,7 +560,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_payment_method,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel])
+        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel], cancellable=True)
         # If the user has selected the Cash option...
         if selection == strings.menu_cash:
             # Go to the pay with cash function
@@ -571,7 +571,7 @@ class ChatWorker(threading.Thread):
             # Go to the pay with credit card function
             self.__add_credit_cc()
         # If the user has selected the Cancel option...
-        elif selection == strings.menu_cancel:
+        elif isinstance(selection, CancelSignal):
             # Send him back to the previous menu
             return
 
@@ -591,9 +591,9 @@ class ChatWorker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.payment_cc_amount,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait until a valid amount is sent
-            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + strings.menu_cancel + r")")
+            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + strings.menu_cancel + r")", cancellable=True)
             # If the user cancelled the action
-            if selection == strings.menu_cancel:
+            if isinstance(selection, CancelSignal):
                 # Exit the loop
                 cancelled = True
                 continue
@@ -747,9 +747,9 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names)
+        selection = self.__wait_for_specific_message(product_names, cancellable = True)
         # If the user has selected the Cancel option...
-        if selection == strings.menu_cancel:
+        if isinstance(selection, CancelSignal):
             # Exit the menu
             return
         # If the user has selected the Add Product option...
@@ -869,8 +869,8 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product_to_delete,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names)
-        if selection == strings.menu_cancel:
+        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        if isinstance(selection, CancelSignal):
             # Exit the menu
             return
         else:
