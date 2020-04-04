@@ -630,19 +630,17 @@ class ChatWorker(threading.Thread):
         else:
             # Exit the function
             return
+        # Issue the invoice
+        self.__make_payment(amount=value)
+
+    def __make_payment(self, amount):
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
         # Create the price array
-        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(amount))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
-        total_fee = value * fee_percentage + fee_fixed
-        if total_fee > 0:
-            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
-        else:
-            # Otherwise, set the fee to 0 to ensure no accidental discounts are applied
-            total_fee = 0
+        prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(self.__get_total_fee(amount))))
+
         # Create the invoice keyboard
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
                                                          [telegram.InlineKeyboardButton(strings.menu_cancel,
@@ -650,7 +648,7 @@ class ChatWorker(threading.Thread):
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
-                              description=strings.payment_invoice_description.format(amount=str(value)),
+                              description=strings.payment_invoice_description.format(amount=str(amount)),
                               payload=self.invoice_payload,
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",
@@ -660,7 +658,7 @@ class ChatWorker(threading.Thread):
                               need_email=configloader.config["Credit Card"]["email_required"] == "yes",
                               need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes",
                               reply_markup=inline_keyboard)
-        # Wait for the invoice
+
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
         # Check if the user has cancelled the invoice
         if isinstance(precheckoutquery, CancelSignal):
@@ -672,10 +670,11 @@ class ChatWorker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment()
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=successfulpayment.total_amount - int(total_fee),
+                                     value=int(successfulpayment.total_amount - self.__get_total_fee(amount=amount)),
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
+
         if successfulpayment.order_info is not None:
             transaction.payment_name = successfulpayment.order_info.name
             transaction.payment_email = successfulpayment.order_info.email
@@ -684,6 +683,17 @@ class ChatWorker(threading.Thread):
         self.user.recalculate_credit()
         # Commit all the changes
         self.session.commit()
+
+    @staticmethod
+    def __get_total_fee(amount):
+        #Calculate a fee for the required amount
+        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
+        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
+        total_fee = amount * fee_percentage + fee_fixed
+        if total_fee > 0:
+            return total_fee
+        # Set the fee to 0 to ensure no accidental discounts are applied
+        return 0
 
     def __bot_info(self):
         """Send information about the bot."""
