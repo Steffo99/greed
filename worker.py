@@ -408,10 +408,12 @@ class ChatWorker(threading.Thread):
                                                   caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
 
-                self.bot.edit_message_text(chat_id=self.chat.id, message_id=final_msg.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
-                                                                                         total_cost=str(self.__get_cart_value(cart))),
-                                           reply_markup=final_inline_keyboard)
+                self.bot.edit_message_text(
+                    chat_id=self.chat.id,
+                    message_id=final_msg.message_id,
+                    text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
+                                                                  total_cost=str(self.__get_cart_value(cart))),
+                    reply_markup=final_inline_keyboard)
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
                 # Get the selected product, ensuring it exists
@@ -450,10 +452,12 @@ class ChatWorker(threading.Thread):
                                                   caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
 
-                self.bot.edit_message_text(chat_id=self.chat.id, message_id=final_msg.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
-                                                                                         total_cost=str(self.__get_cart_value(cart))),
-                                           reply_markup=final_inline_keyboard)
+                self.bot.edit_message_text(
+                    chat_id=self.chat.id,
+                    message_id=final_msg.message_id,
+                    text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
+                                                                  total_cost=str(self.__get_cart_value(cart))),
+                    reply_markup=final_inline_keyboard)
             # If the done button has been pressed...
             elif callback.data == "cart_done":
                 # End the loop
@@ -489,14 +493,16 @@ class ChatWorker(threading.Thread):
         # User has credit and valid order, perform transaction now
         self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
 
-    def __get_cart_value(self, cart):
+    @staticmethod
+    def __get_cart_value(cart):
         # Calculate total items value in cart
         value = utils.Price(0)
         for product in cart:
             value += cart[product][0].price * cart[product][1]
         return value
 
-    def __get_cart_summary(self, cart):
+    @staticmethod
+    def __get_cart_summary(cart):
         # Create the cart summary
         product_list = ""
         for product_id in cart:
@@ -505,7 +511,7 @@ class ChatWorker(threading.Thread):
         return product_list
 
     def __order_transaction(self, order, value):
-         # Create a new transaction and add it to the session
+        # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
                                      value=value,
                                      order_id=order.order_id)
