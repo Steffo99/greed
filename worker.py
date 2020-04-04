@@ -484,14 +484,20 @@ class ChatWorker(threading.Thread):
                                           order_id=order.order_id)
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
-        if self.user.credit - self.__get_cart_value(cart) < 0:
+        credit_required = self.__get_cart_value(cart) - self.user.credit
+        # Notify user In case of insufficient credit
+        if credit_required > 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
+            # Suggest payment for missing credit value if configuration allows refill
+            if configloader.config["Appearance"]["refill_on_checkout"] == 'yes':
+                self.__make_payment(utils.Price(credit_required))
+        # If afer requested payment credit is still insufficient (either payment failure or cancel)
+        if self.user.credit < self.__get_cart_value(cart):
             # Rollback all the changes
             self.session.rollback()
-            return
-
-        # User has credit and valid order, perform transaction now
-        self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
+        else:
+            # User has credit and valid order, perform transaction now
+            self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
 
     @staticmethod
     def __get_cart_value(cart):
