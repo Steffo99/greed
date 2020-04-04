@@ -407,16 +407,10 @@ class ChatWorker(threading.Thread):
                                                   message_id=callback.message.message_id,
                                                   caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
-                # Create the cart summary
-                product_list = ""
-                total_cost = utils.Price(0)
-                for product_id in cart:
-                    if cart[product_id][1] > 0:
-                        product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
-                        total_cost += cart[product_id][0].price * cart[product_id][1]
+
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final_msg.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=product_list,
-                                                                                         total_cost=str(total_cost)),
+                                           text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
+                                                                                         total_cost=str(self.__get_cart_value(cart))),
                                            reply_markup=final_inline_keyboard)
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
@@ -455,16 +449,10 @@ class ChatWorker(threading.Thread):
                                                   message_id=callback.message.message_id,
                                                   caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
-                # Create the cart summary
-                product_list = ""
-                total_cost = utils.Price(0)
-                for product_id in cart:
-                    if cart[product_id][1] > 0:
-                        product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
-                        total_cost += cart[product_id][0].price * cart[product_id][1]
+
                 self.bot.edit_message_text(chat_id=self.chat.id, message_id=final_msg.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=product_list,
-                                                                                         total_cost=str(total_cost)),
+                                           text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
+                                                                                         total_cost=str(self.__get_cart_value(cart))),
                                            reply_markup=final_inline_keyboard)
             # If the done button has been pressed...
             elif callback.data == "cart_done":
@@ -484,23 +472,40 @@ class ChatWorker(threading.Thread):
         # Add the record to the session and get an ID
         self.session.add(order)
         self.session.flush()
-        # For each product added to the cart, create a new OrderItem and get the total value
-        value = 0
+        # For each product added to the cart, create a new OrderItem
         for product in cart:
-            # Add the price multiplied by the quantity to the total price
-            value -= cart[product][0].price * cart[product][1]
             # Create {quantity} new OrderItems
             for i in range(0, cart[product][1]):
                 order_item = db.OrderItem(product=cart[product][0],
                                           order_id=order.order_id)
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
-        if self.user.credit + value < 0:
+        if self.user.credit - self.__get_cart_value(cart) < 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
             # Rollback all the changes
             self.session.rollback()
             return
-        # Create a new transaction and add it to the session
+
+        # User has credit and valid order, perform transaction now
+        self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
+
+    def __get_cart_value(self, cart):
+        # Calculate total items value in cart
+        value = utils.Price(0)
+        for product in cart:
+            value += cart[product][0].price * cart[product][1]
+        return value
+
+    def __get_cart_summary(self, cart):
+        # Create the cart summary
+        product_list = ""
+        for product_id in cart:
+            if cart[product_id][1] > 0:
+                product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
+        return product_list
+
+    def __order_transaction(self, order, value):
+         # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
                                      value=value,
                                      order_id=order.order_id)
@@ -511,6 +516,10 @@ class ChatWorker(threading.Thread):
         self.user.recalculate_credit()
         # Commit all the changes
         self.session.commit()
+        # Notify admins about new transation
+        self.__order_notify_admins(order=order)
+
+    def __order_notify_admins(self, order):
         # Notify the user of the order result
         self.bot.send_message(self.chat.id, strings.success_order_created.format(order=order.get_text(self.session,
                                                                                                       user=True)))
