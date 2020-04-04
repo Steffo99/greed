@@ -593,11 +593,9 @@ class ChatWorker(threading.Thread):
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
-                    [telegram.KeyboardButton(strings.menu_cancel)]]
+        presets = configloader.config["Appearance"]["payment_presets"].split(',')
+        keyboard = [[telegram.KeyboardButton(str(utils.Price(preset)))] for preset in presets]
+        keyboard.append([telegram.KeyboardButton(strings.menu_cancel)]);
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
         # Loop used to continue asking if there's an error during the input
@@ -630,7 +628,7 @@ class ChatWorker(threading.Thread):
         else:
             # Exit the function
             return
-        # Issue the invoice
+        # Issue the payment invoice
         self.__make_payment(amount=value)
 
     def __make_payment(self, amount):
