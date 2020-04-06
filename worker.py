@@ -581,7 +581,8 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_payment_method,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel], cancellable=True)
+        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel],
+                                                     cancellable=True)
         # If the user has selected the Cash option...
         if selection == strings.menu_cash:
             # Go to the pay with cash function
@@ -601,7 +602,7 @@ class ChatWorker(threading.Thread):
         # Create a keyboard to be sent later
         presets = configloader.config["Appearance"]["payment_presets"].split(',')
         keyboard = [[telegram.KeyboardButton(str(utils.Price(preset)))] for preset in presets]
-        keyboard.append([telegram.KeyboardButton(strings.menu_cancel)]);
+        keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
         # Loop used to continue asking if there's an error during the input
@@ -643,8 +644,10 @@ class ChatWorker(threading.Thread):
         # Create the price array
         prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(amount))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(self.__get_total_fee(amount))))
-
+        fee = int(self.__get_total_fee(amount))
+        if fee > 0:
+            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label,
+                                                amount=fee))
         # Create the invoice keyboard
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
                                                          [telegram.InlineKeyboardButton(strings.menu_cancel,
@@ -662,7 +665,7 @@ class ChatWorker(threading.Thread):
                               need_email=configloader.config["Credit Card"]["email_required"] == "yes",
                               need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes",
                               reply_markup=inline_keyboard)
-
+        # Wait for the precheckout query
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
         # Check if the user has cancelled the invoice
         if isinstance(precheckoutquery, CancelSignal):
@@ -674,7 +677,7 @@ class ChatWorker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment()
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=int(successfulpayment.total_amount - self.__get_total_fee(amount=amount)),
+                                     value=int(successfulpayment.total_amount) - fee,
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
@@ -690,7 +693,7 @@ class ChatWorker(threading.Thread):
 
     @staticmethod
     def __get_total_fee(amount):
-        #Calculate a fee for the required amount
+        # Calculate a fee for the required amount
         fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
         fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
         total_fee = amount * fee_percentage + fee_fixed
