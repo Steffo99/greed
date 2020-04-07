@@ -5,18 +5,19 @@ import configparser
 # Check if the config file exists, and create one if it doesn't
 if not os.path.isfile("config/config.ini"):
     # Open the template file and create the config file
-    with open("config/template_config.ini") as template_file, open("config/config.ini", "w") as config_file:
+    with open("config/template_config.ini", encoding="utf8") as template_file, \
+         open("config/config.ini", "w", encoding="utf8") as config_file:
         # Copy the template file to the config file
         config_file.write(template_file.read())
 
-with open("config/template_config.ini") as template_file:
+with open("config/template_config.ini", encoding="utf8") as template_file:
     # Find the template version number
     config = configparser.ConfigParser()
     config.read_file(template_file)
     template_version = int(config["Config"]["version"])
 
 # Overwrite the template config with the values in the config
-with open("config/config.ini") as config_file:
+with open("config/config.ini", encoding="utf8") as config_file:
     config.read_file(config_file)
 
 # Check if the file has been edited
@@ -32,7 +33,7 @@ if template_version > int(config["Config"]["version"]):
     # Update the config version
     config["Config"]["version"] = str(template_version)
     # Save the file
-    with open("config/config.ini", "w") as config_file:
+    with open("config/config.ini", "w", encoding="utf8") as config_file:
         config.write(config_file)
     # Notify the user and quit
     print("The config file in config/config.ini has been updated.\n"
