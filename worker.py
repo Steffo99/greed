@@ -600,7 +600,7 @@ class ChatWorker(threading.Thread):
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
-        presets = configloader.config["Appearance"]["payment_presets"].split(',')
+        presets = list(map(lambda s: s.strip(" "), configloader.config["Credit Card"]["payment_presets"].split('|')))
         keyboard = [[telegram.KeyboardButton(str(utils.Price(preset)))] for preset in presets]
         keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
         # Boolean variable to check if the user has cancelled the action
@@ -623,12 +623,14 @@ class ChatWorker(threading.Thread):
             if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_over_max.format(
-                                          max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
+                                          max_amount=utils.Price(configloader.config["Credit Card"]["max_amount"]))
+                                      )
                 continue
             elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_under_min.format(
-                                          min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
+                                          min_amount=utils.Price(configloader.config["Credit Card"]["min_amount"]))
+                                      )
                 continue
             break
         # If the user cancelled the action...
