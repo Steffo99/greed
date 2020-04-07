@@ -17,9 +17,13 @@ except ModuleNotFoundError:
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
     import raven
-
+    import raven.exceptions
+    try:
+        release = raven.fetch_git_sha(os.path.dirname(__file__))
+    except raven.exceptions.InvalidGitRepository:
+        release = "Unknown"
     sentry_client = raven.Client(config["Error Reporting"]["sentry_token"],
-                                 release=raven.fetch_git_sha(os.path.dirname(__file__)),
+                                 release=release,
                                  environment="Dev" if __debug__ else "Prod")
 else:
     sentry_client = None
