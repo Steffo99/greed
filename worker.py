@@ -484,14 +484,20 @@ class ChatWorker(threading.Thread):
                                           order_id=order.order_id)
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
-        if self.user.credit - self.__get_cart_value(cart) < 0:
+        credit_required = self.__get_cart_value(cart) - self.user.credit
+        # Notify user In case of insufficient credit
+        if credit_required > 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
+            # Suggest payment for missing credit value if configuration allows refill
+            if configloader.config["Appearance"]["refill_on_checkout"] == 'yes':
+                self.__make_payment(utils.Price(credit_required))
+        # If afer requested payment credit is still insufficient (either payment failure or cancel)
+        if self.user.credit < self.__get_cart_value(cart):
             # Rollback all the changes
             self.session.rollback()
-            return
-
-        # User has credit and valid order, perform transaction now
-        self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
+        else:
+            # User has credit and valid order, perform transaction now
+            self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
 
     @staticmethod
     def __get_cart_value(cart):
@@ -575,7 +581,8 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_payment_method,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel], cancellable=True)
+        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel],
+                                                     cancellable=True)
         # If the user has selected the Cash option...
         if selection == strings.menu_cash:
             # Go to the pay with cash function
@@ -593,11 +600,9 @@ class ChatWorker(threading.Thread):
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
-                    [telegram.KeyboardButton(strings.menu_cancel)]]
+        presets = list(map(lambda s: s.strip(" "), configloader.config["Credit Card"]["payment_presets"].split('|')))
+        keyboard = [[telegram.KeyboardButton(str(utils.Price(preset)))] for preset in presets]
+        keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
         # Loop used to continue asking if there's an error during the input
@@ -618,31 +623,33 @@ class ChatWorker(threading.Thread):
             if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_over_max.format(
-                                          max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
+                                          max_amount=utils.Price(configloader.config["Credit Card"]["max_amount"]))
+                                      )
                 continue
             elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_under_min.format(
-                                          min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
+                                          min_amount=utils.Price(configloader.config["Credit Card"]["min_amount"]))
+                                      )
                 continue
             break
         # If the user cancelled the action...
         else:
             # Exit the function
             return
+        # Issue the payment invoice
+        self.__make_payment(amount=value)
+
+    def __make_payment(self, amount):
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
         # Create the price array
-        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(amount))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
-        total_fee = value * fee_percentage + fee_fixed
-        if total_fee > 0:
-            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
-        else:
-            # Otherwise, set the fee to 0 to ensure no accidental discounts are applied
-            total_fee = 0
+        fee = int(self.__get_total_fee(amount))
+        if fee > 0:
+            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label,
+                                                amount=fee))
         # Create the invoice keyboard
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
                                                          [telegram.InlineKeyboardButton(strings.menu_cancel,
@@ -650,7 +657,7 @@ class ChatWorker(threading.Thread):
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
-                              description=strings.payment_invoice_description.format(amount=str(value)),
+                              description=strings.payment_invoice_description.format(amount=str(amount)),
                               payload=self.invoice_payload,
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",
@@ -660,7 +667,7 @@ class ChatWorker(threading.Thread):
                               need_email=configloader.config["Credit Card"]["email_required"] == "yes",
                               need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes",
                               reply_markup=inline_keyboard)
-        # Wait for the invoice
+        # Wait for the precheckout query
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
         # Check if the user has cancelled the invoice
         if isinstance(precheckoutquery, CancelSignal):
@@ -672,10 +679,11 @@ class ChatWorker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment()
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=successfulpayment.total_amount - int(total_fee),
+                                     value=int(successfulpayment.total_amount) - fee,
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
+
         if successfulpayment.order_info is not None:
             transaction.payment_name = successfulpayment.order_info.name
             transaction.payment_email = successfulpayment.order_info.email
@@ -684,6 +692,17 @@ class ChatWorker(threading.Thread):
         self.user.recalculate_credit()
         # Commit all the changes
         self.session.commit()
+
+    @staticmethod
+    def __get_total_fee(amount):
+        # Calculate a fee for the required amount
+        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
+        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
+        total_fee = amount * fee_percentage + fee_fixed
+        if total_fee > 0:
+            return total_fee
+        # Set the fee to 0 to ensure no accidental discounts are applied
+        return 0
 
     def __bot_info(self):
         """Send information about the bot."""
