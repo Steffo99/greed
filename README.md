@@ -1,6 +1,6 @@
 # greed
 
-A customizable Telegram shop bot, developed as a project for the final exam.  
+A [customizable](/config/template_config.ini), [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
 
 ![](https://img.shields.io/badge/version-beta-blue.svg) ![](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen)
 
@@ -15,7 +15,7 @@ A customizable Telegram shop bot, developed as a project for the final exam.
 
 ## Installation
 
-1. Download the project files through `git clone https://github.com/Steffo99/greed.git` or [this link](https://github.com/Steffo99/greed/archive/master.zip).
+1. Download the project files through `git clone https://github.com/Steffo99/greed.git` (recommended) or [this link](https://github.com/Steffo99/greed/archive/master.zip).
 2. Install the project requirements with `pip install -r requirements.txt`
 3. Run `python -OO core.py` to generate the configuration file.
 4. Open the config folder and edit the `config.ini` file following the contained instructions.  
@@ -30,6 +30,22 @@ Ensure the `is_template` field is set to `no`.
 All the bot features are available through Telegram.
 As the administrator, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
 Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
+
+## Updating
+
+### Through `git`
+
+If you downloaded `greed` through `git`, you can update it by running:
+
+```
+git stash
+git pull
+git stash pop
+```
+
+### By redownloading the zip file
+
+If you downloaded `greed` through the zip archive, you can update it by redownloading [the latest version](https://github.com/Steffo99/greed/archive/master.zip) and by moving your `config.ini` and `database.sqlite` (if applicable) files to the new folder.
 
 ## Documentation
 
