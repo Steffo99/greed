@@ -35,6 +35,10 @@ Users will be able to add credit to their wallet, place orders and contact you i
 
 `greed` currently does not have a documentation page, but you can try to read the [paper](https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/edit?usp=sharing) (in Italian) I wrote for my final Scuola Superiore exam about it.
 
+## Help!
+
+If you find a bug, have an idea for a new feature or just require help with `greed`, please [post an issue](https://github.com/Steffo99/greed/issues/new) on GitHub, or, if GitHub is blocked in your country, join [our Telegram group](https://t.me/greed_project) and send a message there.
+
 ## Forks
 
 > Please note that @Steffo99, the developer of `greed`, does not endorse any of these forks.
