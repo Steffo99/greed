@@ -506,12 +506,14 @@ class ChatWorker(threading.Thread):
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
         credit_required = self.__get_cart_value(cart) - self.user.credit
-        # Notify user In case of insufficient credit
+        # Notify user in case of insufficient credit
         if credit_required > 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
             # Suggest payment for missing credit value if configuration allows refill
             if configloader.config["Credit Card"]["credit_card_token"] != "" \
-                    and configloader.config["Appearance"]["refill_on_checkout"] == 'yes':
+                    and configloader.config["Appearance"]["refill_on_checkout"] == 'yes' \
+                    and credit_required <= utils.Price(int(configloader.config["Credit Card"]["max_amount"])) \
+                    and credit_required >= utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
                 self.__make_payment(utils.Price(credit_required))
         # If afer requested payment credit is still insufficient (either payment failure or cancel)
         if self.user.credit < self.__get_cart_value(cart):
