@@ -153,8 +153,9 @@ class ChatWorker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
+            # If a CancelSignal is received...
             if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
                 if cancellable:
                     # Return the CancelSignal
                     return update
@@ -178,10 +179,15 @@ class ChatWorker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a message
             if update.message is None:
                 continue
@@ -203,10 +209,15 @@ class ChatWorker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a precheckoutquery
             if update.pre_checkout_query is None:
                 continue
@@ -232,10 +243,15 @@ class ChatWorker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a message
             if update.message is None:
                 continue
@@ -245,16 +261,21 @@ class ChatWorker(threading.Thread):
             # Return the photo array
             return update.message.photo
 
-    def __wait_for_inlinekeyboard_callback(self, cancellable: bool = True) \
+    def __wait_for_inlinekeyboard_callback(self, cancellable: bool = False) \
             -> Union[telegram.CallbackQuery, CancelSignal]:
         """Continue getting updates until an inline keyboard callback is received, then return it."""
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update is a CallbackQuery
             if update.callback_query is None:
                 continue
@@ -1229,7 +1250,7 @@ class ChatWorker(threading.Thread):
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property
             if callback.data == "toggle_edit_products":
-                admin.edit_products = not admin.edit_products
+                admin.edit_products = not admin.edit_products1
             elif callback.data == "toggle_receive_orders":
                 admin.receive_orders = not admin.receive_orders
             elif callback.data == "toggle_create_transactions":
