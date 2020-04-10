@@ -297,6 +297,9 @@ downloading_image = "Sto scaricando la tua foto!\n" \
                     "Potrei metterci un po'... Abbi pazienza!\n" \
                     "Non sarò in grado di risponderti durante il download."
 
+downloading_image_failed = "Si è verificato un errore durante il caricamento dell'immagine" \
+                           "Per favore riprova"
+
 # Edit product: current value
 edit_current_value = "Il valore attuale è:\n" \
                      "<pre>{value}</pre>\n" \

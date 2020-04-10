@@ -296,6 +296,9 @@ downloading_image = "I'm downloading your photo!\n" \
                     "It might take a while... Please be patient!\n" \
                     "I won't be able to answer you while I'm downloading."
 
+downloading_image_failed = "Something went wrong with the image upload handling" \
+                           "Please, try again"
+
 # Edit product: current value
 edit_current_value = "The current value is:\n" \
                      "<pre>{value}</pre>\n" \

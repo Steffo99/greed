@@ -294,6 +294,9 @@ downloading_image = "Я загружаю фото!\n" \
                     "Это может занять некоторое время...!\n" \
                     "Я не смогу отвечать, пока идет загрузка."
 
+downloading_image_failed = "Ошибка при загрузке изображения" \
+                           "Попробуйте еще раз..."
+
 # Edit product: current value
 edit_current_value = "Текущее значение:\n" \
                      "<pre>{value}</pre>\n" \

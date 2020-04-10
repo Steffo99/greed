@@ -267,7 +267,7 @@ class ChatWorker(threading.Thread):
                 photo = max(update.message.photo, key=attrgetter('width'))
                 break
             else:
-                # TODO: Add image upload error handling with empty list
+                self.bot.send_message(self.chat.id, strings.downloading_image_failed)
                 continue
 
         # If a photo has been sent...
