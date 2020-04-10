@@ -14,6 +14,7 @@ import traceback
 from html import escape
 import requests
 import importlib
+from operator import attrgetter
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -258,8 +259,21 @@ class ChatWorker(threading.Thread):
             # Ensure the message contains a photo
             if update.message.photo is None:
                 continue
-            # Return the photo array
-            return update.message.photo
+            # If photo message has been sent
+            if len(update.message.photo) > 0:
+                # Find object with maximum width
+                photo = max(update.message.photo, key=attrgetter('width'))
+                break
+            else:
+                # TODO: Add image upload error handling with empty list
+                continue
+
+        # If a photo has been sent...
+        # Notify the user that the bot is downloading the image and might be inactive for a while
+        self.bot.send_message(self.chat.id, strings.downloading_image)
+        self.bot.send_chat_action(self.chat.id, action="upload_photo")
+        # Return file object associated with the photo
+        return self.bot.get_file(photo.file_id)
 
     def __wait_for_inlinekeyboard_callback(self, cancellable: bool = False) \
             -> Union[telegram.CallbackQuery, CancelSignal]:
@@ -875,10 +889,7 @@ class ChatWorker(threading.Thread):
             price = None
         else:
             price = utils.Price(price)
-        # Ask for the product image
-        self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
-        # Wait for an answer
-        photo_list = self.__wait_for_photo(cancellable=True)
+
         # If a new product is being added...
         if not product:
             # Create the db record for the product
@@ -895,20 +906,13 @@ class ChatWorker(threading.Thread):
             product.name = name if not isinstance(name, CancelSignal) else product.name
             product.description = description if not isinstance(description, CancelSignal) else product.description
             product.price = int(price) if not isinstance(price, CancelSignal) else product.price
-        # If a photo has been sent...
-        if isinstance(photo_list, list):
-            # Find the largest photo id
-            largest_photo = photo_list[0]
-            for photo in photo_list[1:]:
-                if photo.width > largest_photo.width:
-                    largest_photo = photo
-            # Get the file object associated with the photo
-            photo_file = self.bot.get_file(largest_photo.file_id)
-            # Notify the user that the bot is downloading the image and might be inactive for a while
-            self.bot.send_message(self.chat.id, strings.downloading_image)
-            self.bot.send_chat_action(self.chat.id, action="upload_photo")
-            # Set the image for that product
-            product.set_image(photo_file)
+        # Ask for the product image
+        self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
+        # Wait for an answer
+        photo = self.__wait_for_photo(cancellable=True)
+        # Set the image for that product
+        if (not isinstance(photo, CancelSignal)):
+          product.set_image(photo)
         # Commit the session changes
         self.session.commit()
         # Notify the user
@@ -1252,7 +1256,7 @@ class ChatWorker(threading.Thread):
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property
             if callback.data == "toggle_edit_products":
-                admin.edit_products = not admin.edit_products1
+                admin.edit_products = not admin.edit_products
             elif callback.data == "toggle_receive_orders":
                 admin.receive_orders = not admin.receive_orders
             elif callback.data == "toggle_create_transactions":
