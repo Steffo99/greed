@@ -1265,6 +1265,7 @@ class ChatWorker(threading.Thread):
                 [telegram.InlineKeyboardButton(
                     f"{utils.boolmoji(admin.display_on_help)} {strings.prop_display_on_help}",
                     callback_data="toggle_display_on_help")],
+                [telegram.InlineKeyboardButton(strings.conversation_admin_dismissal_menu, callback_data="cmd_remove")],
                 [telegram.InlineKeyboardButton(strings.menu_done, callback_data="cmd_done")]
             ])
             # Update the inline keyboard
@@ -1282,6 +1283,10 @@ class ChatWorker(threading.Thread):
                 admin.create_transactions = not admin.create_transactions
             elif callback.data == "toggle_display_on_help":
                 admin.display_on_help = not admin.display_on_help
+            elif callback.data == "cmd_remove":
+                self.session.query(db.Admin).filter(db.Admin.user_id==user.user_id).delete()
+                message = self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_dismissal)
+                break
             elif callback.data == "cmd_done":
                 break
         self.session.commit()

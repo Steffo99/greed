@@ -115,8 +115,13 @@ conversation_live_orders_start = "Sei in modalità di <b>Ricezione Ordini</b>!\n
 conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
 
 # Conversation: confirm promotion to admin
-conversation_confirm_admin_promotion = "Sei sicuro di voler promuovere questo utente a 💼 Gestore?\n" \
-                                       "E' un'azione irreversibile!"
+conversation_confirm_admin_promotion = "Sei sicuro di voler promuovere questo utente a 💼 Gestore?\n"
+
+# Conversation: remove administrator
+conversation_admin_dismissal_menu = "❌ Elimina amministratore"
+
+# Conversation: administrator removal confirmation
+conversation_confirm_admin_dismissal = "Admin eliminato"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = "Stai passando alla modalità 👤 Cliente.\n" \

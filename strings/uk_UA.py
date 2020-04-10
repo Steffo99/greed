@@ -111,8 +111,13 @@ conversation_live_orders_start = "Ви в режимі <b>Свіжі Замов�
 conversation_open_help_menu = "Як можемо Вам допомогти?"
 
 # Conversation: confirm promotion to admin
-conversation_confirm_admin_promotion = "Ви впевнені, що хочете підвищити цього користувача до 💼 Менеджера?\n" \
-                                       "Цю дію неможливо відмінити!"
+conversation_confirm_admin_promotion = "Ви впевнені, що хочете підвищити цього користувача до 💼 Менеджера?\n"
+
+# Conversation: remove administrator
+conversation_admin_dismissal_menu = "❌ Видалити адміністратора"
+
+# Conversation: administrator removal confirmation
+conversation_confirm_admin_dismissal = "Администратора видалено"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " Ви перейшли в режим 👤 Замовника.\n" \
