@@ -1,13 +1,17 @@
-import typing
-from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
-from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
-from sqlalchemy.orm import sessionmaker, relationship, backref
-from sqlalchemy.ext.declarative import declarative_base
-import configloader
-import telegram
-import requests
-import utils
+import datetime
 import importlib
+import typing
+
+import requests
+import telegram
+from sqlalchemy import (BigInteger, Boolean, Column, DateTime, ForeignKey,
+                        Integer, LargeBinary, String, Text, UniqueConstraint,
+                        create_engine)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import backref, relationship, sessionmaker
+
+import configloader
+import utils
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -31,9 +35,10 @@ class User(TableDeclarativeBase):
     first_name = Column(String, nullable=False)
     last_name = Column(String)
     username = Column(String)
+    last_seen = Column(DateTime, default=datetime.datetime.utcnow)
 
     # Current wallet credit
-    credit = Column(Integer, nullable=False)
+    credit = Column(Integer, nullable=False, default=0)
 
     # Extra table parameters
     __tablename__ = "users"
@@ -46,8 +51,6 @@ class User(TableDeclarativeBase):
         self.first_name = telegram_chat.first_name
         self.last_name = telegram_chat.last_name
         self.username = telegram_chat.username
-        # The starting wallet value is 0
-        self.credit = 0
 
     def __str__(self):
         """Describe the user in the best way possible given the available data."""

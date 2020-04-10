@@ -8,11 +8,11 @@ import threading
 import traceback
 import uuid
 from html import escape
-from operator import attrgetter
 from typing import List,Union,Optional,Dict
 
 import requests
 import telegram
+from sqlalchemy import or_
 
 import configloader
 import database as db
@@ -203,7 +203,7 @@ class ChatWorker(threading.Thread):
             if match is None:
                 continue
             # Return the first capture group
-            return match.group(1)
+            return match.group(1) or match.group(2)
 
     def __wait_for_precheckoutquery(self,
                                     cancellable: bool = False) -> Union[telegram.PreCheckoutQuery, CancelSignal]:
@@ -302,8 +302,11 @@ class ChatWorker(threading.Thread):
 
     def __user_select(self) -> Union[db.User, CancelSignal]:
         """Select an user from the ones in the database."""
-        # Find all the users in the database
-        users = self.session.query(db.User).order_by(db.User.user_id).all()
+        # Find first ten users in the database
+        users = self.session.query(db.User) \
+            .order_by(db.User.last_seen.desc()) \
+            .limit(5) \
+            .all()
         # Create a list containing all the keyboard button strings
         keyboard_buttons = [[strings.menu_cancel]]
         # Add to the list all the users
@@ -316,12 +319,14 @@ class ChatWorker(threading.Thread):
             # Send the keyboard
             self.bot.send_message(self.chat.id, strings.conversation_admin_select_user, reply_markup=keyboard)
             # Wait for a reply
-            reply = self.__wait_for_regex("user_([0-9]+)", cancellable=True)
+            reply = self.__wait_for_regex("user_([0-9]+)|\@(.*)", cancellable=True)
             # Propagate CancelSignals
             if isinstance(reply, CancelSignal):
                 return reply
             # Find the user in the database
-            user = self.session.query(db.User).filter_by(user_id=int(reply)).one_or_none()
+            user = self.session.query(db.User) \
+                .filter(or_(db.User.user_id==reply, db.User.username==reply)) \
+                .one_or_none()
             # Ensure the user exists
             if not user:
                 self.bot.send_message(self.chat.id, strings.error_user_does_not_exist)
@@ -1205,43 +1210,55 @@ class ChatWorker(threading.Thread):
         # Delete the created file
         os.remove(f"transactions_{self.chat.id}.csv")
 
-    def __add_admin(self):
+    def __select_or_create_admin(self):
         """Add an administrator to the bot."""
         # Let the admin select an administrator to promote
         user = self.__user_select()
         # Allow the cancellation of the operation
         if isinstance(user, CancelSignal):
-            return
+            return None, None
         # Check if the user is already an administrator
         admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
+        # Return if user is not an admin
         if admin is None:
             # Create the keyboard to be sent
             keyboard = telegram.ReplyKeyboardMarkup([[strings.emoji_yes, strings.emoji_no]], one_time_keyboard=True)
-            # Ask for confirmation
+            # Ask for confirmation on the admin deletion
             self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_promotion, reply_markup=keyboard)
             # Wait for an answer
             selection = self.__wait_for_specific_message([strings.emoji_yes, strings.emoji_no])
             # Proceed only if the answer is yes
             if selection == strings.emoji_no:
-                return
+                return None, None
             # Create a new admin
             admin = db.Admin(user=user,
-                             edit_products=False,
-                             receive_orders=False,
-                             create_transactions=False,
-                             is_owner=False,
-                             display_on_help=False)
+                                edit_products=False,
+                                receive_orders=False,
+                                create_transactions=False,
+                                is_owner=False,
+                                display_on_help=False)
             self.session.add(admin)
+            self.session.commit()
+
+        return user, admin
+
+    def __add_admin(self):
+        """Add an administrator to the bot."""
+        user, admin = self.__select_or_create_admin()
+
+        if (user is None or admin is None):
+            return
+
         # Send the empty admin message and record the id
-        message = self.bot.send_message(self.chat.id, strings.admin_properties.format(name=str(admin.user)))
+        message = self.bot.send_message(self.chat.id, strings.admin_properties.format(name=str(user)))
         # Start accepting edits
         while True:
             # Create the inline keyboard with the admin status
             inline_keyboard = telegram.InlineKeyboardMarkup([
                 [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.edit_products)} {strings.prop_edit_products}",
-                                               callback_data="toggle_edit_products")],
+                                                callback_data="toggle_edit_products")],
                 [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.receive_orders)} {strings.prop_receive_orders}",
-                                               callback_data="toggle_receive_orders")],
+                                                callback_data="toggle_receive_orders")],
                 [telegram.InlineKeyboardButton(
                     f"{utils.boolmoji(admin.create_transactions)} {strings.prop_create_transactions}",
                     callback_data="toggle_create_transactions")],
@@ -1252,8 +1269,8 @@ class ChatWorker(threading.Thread):
             ])
             # Update the inline keyboard
             self.bot.edit_message_reply_markup(message_id=message.message_id,
-                                               chat_id=self.chat.id,
-                                               reply_markup=inline_keyboard)
+                                                chat_id=self.chat.id,
+                                                reply_markup=inline_keyboard)
             # Wait for an user answer
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property
