@@ -1,20 +1,22 @@
-import threading
-from typing import *
-import uuid
 import datetime
-import telegram
-import configloader
-import sys
-import queue as queuem
-import database as db
-import re
-import utils
-import os
-import traceback
-from html import escape
-import requests
 import importlib
+import os
+import queue as queuem
+import re
+import sys
+import threading
+import traceback
+import uuid
+from html import escape
 from operator import attrgetter
+from typing import List,Union,Optional,Dict
+
+import requests
+import telegram
+
+import configloader
+import database as db
+import utils
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -819,7 +821,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        selection = self.__wait_for_specific_message(product_names, cancellable=True)
         # If the user has selected the Cancel option...
         if isinstance(selection, CancelSignal):
             # Exit the menu
@@ -911,8 +913,8 @@ class ChatWorker(threading.Thread):
         # Wait for an answer
         photo = self.__wait_for_photo(cancellable=True)
         # Set the image for that product
-        if (not isinstance(photo, CancelSignal)):
-          product.set_image(photo)
+        if not isinstance(photo, CancelSignal):
+            product.set_image(photo)
         # Commit the session changes
         self.session.commit()
         # Notify the user
@@ -931,7 +933,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product_to_delete,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        selection = self.__wait_for_specific_message(product_names, cancellable=True)
         if isinstance(selection, CancelSignal):
             # Exit the menu
             return

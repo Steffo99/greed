@@ -1,10 +1,12 @@
+import importlib
 import sys
+import threading
+
 import telegram
-import worker
+
 import configloader
 import utils
-import threading
-import importlib
+import worker
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)

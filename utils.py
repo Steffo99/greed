@@ -1,11 +1,13 @@
-import telegram
-import telegram.error
-import time
-from configloader import config
-import typing
+import importlib
 import os
 import sys
-import importlib
+import time
+import typing
+
+import telegram
+import telegram.error
+
+from configloader import config
 
 language = config["Config"]["language"]
 try:
