@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import importlib
 import os
 import queue as queuem
@@ -93,6 +93,10 @@ class ChatWorker(threading.Thread):
                 # Add the admin to the transaction
                 self.session.add(self.admin)
             # Commit the transaction
+            self.session.commit()
+        else:
+            # Update users last seen date
+            self.session.query(db.User).filter_by(user_id=self.user.user_id).update({'last_seen': datetime.now()})
             self.session.commit()
         # Capture exceptions that occour during the conversation
         try:
