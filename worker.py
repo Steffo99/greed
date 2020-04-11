@@ -518,7 +518,7 @@ class ChatWorker(threading.Thread):
         notes = self.__wait_for_regex(r"(.*)", cancellable=True)
         # Create a new Order
         order = db.Order(user=self.user,
-                         creation_date=datetime.datetime.now(),
+                         creation_date=datetime.now(),
                          notes=notes if not isinstance(notes, CancelSignal) else "")
         # Add the record to the session and get an ID
         self.session.add(order)
@@ -1004,7 +1004,7 @@ class ChatWorker(threading.Thread):
             # If the user pressed the complete order button, complete the order
             if update.data == "order_complete":
                 # Mark the order as complete
-                order.delivery_date = datetime.datetime.now()
+                order.delivery_date = datetime.now()
                 # Commit the transaction
                 self.session.commit()
                 # Update order message
@@ -1027,7 +1027,7 @@ class ChatWorker(threading.Thread):
                     self.bot.delete_message(self.chat.id, reason_msg.message_id)
                     continue
                 # Mark the order as refunded
-                order.refund_date = datetime.datetime.now()
+                order.refund_date = datetime.now()
                 # Save the refund reason
                 order.refund_reason = reply
                 # Refund the credit, reverting the old transaction
