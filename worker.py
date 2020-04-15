@@ -97,7 +97,7 @@ class ChatWorker(threading.Thread):
             self.session.commit()
         else:
             # Update users last seen date
-            self.session.query(db.User).filter_by(user_id=self.user.user_id).update({'last_seen': datetime.now()})
+            self.user.last_seen = datetime.now()
             self.session.commit()
         # Capture exceptions that occour during the conversation
         try:
