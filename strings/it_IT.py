@@ -115,8 +115,13 @@ conversation_live_orders_start = "Sei in modalità di <b>Ricezione Ordini</b>!\n
 conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
 
 # Conversation: confirm promotion to admin
-conversation_confirm_admin_promotion = "Sei sicuro di voler promuovere questo utente a 💼 Gestore?\n" \
-                                       "E' un'azione irreversibile!"
+conversation_confirm_admin_promotion = "Sei sicuro di voler promuovere questo utente a 💼 Gestore?\n"
+
+# Conversation: remove administrator
+conversation_admin_dismissal_menu = "🗑 Elimina Gestore"
+
+# Conversation: administrator removal confirmation
+conversation_confirm_admin_dismissal = "🗑 Gestore eliminato con successo!"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = "Stai passando alla modalità 👤 Cliente.\n" \
@@ -296,6 +301,10 @@ prop_display_on_help = "Assistenza cliente"
 downloading_image = "Sto scaricando la tua foto!\n" \
                     "Potrei metterci un po'... Abbi pazienza!\n" \
                     "Non sarò in grado di risponderti durante il download."
+
+# There was an error reading the image the user sent
+downloading_image_failed = "Si è verificato un errore durante il download dell'immagine...\n" \
+                           "Riprova, per favore!"
 
 # Edit product: current value
 edit_current_value = "Il valore attuale è:\n" \

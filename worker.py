@@ -1,19 +1,23 @@
-import threading
-from typing import *
-import uuid
-import datetime
-import telegram
-import configloader
-import sys
-import queue as queuem
-import database as db
-import re
-import utils
-import os
-import traceback
-from html import escape
-import requests
 import importlib
+import os
+import queue as queuem
+import re
+import sys
+import threading
+import traceback
+import uuid
+from datetime import datetime
+from html import escape
+from operator import attrgetter
+from typing import Dict, List, Optional, Union
+
+import requests
+import telegram
+from sqlalchemy import or_
+
+import configloader
+import database as db
+import utils
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -90,6 +94,10 @@ class ChatWorker(threading.Thread):
                 # Add the admin to the transaction
                 self.session.add(self.admin)
             # Commit the transaction
+            self.session.commit()
+        else:
+            # Update users last seen date
+            self.user.last_seen = datetime.now()
             self.session.commit()
         # Capture exceptions that occour during the conversation
         try:
@@ -200,7 +208,7 @@ class ChatWorker(threading.Thread):
             if match is None:
                 continue
             # Return the first capture group
-            return match.group(1)
+            return match.group(1) or match.group(2)
 
     def __wait_for_precheckoutquery(self,
                                     cancellable: bool = False) -> Union[telegram.PreCheckoutQuery, CancelSignal]:
@@ -258,8 +266,21 @@ class ChatWorker(threading.Thread):
             # Ensure the message contains a photo
             if update.message.photo is None:
                 continue
-            # Return the photo array
-            return update.message.photo
+            # If photo message has been sent
+            if len(update.message.photo) > 0:
+                # Find object with maximum width
+                photo = max(update.message.photo, key=attrgetter('width'))
+                break
+            else:
+                self.bot.send_message(self.chat.id, strings.downloading_image_failed)
+                continue
+
+        # If a photo has been sent...
+        # Notify the user that the bot is downloading the image and might be inactive for a while
+        self.bot.send_message(self.chat.id, strings.downloading_image)
+        self.bot.send_chat_action(self.chat.id, action="upload_photo")
+        # Return file object associated with the photo
+        return self.bot.get_file(photo.file_id)
 
     def __wait_for_inlinekeyboard_callback(self, cancellable: bool = False) \
             -> Union[telegram.CallbackQuery, CancelSignal]:
@@ -286,8 +307,11 @@ class ChatWorker(threading.Thread):
 
     def __user_select(self) -> Union[db.User, CancelSignal]:
         """Select an user from the ones in the database."""
-        # Find all the users in the database
-        users = self.session.query(db.User).order_by(db.User.user_id).all()
+        # Find first five users in the database
+        users = self.session.query(db.User) \
+            .order_by(db.User.last_seen.desc()) \
+            .limit(5) \
+            .all()
         # Create a list containing all the keyboard button strings
         keyboard_buttons = [[strings.menu_cancel]]
         # Add to the list all the users
@@ -300,12 +324,14 @@ class ChatWorker(threading.Thread):
             # Send the keyboard
             self.bot.send_message(self.chat.id, strings.conversation_admin_select_user, reply_markup=keyboard)
             # Wait for a reply
-            reply = self.__wait_for_regex("user_([0-9]+)", cancellable=True)
+            reply = self.__wait_for_regex("user_([0-9]+)|\@(.*)", cancellable=True)
             # Propagate CancelSignals
             if isinstance(reply, CancelSignal):
                 return reply
             # Find the user in the database
-            user = self.session.query(db.User).filter_by(user_id=int(reply)).one_or_none()
+            user = self.session.query(db.User) \
+                .filter(or_(db.User.user_id==reply, db.User.username==reply)) \
+                .one_or_none()
             # Ensure the user exists
             if not user:
                 self.bot.send_message(self.chat.id, strings.error_user_does_not_exist)
@@ -492,7 +518,7 @@ class ChatWorker(threading.Thread):
         notes = self.__wait_for_regex(r"(.*)", cancellable=True)
         # Create a new Order
         order = db.Order(user=self.user,
-                         creation_date=datetime.datetime.now(),
+                         creation_date=datetime.now(),
                          notes=notes if not isinstance(notes, CancelSignal) else "")
         # Add the record to the session and get an ID
         self.session.add(order)
@@ -805,7 +831,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        selection = self.__wait_for_specific_message(product_names, cancellable=True)
         # If the user has selected the Cancel option...
         if isinstance(selection, CancelSignal):
             # Exit the menu
@@ -875,10 +901,7 @@ class ChatWorker(threading.Thread):
             price = None
         else:
             price = utils.Price(price)
-        # Ask for the product image
-        self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
-        # Wait for an answer
-        photo_list = self.__wait_for_photo(cancellable=True)
+
         # If a new product is being added...
         if not product:
             # Create the db record for the product
@@ -895,20 +918,13 @@ class ChatWorker(threading.Thread):
             product.name = name if not isinstance(name, CancelSignal) else product.name
             product.description = description if not isinstance(description, CancelSignal) else product.description
             product.price = int(price) if not isinstance(price, CancelSignal) else product.price
-        # If a photo has been sent...
-        if isinstance(photo_list, list):
-            # Find the largest photo id
-            largest_photo = photo_list[0]
-            for photo in photo_list[1:]:
-                if photo.width > largest_photo.width:
-                    largest_photo = photo
-            # Get the file object associated with the photo
-            photo_file = self.bot.get_file(largest_photo.file_id)
-            # Notify the user that the bot is downloading the image and might be inactive for a while
-            self.bot.send_message(self.chat.id, strings.downloading_image)
-            self.bot.send_chat_action(self.chat.id, action="upload_photo")
-            # Set the image for that product
-            product.set_image(photo_file)
+        # Ask for the product image
+        self.bot.send_message(self.chat.id, strings.ask_product_image, reply_markup=cancel)
+        # Wait for an answer
+        photo = self.__wait_for_photo(cancellable=True)
+        # Set the image for that product
+        if not isinstance(photo, CancelSignal):
+            product.set_image(photo)
         # Commit the session changes
         self.session.commit()
         # Notify the user
@@ -927,7 +943,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product_to_delete,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        selection = self.__wait_for_specific_message(product_names, cancellable=True)
         if isinstance(selection, CancelSignal):
             # Exit the menu
             return
@@ -988,7 +1004,7 @@ class ChatWorker(threading.Thread):
             # If the user pressed the complete order button, complete the order
             if update.data == "order_complete":
                 # Mark the order as complete
-                order.delivery_date = datetime.datetime.now()
+                order.delivery_date = datetime.now()
                 # Commit the transaction
                 self.session.commit()
                 # Update order message
@@ -1011,7 +1027,7 @@ class ChatWorker(threading.Thread):
                     self.bot.delete_message(self.chat.id, reason_msg.message_id)
                     continue
                 # Mark the order as refunded
-                order.refund_date = datetime.datetime.now()
+                order.refund_date = datetime.now()
                 # Save the refund reason
                 order.refund_reason = reply
                 # Refund the credit, reverting the old transaction
@@ -1199,66 +1215,83 @@ class ChatWorker(threading.Thread):
         # Delete the created file
         os.remove(f"transactions_{self.chat.id}.csv")
 
-    def __add_admin(self):
+    def __select_or_create_admin(self):
         """Add an administrator to the bot."""
         # Let the admin select an administrator to promote
         user = self.__user_select()
         # Allow the cancellation of the operation
         if isinstance(user, CancelSignal):
-            return
+            return None, None
         # Check if the user is already an administrator
         admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
+        # Return if user is not an admin
         if admin is None:
             # Create the keyboard to be sent
             keyboard = telegram.ReplyKeyboardMarkup([[strings.emoji_yes, strings.emoji_no]], one_time_keyboard=True)
-            # Ask for confirmation
+            # Ask for confirmation on the admin deletion
             self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_promotion, reply_markup=keyboard)
             # Wait for an answer
             selection = self.__wait_for_specific_message([strings.emoji_yes, strings.emoji_no])
             # Proceed only if the answer is yes
             if selection == strings.emoji_no:
-                return
+                return None, None
             # Create a new admin
             admin = db.Admin(user=user,
-                             edit_products=False,
-                             receive_orders=False,
-                             create_transactions=False,
-                             is_owner=False,
-                             display_on_help=False)
+                                edit_products=False,
+                                receive_orders=False,
+                                create_transactions=False,
+                                is_owner=False,
+                                display_on_help=False)
             self.session.add(admin)
+            self.session.commit()
+
+        return user
+
+    def __add_admin(self):
+        """Add an administrator to the bot."""
+        user = self.__select_or_create_admin()
+
+        if (user is None or user.admin is None):
+            return
+
         # Send the empty admin message and record the id
-        message = self.bot.send_message(self.chat.id, strings.admin_properties.format(name=str(admin.user)))
+        message = self.bot.send_message(self.chat.id, strings.admin_properties.format(name=str(user)))
         # Start accepting edits
         while True:
             # Create the inline keyboard with the admin status
             inline_keyboard = telegram.InlineKeyboardMarkup([
                 [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.edit_products)} {strings.prop_edit_products}",
-                                               callback_data="toggle_edit_products")],
+                                                callback_data="toggle_edit_products")],
                 [telegram.InlineKeyboardButton(f"{utils.boolmoji(admin.receive_orders)} {strings.prop_receive_orders}",
-                                               callback_data="toggle_receive_orders")],
+                                                callback_data="toggle_receive_orders")],
                 [telegram.InlineKeyboardButton(
                     f"{utils.boolmoji(admin.create_transactions)} {strings.prop_create_transactions}",
                     callback_data="toggle_create_transactions")],
                 [telegram.InlineKeyboardButton(
                     f"{utils.boolmoji(admin.display_on_help)} {strings.prop_display_on_help}",
                     callback_data="toggle_display_on_help")],
+                [telegram.InlineKeyboardButton(strings.conversation_admin_dismissal_menu, callback_data="cmd_remove")],
                 [telegram.InlineKeyboardButton(strings.menu_done, callback_data="cmd_done")]
             ])
             # Update the inline keyboard
             self.bot.edit_message_reply_markup(message_id=message.message_id,
-                                               chat_id=self.chat.id,
-                                               reply_markup=inline_keyboard)
+                                                chat_id=self.chat.id,
+                                                reply_markup=inline_keyboard)
             # Wait for an user answer
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property
             if callback.data == "toggle_edit_products":
-                admin.edit_products = not admin.edit_products1
+                admin.edit_products = not admin.edit_products
             elif callback.data == "toggle_receive_orders":
                 admin.receive_orders = not admin.receive_orders
             elif callback.data == "toggle_create_transactions":
                 admin.create_transactions = not admin.create_transactions
             elif callback.data == "toggle_display_on_help":
                 admin.display_on_help = not admin.display_on_help
+            elif callback.data == "cmd_remove":
+                self.session.delete(user.admin)
+                message = self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_dismissal)
+                break
             elif callback.data == "cmd_done":
                 break
         self.session.commit()

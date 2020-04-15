@@ -115,8 +115,13 @@ conversation_live_orders_start = "You are in <b>Live Orders</b> mode\n" \
 conversation_open_help_menu = "What kind of help do you need?"
 
 # Conversation: confirm promotion to admin
-conversation_confirm_admin_promotion = "Are you sure you want to promote this user to 💼 Manager?\n" \
-                                       "It is an irreversible action!"
+conversation_confirm_admin_promotion = "Are you sure you want to promote this user to 💼 Manager?\n"
+
+# Conversation: remove administrator
+conversation_admin_dismissal_menu = "🗑 Remove Manager"
+
+# Conversation: administrator removal confirmation
+conversation_confirm_admin_dismissal = "🗑 User was successfully removed from the Managers!"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " You are switching to 👤 Customer mode.\n" \
@@ -295,6 +300,9 @@ prop_display_on_help = "Show to customer"
 downloading_image = "I'm downloading your photo!\n" \
                     "It might take a while... Please be patient!\n" \
                     "I won't be able to answer you while I'm downloading."
+
+downloading_image_failed = "Something went wrong with the image upload handling" \
+                           "Please, try again"
 
 # Edit product: current value
 edit_current_value = "The current value is:\n" \
