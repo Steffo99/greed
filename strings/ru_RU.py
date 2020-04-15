@@ -114,10 +114,10 @@ conversation_open_help_menu = "Чем могу Вам помочь?"
 conversation_confirm_admin_promotion = "Вы уверены, что хотите повысить этого пользователя до 💼 Менеджера?\n"
 
 # Conversation: remove administrator
-conversation_admin_dismissal_menu = "🗑 Удалить администратора"
+conversation_admin_dismissal_menu = "🗑 Удалить менеджера"
 
 # Conversation: administrator removal confirmation
-conversation_confirm_admin_dismissal = "🗑 Администратор удален"
+conversation_confirm_admin_dismissal = "🗑 Менеджер удален"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " Вы перешли в режим 👤 Покупателя.\n" \
@@ -270,7 +270,7 @@ ask_refund_reason = " Сообщите причину возврата сред�
 # Edit credit: notes?
 ask_transaction_notes = " Добавьте сообщение к транзакции.\n" \
                         " Сообщение будет доступно 👤 Покупателю после пополнения/списания средств" \
-                        " и 💼 Администратору в логах транзакций."
+                        " и 💼 Менеджеру в логах транзакций."
 
 # Edit credit: amount?
 ask_credit = "Вы хотите изменить баланс Покупателя?\n" \

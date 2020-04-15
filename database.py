@@ -38,7 +38,7 @@ class User(TableDeclarativeBase):
     last_seen = Column(DateTime, default=datetime.datetime.utcnow)
 
     # Current wallet credit
-    credit = Column(Integer, nullable=False, default=0)
+    credit = Column(Integer, nullable=False, server_default=0)
 
     # Extra table parameters
     __tablename__ = "users"

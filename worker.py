@@ -307,7 +307,7 @@ class ChatWorker(threading.Thread):
 
     def __user_select(self) -> Union[db.User, CancelSignal]:
         """Select an user from the ones in the database."""
-        # Find first ten users in the database
+        # Find first five users in the database
         users = self.session.query(db.User) \
             .order_by(db.User.last_seen.desc()) \
             .limit(5) \
@@ -1245,13 +1245,13 @@ class ChatWorker(threading.Thread):
             self.session.add(admin)
             self.session.commit()
 
-        return user, admin
+        return user
 
     def __add_admin(self):
         """Add an administrator to the bot."""
-        user, admin = self.__select_or_create_admin()
+        user = self.__select_or_create_admin()
 
-        if (user is None or admin is None):
+        if (user is None or user.admin is None):
             return
 
         # Send the empty admin message and record the id
@@ -1289,7 +1289,7 @@ class ChatWorker(threading.Thread):
             elif callback.data == "toggle_display_on_help":
                 admin.display_on_help = not admin.display_on_help
             elif callback.data == "cmd_remove":
-                self.session.query(db.Admin).filter(db.Admin.user_id==user.user_id).delete()
+                self.session.delete(user.admin)
                 message = self.bot.send_message(self.chat.id, strings.conversation_confirm_admin_dismissal)
                 break
             elif callback.data == "cmd_done":
