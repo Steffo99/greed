@@ -118,10 +118,10 @@ conversation_open_help_menu = "What kind of help do you need?"
 conversation_confirm_admin_promotion = "Are you sure you want to promote this user to 💼 Manager?\n"
 
 # Conversation: remove administrator
-conversation_admin_dismissal_menu = "❌ Remove administrator"
+conversation_admin_dismissal_menu = "🗑 Remove Manager"
 
 # Conversation: administrator removal confirmation
-conversation_confirm_admin_dismissal = "Admin has been removed"
+conversation_confirm_admin_dismissal = "🗑 User was successfully removed from the Managers!"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " You are switching to 👤 Customer mode.\n" \

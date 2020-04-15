@@ -114,10 +114,10 @@ conversation_open_help_menu = "Чем могу Вам помочь?"
 conversation_confirm_admin_promotion = "Вы уверены, что хотите повысить этого пользователя до 💼 Менеджера?\n"
 
 # Conversation: remove administrator
-conversation_admin_dismissal_menu = "❌ Удалить администратора"
+conversation_admin_dismissal_menu = "🗑 Удалить администратора"
 
 # Conversation: administrator removal confirmation
-conversation_confirm_admin_dismissal = "Администратор удален"
+conversation_confirm_admin_dismissal = "🗑 Администратор удален"
 
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " Вы перешли в режим 👤 Покупателя.\n" \
