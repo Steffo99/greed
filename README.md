@@ -2,15 +2,16 @@
 
 A [customizable](/config/template_config.ini), [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
 
-![](https://img.shields.io/badge/version-beta-blue.svg) ![](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen)
+![](https://img.shields.io/badge/version-beta-blue.svg)
 
 ## Requirements
 
-* Python 3.6 (or higher)
+* [Python 3.6 (or higher)](https://www.python.org/)
 * The packages specified in `requirements.txt` (install with `pip install -r requirements.txt`)
 * An Internet connection
 * A Telegram bot token (obtainable at [@Botfather](https://t.me/Botfather))
 * A payment provider token (obtainable by [connecting a provider with your bot](https://t.me/Botfather))
+* _Optional: a [git client](https://git-scm.com/)_
 * _Optional: a [sentry.io](https://sentry.io) token_
 
 ## Installation
@@ -54,7 +55,7 @@ If you downloaded `greed` through the zip archive, you can update it by redownlo
 
 ## Help!
 
-If you find a bug, have an idea for a new feature or just require help with `greed`, please [post an issue](https://github.com/Steffo99/greed/issues/new) on GitHub, or, if GitHub is blocked in your country, join [our Telegram group](https://t.me/greed_project) and send a message there.
+If you find a bug, have an idea for a new feature or just require help with `greed`, please [post an issue](https://github.com/Steffo99/greed/issues/new) on GitHub, or, if GitHub is blocked in your country, join [the Telegram group](https://t.me/greed_project) and send a message there.
 
 ## Forks
 
