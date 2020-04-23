@@ -1,6 +1,6 @@
 # greed
 
-A customizable Telegram shop bot, developed as a project for the final exam.  
+A [customizable](/config/template_config.ini), [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
 
 ![](https://img.shields.io/badge/version-beta-blue.svg) ![](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen)
 
@@ -15,7 +15,7 @@ A customizable Telegram shop bot, developed as a project for the final exam.
 
 ## Installation
 
-1. Download the project files through `git clone https://github.com/Steffo99/greed.git` or [this link](https://github.com/Steffo99/greed/archive/master.zip).
+1. Download the project files through `git clone https://github.com/Steffo99/greed.git` (recommended) or [this link](https://github.com/Steffo99/greed/archive/master.zip).
 2. Install the project requirements with `pip install -r requirements.txt`
 3. _Optional: run `pip install coloredlogs` to have colored logging output._
 3. Run `python -OO core.py` to generate the configuration file.
@@ -32,9 +32,29 @@ All the bot features are available through Telegram.
 As the administrator, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
 Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
 
+## Updating
+
+### Through `git`
+
+If you downloaded `greed` through `git`, you can update it by running:
+
+```
+git stash
+git pull
+git stash pop
+```
+
+### By redownloading the zip file
+
+If you downloaded `greed` through the zip archive, you can update it by redownloading [the latest version](https://github.com/Steffo99/greed/archive/master.zip) and by moving your `config.ini` and `database.sqlite` (if applicable) files to the new folder.
+
 ## Documentation
 
 `greed` currently does not have a documentation page, but you can try to read the [paper](https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/edit?usp=sharing) (in Italian) I wrote for my final Scuola Superiore exam about it.
+
+## Help!
+
+If you find a bug, have an idea for a new feature or just require help with `greed`, please [post an issue](https://github.com/Steffo99/greed/issues/new) on GitHub, or, if GitHub is blocked in your country, join [our Telegram group](https://t.me/greed_project) and send a message there.
 
 ## Forks
 

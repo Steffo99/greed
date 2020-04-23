@@ -23,9 +23,13 @@ except ModuleNotFoundError:
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
     import raven
-
+    import raven.exceptions
+    try:
+        release = raven.fetch_git_sha(os.path.dirname(__file__))
+    except raven.exceptions.InvalidGitRepository:
+        release = "Unknown"
     sentry_client = raven.Client(config["Error Reporting"]["sentry_token"],
-                                 release=raven.fetch_git_sha(os.path.dirname(__file__)),
+                                 release=release,
                                  environment="Dev" if __debug__ else "Prod")
 else:
     sentry_client = None
@@ -53,7 +57,7 @@ class Price:
         return f"<Price of value {self.value}>"
 
     def __str__(self):
-        return strings.currency_format_string.format(symbol=strings.currency_symbol,
+        return strings.currency_format_string.format(symbol=(config["Payments"]["currency_symbol"] or strings.currency_symbol),
                                                      value="{0:.2f}".format(
                                                          self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 

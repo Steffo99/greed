@@ -12,11 +12,12 @@ log = logging.getLogger(__name__)
 if not os.path.isfile("config/config.ini"):
     log.debug("Creating config.ini from template_config.ini")
     # Open the template file and create the config file
-    with open("config/template_config.ini") as template_file, open("config/config.ini", "w") as config_file:
+    with open("config/template_config.ini", encoding="utf8") as template_file, \
+         open("config/config.ini", "w", encoding="utf8") as config_file:
         # Copy the template file to the config file
         config_file.write(template_file.read())
 
-with open("config/template_config.ini") as template_file:
+with open("config/template_config.ini", encoding="utf8") as template_file:
     # Find the template version number
     config = configparser.ConfigParser()
     config.read_file(template_file)
@@ -24,7 +25,7 @@ with open("config/template_config.ini") as template_file:
     log.debug(f"Template is version {template_version}")
 
 # Overwrite the template config with the values in the config
-with open("config/config.ini") as config_file:
+with open("config/config.ini", encoding="utf8") as config_file:
     config.read_file(config_file)
     config_version = int(config["Config"]["version"])
     log.debug(f"Config is version {template_version}")
@@ -44,7 +45,7 @@ if template_version > config_version:
     # Update the config version
     config["Config"]["version"] = str(template_version)
     # Save the file
-    with open("config/config.ini", "w") as config_file:
+    with open("config/config.ini", "w", encoding="utf8") as config_file:
         log.debug("Writing merged config file...")
         config.write(config_file)
     # Notify the user and quit

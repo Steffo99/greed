@@ -166,8 +166,9 @@ class Worker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
+            # If a CancelSignal is received...
             if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
                 if cancellable:
                     # Return the CancelSignal
                     return update
@@ -192,10 +193,15 @@ class Worker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a message
             if update.message is None:
                 continue
@@ -218,10 +224,15 @@ class Worker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a precheckoutquery
             if update.pre_checkout_query is None:
                 continue
@@ -249,10 +260,15 @@ class Worker(threading.Thread):
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a message
             if update.message is None:
                 continue
@@ -262,17 +278,22 @@ class Worker(threading.Thread):
             # Return the photo array
             return update.message.photo
 
-    def __wait_for_inlinekeyboard_callback(self, cancellable: bool = True) \
+    def __wait_for_inlinekeyboard_callback(self, cancellable: bool = False) \
             -> Union[telegram.CallbackQuery, CancelSignal]:
         """Continue getting updates until an inline keyboard callback is received, then return it."""
         log.debug("Waiting for a CallbackQuery...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
-            # Ensure the update isn't a CancelSignal
-            if cancellable and isinstance(update, CancelSignal):
-                # Return the CancelSignal
-                return update
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update is a CallbackQuery
             if update.callback_query is None:
                 continue
@@ -428,17 +449,13 @@ class Worker(threading.Thread):
                                                   message_id=callback.message.message_id,
                                                   caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
-                # Create the cart summary
-                product_list = ""
-                total_cost = utils.Price(0)
-                for product_id in cart:
-                    if cart[product_id][1] > 0:
-                        product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
-                        total_cost += cart[product_id][0].price * cart[product_id][1]
-                self.bot.edit_message_text(chat_id=self.chat.id, message_id=final_msg.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=product_list,
-                                                                                         total_cost=str(total_cost)),
-                                           reply_markup=final_inline_keyboard)
+
+                self.bot.edit_message_text(
+                    chat_id=self.chat.id,
+                    message_id=final_msg.message_id,
+                    text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
+                                                                  total_cost=str(self.__get_cart_value(cart))),
+                    reply_markup=final_inline_keyboard)
             # If the Remove from cart button has been pressed...
             elif callback.data == "cart_remove":
                 # Get the selected product, ensuring it exists
@@ -476,17 +493,13 @@ class Worker(threading.Thread):
                                                   message_id=callback.message.message_id,
                                                   caption=product.text(cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
-                # Create the cart summary
-                product_list = ""
-                total_cost = utils.Price(0)
-                for product_id in cart:
-                    if cart[product_id][1] > 0:
-                        product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
-                        total_cost += cart[product_id][0].price * cart[product_id][1]
-                self.bot.edit_message_text(chat_id=self.chat.id, message_id=final_msg.message_id,
-                                           text=strings.conversation_confirm_cart.format(product_list=product_list,
-                                                                                         total_cost=str(total_cost)),
-                                           reply_markup=final_inline_keyboard)
+
+                self.bot.edit_message_text(
+                    chat_id=self.chat.id,
+                    message_id=final_msg.message_id,
+                    text=strings.conversation_confirm_cart.format(product_list=self.__get_cart_summary(cart),
+                                                                  total_cost=str(self.__get_cart_value(cart))),
+                    reply_markup=final_inline_keyboard)
             # If the done button has been pressed...
             elif callback.data == "cart_done":
                 # End the loop
@@ -505,22 +518,50 @@ class Worker(threading.Thread):
         # Add the record to the session and get an ID
         self.session.add(order)
         self.session.flush()
-        # For each product added to the cart, create a new OrderItem and get the total value
-        value = 0
+        # For each product added to the cart, create a new OrderItem
         for product in cart:
-            # Add the price multiplied by the quantity to the total price
-            value -= cart[product][0].price * cart[product][1]
             # Create {quantity} new OrderItems
             for i in range(0, cart[product][1]):
                 order_item = db.OrderItem(product=cart[product][0],
                                           order_id=order.order_id)
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
-        if self.user.credit + value < 0:
+        credit_required = self.__get_cart_value(cart) - self.user.credit
+        # Notify user in case of insufficient credit
+        if credit_required > 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
+            # Suggest payment for missing credit value if configuration allows refill
+            if configloader.config["Credit Card"]["credit_card_token"] != "" \
+                    and configloader.config["Appearance"]["refill_on_checkout"] == 'yes' \
+                    and credit_required <= utils.Price(int(configloader.config["Credit Card"]["max_amount"])) \
+                    and credit_required >= utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
+                self.__make_payment(utils.Price(credit_required))
+        # If afer requested payment credit is still insufficient (either payment failure or cancel)
+        if self.user.credit < self.__get_cart_value(cart):
             # Rollback all the changes
             self.session.rollback()
-            return
+        else:
+            # User has credit and valid order, perform transaction now
+            self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
+
+    @staticmethod
+    def __get_cart_value(cart):
+        # Calculate total items value in cart
+        value = utils.Price(0)
+        for product in cart:
+            value += cart[product][0].price * cart[product][1]
+        return value
+
+    @staticmethod
+    def __get_cart_summary(cart):
+        # Create the cart summary
+        product_list = ""
+        for product_id in cart:
+            if cart[product_id][1] > 0:
+                product_list += cart[product_id][0].text(style="short", cart_qty=cart[product_id][1]) + "\n"
+        return product_list
+
+    def __order_transaction(self, order, value):
         # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
                                      value=value,
@@ -532,6 +573,10 @@ class Worker(threading.Thread):
         self.user.recalculate_credit()
         # Commit all the changes
         self.session.commit()
+        # Notify admins about new transation
+        self.__order_notify_admins(order=order)
+
+    def __order_notify_admins(self, order):
         # Notify the user of the order result
         self.bot.send_message(self.chat.id, strings.success_order_created.format(order=order.get_text(self.session,
                                                                                                       user=True)))
@@ -583,7 +628,8 @@ class Worker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_payment_method,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel])
+        selection = self.__wait_for_specific_message([strings.menu_cash, strings.menu_credit_card, strings.menu_cancel],
+                                                     cancellable=True)
         # If the user has selected the Cash option...
         if selection == strings.menu_cash:
             # Go to the pay with cash function
@@ -594,7 +640,7 @@ class Worker(threading.Thread):
             # Go to the pay with credit card function
             self.__add_credit_cc()
         # If the user has selected the Cancel option...
-        elif selection == strings.menu_cancel:
+        elif isinstance(selection, CancelSignal):
             # Send him back to the previous menu
             return
 
@@ -602,11 +648,9 @@ class Worker(threading.Thread):
         """Add money to the wallet through a credit card payment."""
         log.debug("Displaying __add_credit_cc")
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
-                    [telegram.KeyboardButton(strings.menu_cancel)]]
+        presets = list(map(lambda s: s.strip(" "), configloader.config["Credit Card"]["payment_presets"].split('|')))
+        keyboard = [[telegram.KeyboardButton(str(utils.Price(preset)))] for preset in presets]
+        keyboard.append([telegram.KeyboardButton(strings.menu_cancel)])
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
         # Loop used to continue asking if there's an error during the input
@@ -615,9 +659,9 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, strings.payment_cc_amount,
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait until a valid amount is sent
-            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + strings.menu_cancel + r")")
+            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + strings.menu_cancel + r")", cancellable=True)
             # If the user cancelled the action
-            if selection == strings.menu_cancel:
+            if isinstance(selection, CancelSignal):
                 # Exit the loop
                 cancelled = True
                 continue
@@ -627,31 +671,33 @@ class Worker(threading.Thread):
             if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_over_max.format(
-                                          max_amount=utils.Price(configloader.config["Payments"]["max_amount"])))
+                                          max_amount=utils.Price(configloader.config["Credit Card"]["max_amount"]))
+                                      )
                 continue
             elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
                 self.bot.send_message(self.chat.id,
                                       strings.error_payment_amount_under_min.format(
-                                          min_amount=utils.Price(configloader.config["Payments"]["min_amount"])))
+                                          min_amount=utils.Price(configloader.config["Credit Card"]["min_amount"]))
+                                      )
                 continue
             break
         # If the user cancelled the action...
         else:
             # Exit the function
             return
+        # Issue the payment invoice
+        self.__make_payment(amount=value)
+
+    def __make_payment(self, amount):
         # Set the invoice active invoice payload
         self.invoice_payload = str(uuid.uuid4())
         # Create the price array
-        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(value))]
+        prices = [telegram.LabeledPrice(label=strings.payment_invoice_label, amount=int(amount))]
         # If the user has to pay a fee when using the credit card, add it to the prices list
-        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
-        total_fee = value * fee_percentage + fee_fixed
-        if total_fee > 0:
-            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label, amount=int(total_fee)))
-        else:
-            # Otherwise, set the fee to 0 to ensure no accidental discounts are applied
-            total_fee = 0
+        fee = int(self.__get_total_fee(amount))
+        if fee > 0:
+            prices.append(telegram.LabeledPrice(label=strings.payment_invoice_fee_label,
+                                                amount=fee))
         # Create the invoice keyboard
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_pay, pay=True)],
                                                          [telegram.InlineKeyboardButton(strings.menu_cancel,
@@ -659,7 +705,7 @@ class Worker(threading.Thread):
         # The amount is valid, send the invoice
         self.bot.send_invoice(self.chat.id,
                               title=strings.payment_invoice_title,
-                              description=strings.payment_invoice_description.format(amount=str(value)),
+                              description=strings.payment_invoice_description.format(amount=str(amount)),
                               payload=self.invoice_payload,
                               provider_token=configloader.config["Credit Card"]["credit_card_token"],
                               start_parameter="tempdeeplink",
@@ -669,7 +715,7 @@ class Worker(threading.Thread):
                               need_email=configloader.config["Credit Card"]["email_required"] == "yes",
                               need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes",
                               reply_markup=inline_keyboard)
-        # Wait for the invoice
+        # Wait for the precheckout query
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
         # Check if the user has cancelled the invoice
         if isinstance(precheckoutquery, CancelSignal):
@@ -681,10 +727,11 @@ class Worker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment()
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=successfulpayment.total_amount - int(total_fee),
+                                     value=int(successfulpayment.total_amount) - fee,
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
+
         if successfulpayment.order_info is not None:
             transaction.payment_name = successfulpayment.order_info.name
             transaction.payment_email = successfulpayment.order_info.email
@@ -693,6 +740,17 @@ class Worker(threading.Thread):
         self.user.recalculate_credit()
         # Commit all the changes
         self.session.commit()
+
+    @staticmethod
+    def __get_total_fee(amount):
+        # Calculate a fee for the required amount
+        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
+        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
+        total_fee = amount * fee_percentage + fee_fixed
+        if total_fee > 0:
+            return total_fee
+        # Set the fee to 0 to ensure no accidental discounts are applied
+        return 0
 
     def __bot_info(self):
         """Send information about the bot."""
@@ -774,9 +832,9 @@ class Worker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names)
+        selection = self.__wait_for_specific_message(product_names, cancellable = True)
         # If the user has selected the Cancel option...
-        if selection == strings.menu_cancel:
+        if isinstance(selection, CancelSignal):
             # Exit the menu
             return
         # If the user has selected the Add Product option...
@@ -898,8 +956,8 @@ class Worker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product_to_delete,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names)
-        if selection == strings.menu_cancel:
+        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        if isinstance(selection, CancelSignal):
             # Exit the menu
             return
         else:
@@ -1229,7 +1287,7 @@ class Worker(threading.Thread):
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property
             if callback.data == "toggle_edit_products":
-                admin.edit_products = not admin.edit_products
+                admin.edit_products = not admin.edit_products1
             elif callback.data == "toggle_receive_orders":
                 admin.receive_orders = not admin.receive_orders
             elif callback.data == "toggle_create_transactions":
