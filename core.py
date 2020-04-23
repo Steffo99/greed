@@ -48,8 +48,8 @@ def main():
         sys.exit(1)
     log.debug("Bot token is valid!")
 
-    # Create a dictionary linking the chat ids to the ChatWorker objects
-    # {"1234": <ChatWorker>}
+    # Create a dictionary linking the chat ids to the Worker objects
+    # {"1234": <Worker>}
     chat_workers = {}
 
     # Current update offset; if None it will get the last 100 unparsed messages
@@ -85,7 +85,7 @@ def main():
                         log.debug(f"Received request to stop {old_worker.name}")
                         old_worker.stop("request")
                     # Initialize a new worker for the chat
-                    new_worker = worker.ChatWorker(bot, update.message.chat)
+                    new_worker = worker.Worker(bot, update.message.chat)
                     # Start the worker
                     log.debug(f"Starting {new_worker.name}")
                     new_worker.start()
@@ -105,11 +105,11 @@ def main():
                     continue
                 # If the message contains the "Cancel" string defined in the strings file...
                 if update.message.text == strings.menu_cancel:
-                    log.debug(f"Forwarding CancelSignal to {worker}")
+                    log.debug(f"Forwarding CancelSignal to {receiving_worker}")
                     # Send a CancelSignal to the worker instead of the update
                     receiving_worker.queue.put(worker.CancelSignal())
                 else:
-                    log.debug(f"Forwarding message to {worker}")
+                    log.debug(f"Forwarding message to {receiving_worker}")
                     # Forward the update to the worker
                     receiving_worker.queue.put(update)
             # If the update is a inline keyboard press...
@@ -118,20 +118,20 @@ def main():
                 receiving_worker = chat_workers.get(update.callback_query.from_user.id)
                 # Ensure a worker exists for the chat
                 if receiving_worker is None:
-                    log.debug(f"Received a callback query in a chat without worker: {update.message.chat.id}")
+                    log.debug(f"Received a callback query in a chat without worker: {update.callback_query.from_user.id}")
                     # Suggest that the user restarts the chat with /start
                     bot.send_message(update.callback_query.from_user.id, strings.error_no_worker_for_chat)
                     # Skip the update
                     continue
                 # Check if the pressed inline key is a cancel button
                 if update.callback_query.data == "cmd_cancel":
-                    log.debug(f"Forwarding CancelSignal to {worker}")
+                    log.debug(f"Forwarding CancelSignal to {receiving_worker}")
                     # Forward a CancelSignal to the worker
                     receiving_worker.queue.put(worker.CancelSignal())
                     # Notify the Telegram client that the inline keyboard press has been received
                     bot.answer_callback_query(update.callback_query.id)
                 else:
-                    log.debug(f"Forwarding callback query to {worker}")
+                    log.debug(f"Forwarding callback query to {receiving_worker}")
                     # Forward the update to the worker
                     receiving_worker.queue.put(update)
             # If the update is a precheckoutquery, ensure it hasn't expired before forwarding it
@@ -151,7 +151,7 @@ def main():
                         log.error("pre-checkout query expired before an answer could be sent!")
                     # Go to the next update
                     continue
-                log.debug(f"Forwarding pre-checkout query to {worker}")
+                log.debug(f"Forwarding pre-checkout query to {receiving_worker}")
                 # Forward the update to the worker
                 receiving_worker.queue.put(update)
         # If there were any updates...
