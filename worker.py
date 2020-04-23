@@ -67,7 +67,6 @@ class Worker(threading.Thread):
     def __repr__(self):
         return f"<{self.__class__.__qualname__} {self.chat.id}>"
 
-    # noinspection PyBroadException
     def run(self):
         """The conversation code."""
         # Welcome the user to the bot
@@ -104,6 +103,7 @@ class Worker(threading.Thread):
             if will_be_owner:
                 log.warning(f"User was auto-promoted to Admin as no other admins existed: {self.user}")
         # Capture exceptions that occour during the conversation
+        # noinspection PyBroadException
         try:
             # If the user is not an admin, send him to the user menu
             if self.admin is None:
@@ -118,6 +118,7 @@ class Worker(threading.Thread):
                 self.__admin_menu()
         except Exception:
             # Try to notify the user of the exception
+            # noinspection PyBroadException
             try:
                 self.bot.send_message(self.chat.id, strings.fatal_conversation_exception)
             except Exception:
@@ -533,8 +534,9 @@ class Worker(threading.Thread):
             # Suggest payment for missing credit value if configuration allows refill
             if configloader.config["Credit Card"]["credit_card_token"] != "" \
                     and configloader.config["Appearance"]["refill_on_checkout"] == 'yes' \
-                    and credit_required <= utils.Price(int(configloader.config["Credit Card"]["max_amount"])) \
-                    and credit_required >= utils.Price(int(configloader.config["Credit Card"]["min_amount"])):
+                    and utils.Price(int(configloader.config["Credit Card"]["min_amount"])) <= \
+                        credit_required <= \
+                        utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
                 self.__make_payment(utils.Price(credit_required))
         # If afer requested payment credit is still insufficient (either payment failure or cancel)
         if self.user.credit < self.__get_cart_value(cart):
@@ -832,7 +834,7 @@ class Worker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        selection = self.__wait_for_specific_message(product_names, cancellable=True)
         # If the user has selected the Cancel option...
         if isinstance(selection, CancelSignal):
             # Exit the menu
@@ -956,7 +958,7 @@ class Worker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.conversation_admin_select_product_to_delete,
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message(product_names, cancellable = True)
+        selection = self.__wait_for_specific_message(product_names, cancellable=True)
         if isinstance(selection, CancelSignal):
             # Exit the menu
             return
