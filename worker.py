@@ -14,6 +14,9 @@ import traceback
 from html import escape
 import requests
 import importlib
+import logging
+
+log = logging.getLogger(__name__)
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -21,7 +24,6 @@ strings = importlib.import_module("strings." + language)
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
-
     def __init__(self, reason: str = ""):
         self.reason = reason
 
@@ -31,7 +33,7 @@ class CancelSignal:
     pass
 
 
-class ChatWorker(threading.Thread):
+class Worker(threading.Thread):
     """A worker for a single conversation. A new one is created every time the /start command is sent."""
 
     def __init__(self, bot: utils.DuckBot, chat: telegram.Chat, *args, **kwargs):
@@ -41,11 +43,12 @@ class ChatWorker(threading.Thread):
         self.bot: utils.DuckBot = bot
         self.chat: telegram.Chat = chat
         # Open a new database session
+        log.debug(f"Opening new database session for {self.name}")
         self.session = db.Session()
         # Get the user db data from the users and admin tables
         self.user: Optional[db.User] = None
         self.admin: Optional[db.Admin] = None
-        # The sending pipe is stored in the ChatWorker class, allowing the forwarding of messages to the chat process
+        # The sending pipe is stored in the Worker class, allowing the forwarding of messages to the chat process
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
@@ -56,13 +59,19 @@ class ChatWorker(threading.Thread):
             self.sentry_client = raven.Client(configloader.config["Error Reporting"]["sentry_token"],
                                               release=raven.fetch_git_sha(os.path.dirname(__file__)),
                                               environment="Dev" if __debug__ else "Prod")
+            log.debug("Sentry: enabled")
         else:
             self.sentry_client = None
+            log.debug("Sentry: disabled")
+
+    def __repr__(self):
+        return f"<{self.__class__.__qualname__} {self.chat.id}>"
 
     # noinspection PyBroadException
     def run(self):
         """The conversation code."""
         # Welcome the user to the bot
+        log.debug("Starting conversation")
         self.bot.send_message(self.chat.id, strings.conversation_after_start)
         # Get the user db data from the users and admin tables
         self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
@@ -91,6 +100,9 @@ class ChatWorker(threading.Thread):
                 self.session.add(self.admin)
             # Commit the transaction
             self.session.commit()
+            log.info(f"Created new user: {self.user}")
+            if will_be_owner:
+                log.warning(f"User was auto-promoted to Admin as no other admins existed: {self.user}")
         # Capture exceptions that occour during the conversation
         try:
             # If the user is not an admin, send him to the user menu
@@ -123,8 +135,8 @@ class ChatWorker(threading.Thread):
         self.join()
 
     def update_user(self) -> db.User:
-        """Update the user data.
-        Note that this method will cause crashes if used in different threads with sqlite databases."""
+        """Update the user data."""
+        log.debug("Fetching updated user data from the database")
         self.user = self.session.query(db.User).filter(db.User.user_id == self.chat.id).one_or_none()
         return self.user
 
@@ -150,6 +162,7 @@ class ChatWorker(threading.Thread):
                                     items: List[str],
                                     cancellable: bool = False) -> Union[str, CancelSignal]:
         """Continue getting updates until until one of the strings contained in the list is received as a message."""
+        log.debug("Waiting for a specific message...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
@@ -176,6 +189,7 @@ class ChatWorker(threading.Thread):
 
     def __wait_for_regex(self, regex: str, cancellable: bool = False) -> Union[str, CancelSignal]:
         """Continue getting updates until the regex finds a match in a message, then return the first capture group."""
+        log.debug("Waiting for a regex...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
@@ -206,6 +220,7 @@ class ChatWorker(threading.Thread):
                                     cancellable: bool = False) -> Union[telegram.PreCheckoutQuery, CancelSignal]:
         """Continue getting updates until a precheckoutquery is received.
         The payload is checked by the core before forwarding the message."""
+        log.debug("Waiting for a PreCheckoutQuery...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
@@ -226,6 +241,7 @@ class ChatWorker(threading.Thread):
 
     def __wait_for_successfulpayment(self) -> telegram.SuccessfulPayment:
         """Continue getting updates until a successfulpayment is received."""
+        log.debug("Waiting for a SuccessfulPayment...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
@@ -240,6 +256,7 @@ class ChatWorker(threading.Thread):
 
     def __wait_for_photo(self, cancellable: bool = False) -> Union[List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
+        log.debug("Waiting for a photo...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
@@ -264,6 +281,7 @@ class ChatWorker(threading.Thread):
     def __wait_for_inlinekeyboard_callback(self, cancellable: bool = False) \
             -> Union[telegram.CallbackQuery, CancelSignal]:
         """Continue getting updates until an inline keyboard callback is received, then return it."""
+        log.debug("Waiting for a CallbackQuery...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
@@ -286,6 +304,7 @@ class ChatWorker(threading.Thread):
 
     def __user_select(self) -> Union[db.User, CancelSignal]:
         """Select an user from the ones in the database."""
+        log.debug("Waiting for a user selection...")
         # Find all the users in the database
         users = self.session.query(db.User).order_by(db.User.user_id).all()
         # Create a list containing all the keyboard button strings
@@ -315,6 +334,7 @@ class ChatWorker(threading.Thread):
     def __user_menu(self):
         """Function called from the run method when the user is not an administrator.
         Normal bot actions should be placed here."""
+        log.debug("Displaying __user_menu")
         # Loop used to returning to the menu after executing a command
         while True:
             # Create a keyboard with the user main menu
@@ -355,6 +375,7 @@ class ChatWorker(threading.Thread):
 
     def __order_menu(self):
         """User menu to order products from the shop."""
+        log.debug("Displaying __order_menu")
         # Get the products list from the db
         products = self.session.query(db.Product).filter_by(deleted=False).all()
         # Create a dict to be used as 'cart'
@@ -575,6 +596,7 @@ class ChatWorker(threading.Thread):
 
     def __order_status(self):
         """Display the status of the sent orders."""
+        log.debug("Displaying __order_status")
         # Find the latest orders
         orders = self.session.query(db.Order) \
             .filter(db.Order.user == self.user) \
@@ -591,6 +613,7 @@ class ChatWorker(threading.Thread):
 
     def __add_credit_menu(self):
         """Add more credit to the account."""
+        log.debug("Displaying __add_credit_menu")
         # Create a payment methods keyboard
         keyboard = list()
         # Add the supported payment methods to the keyboard
@@ -623,6 +646,7 @@ class ChatWorker(threading.Thread):
 
     def __add_credit_cc(self):
         """Add money to the wallet through a credit card payment."""
+        log.debug("Displaying __add_credit_cc")
         # Create a keyboard to be sent later
         presets = list(map(lambda s: s.strip(" "), configloader.config["Credit Card"]["payment_presets"].split('|')))
         keyboard = [[telegram.KeyboardButton(str(utils.Price(preset)))] for preset in presets]
@@ -730,11 +754,13 @@ class ChatWorker(threading.Thread):
 
     def __bot_info(self):
         """Send information about the bot."""
+        log.debug("Displaying __bot_info")
         self.bot.send_message(self.chat.id, strings.bot_info)
 
     def __admin_menu(self):
         """Function called from the run method when the user is an administrator.
         Administrative bot actions should be placed here."""
+        log.debug("Displaying __admin_menu")
         # Loop used to return to the menu after executing a command
         while True:
             # Create a keyboard with the admin main menu based on the admin permissions specified in the db
@@ -791,6 +817,7 @@ class ChatWorker(threading.Thread):
 
     def __products_menu(self):
         """Display the admin menu to select a product to edit."""
+        log.debug("Displaying __products_menu")
         # Get the products list from the db
         products = self.session.query(db.Product).filter_by(deleted=False).all()
         # Create a list of product names
@@ -827,6 +854,7 @@ class ChatWorker(threading.Thread):
 
     def __edit_product_menu(self, product: Optional[db.Product] = None):
         """Add a product to the database or edit an existing one."""
+        log.debug("Displaying __edit_product_menu")
         # Create an inline keyboard with a single skip button
         cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_skip,
                                                                                callback_data="cmd_cancel")]])
@@ -915,6 +943,7 @@ class ChatWorker(threading.Thread):
         self.bot.send_message(self.chat.id, strings.success_product_edited)
 
     def __delete_product_menu(self):
+        log.debug("Displaying __delete_product_menu")
         # Get the products list from the db
         products = self.session.query(db.Product).filter_by(deleted=False).all()
         # Create a list of product names
@@ -942,6 +971,7 @@ class ChatWorker(threading.Thread):
 
     def __orders_menu(self):
         """Display a live flow of orders."""
+        log.debug("Displaying __orders_menu")
         # Create a cancel and a stop keyboard
         stop_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(strings.menu_stop,
                                                                                       callback_data="cmd_cancel")]])
@@ -1033,6 +1063,7 @@ class ChatWorker(threading.Thread):
 
     def __create_transaction(self):
         """Edit manually the credit of an user."""
+        log.debug("Displaying __create_transaction")
         # Make the admin select an user
         user = self.__user_select()
         # Allow the cancellation of the operation
@@ -1075,6 +1106,7 @@ class ChatWorker(threading.Thread):
 
     def __help_menu(self):
         """Help menu. Allows the user to ask for assistance, get a guide or see some info about the bot."""
+        log.debug("Displaying __help_menu")
         # Create a keyboard with the user help menu
         keyboard = [[telegram.KeyboardButton(strings.menu_guide)],
                     [telegram.KeyboardButton(strings.menu_contact_shopkeeper)],
@@ -1102,6 +1134,7 @@ class ChatWorker(threading.Thread):
 
     def __transaction_pages(self):
         """Display the latest transactions, in pages."""
+        log.debug("Displaying __transaction_pages")
         # Page number
         page = 0
         # Create and send a placeholder message to be populated
@@ -1156,6 +1189,7 @@ class ChatWorker(threading.Thread):
 
     def __transactions_file(self):
         """Generate a .csv file containing the list of all transactions."""
+        log.debug("Generating __transaction_file")
         # Retrieve all the transactions
         transactions = self.session.query(db.Transaction).order_by(db.Transaction.transaction_id.asc()).all()
         # Create the file if it doesn't exists
@@ -1201,6 +1235,7 @@ class ChatWorker(threading.Thread):
 
     def __add_admin(self):
         """Add an administrator to the bot."""
+        log.debug("Displaying __add_admin")
         # Let the admin select an administrator to promote
         user = self.__user_select()
         # Allow the cancellation of the operation
@@ -1265,6 +1300,7 @@ class ChatWorker(threading.Thread):
 
     def __graceful_stop(self, stop_trigger: StopSignal):
         """Handle the graceful stop of the thread."""
+        log.debug("Gracefully stopping the conversation")
         # If the session has expired...
         if stop_trigger.reason == "timeout":
             # Notify the user that the session has expired and remove the keyboard
