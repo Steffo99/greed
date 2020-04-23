@@ -16,11 +16,6 @@ import requests
 import importlib
 import logging
 
-try:
-    import coloredlogs
-except ImportError:
-    coloredlogs = None
-
 log = logging.getLogger(__name__)
 
 language = configloader.config["Config"]["language"]
@@ -29,7 +24,6 @@ strings = importlib.import_module("strings." + language)
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
-
     def __init__(self, reason: str = ""):
         self.reason = reason
 
