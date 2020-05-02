@@ -74,6 +74,13 @@ class User(TableDeclarativeBase):
         valid_transactions: typing.List[Transaction] = [t for t in self.transactions if not t.refunded]
         self.credit = sum(map(lambda t: t.value, valid_transactions))
 
+    @property
+    def full_name(self):
+        if self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        else:
+            return self.first_name
+
     def __repr__(self):
         return f"<User {self} having {self.credit} credit>"
 
