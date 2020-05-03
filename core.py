@@ -46,7 +46,7 @@ def main():
     log.debug("Bot token is valid!")
 
     # Finding default language
-    default_language = configloader.config["Config"]["language"]
+    default_language = configloader.config["Language"]["default_language"]
     # Creating localization object
     default_loc = localization.Localization(language=default_language, fallback=default_language)
 

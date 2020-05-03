@@ -42,3 +42,6 @@ class Localization:
         assert isinstance(string, str)
         formatter = IgnoreDict(**self.replacements, **kwargs)
         return string.format_map(formatter)
+
+    def boolmoji(self, boolean: bool) -> str:
+        return self.get("emoji_yes") if boolean else self.get("emoji_no")

@@ -118,6 +118,9 @@ conversation_open_help_menu = "What kind of help do you need?"
 conversation_confirm_admin_promotion = "Are you sure you want to promote this user to 💼 Manager?\n" \
                                        "It is an irreversible action!"
 
+# Conversation: language select menu header
+conversation_language_select = "Select a language:"
+
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " You are switching to 👤 Customer mode.\n" \
                                    "If you want to go back to the 💼 Manager menu, restart the conversation with /start."
@@ -213,6 +216,9 @@ menu_csv = "📄 .csv"
 
 # Menu: edit admins list
 menu_edit_admins = "🏵 Edit Managers"
+
+# Menu: language
+menu_language = "🇬🇧 Language"
 
 # Emoji: unprocessed order
 emoji_not_processed = "*️⃣"
