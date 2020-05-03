@@ -2,6 +2,7 @@ from typing import *
 import importlib
 import types
 import logging
+import json
 
 
 log = logging.getLogger(__name__)
@@ -45,3 +46,14 @@ class Localization:
 
     def boolmoji(self, boolean: bool) -> str:
         return self.get("emoji_yes") if boolean else self.get("emoji_no")
+
+
+def create_json_localization_file_from_strings(language: str):
+    module: types.ModuleType = importlib.import_module(f"strings.{language}")
+    raw = module.__dict__
+    clean = {}
+    for key in raw:
+        if not (key.startswith("__") and key.endswith("__")):
+            clean[key] = raw[key]
+    with open(f"locale/{language}.json", "w") as file:
+        json.dump(clean, file)
