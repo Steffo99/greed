@@ -47,7 +47,8 @@ def main():
 
     # Finding default language
     default_language = configloader.config["Config"]["language"]
-    default_loc = localization.Localization(default_language)
+    # Creating localization object
+    default_loc = localization.Localization(language=default_language, fallback=default_language)
 
     # Create a dictionary linking the chat ids to the Worker objects
     # {"1234": <Worker>}

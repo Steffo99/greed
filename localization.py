@@ -1,4 +1,10 @@
+from typing import *
 import importlib
+import types
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 class IgnoreDict(dict):
@@ -8,22 +14,31 @@ class IgnoreDict(dict):
 
 
 class Localization:
-    def __init__(self, language, replacements=None):
-        self.language = language
-        self.module = importlib.import_module("strings." + language)
-        self.replacements = replacements if replacements else {}
-
-    @staticmethod
-    def is_supported(language) -> bool:
-        try:
-            importlib.import_module("strings." + language)
-        except ImportError:
-            return False
+    def __init__(self, language: str, *, fallback: str, replacements: Dict[str, str] = None):
+        log.debug(f"Creating localization for {language}")
+        self.language: str = language
+        log.debug(f"Importing strings.{language}")
+        self.module: types.ModuleType = importlib.import_module(f"strings.{language}")
+        if language != fallback:
+            log.debug(f"Importing strings.{fallback} as fallback")
+            self.fallback_language: str = fallback
+            self.fallback_module = importlib.import_module(f"strings.{fallback}") if fallback else None
         else:
-            return True
+            log.debug("Language is the same as the default, not importing any fallback")
+            self.fallback_language = None
+            self.fallback_module = None
+        self.replacements: Dict[str, str] = replacements if replacements else {}
 
-    def get(self, key, **kwargs) -> str:
-        string = self.module.__getattribute__(key)
+    def get(self, key: str, **kwargs) -> str:
+        try:
+            log.debug(f"Getting localized string with key {key}")
+            string = self.module.__getattribute__(key)
+        except AttributeError:
+            if self.fallback_module:
+                log.warning(f"Missing localized string with key {key}, using default")
+                string = self.fallback_module.__getattribute__(key)
+            else:
+                raise
         assert isinstance(string, str)
         formatter = IgnoreDict(**self.replacements, **kwargs)
         return string.format_map(formatter)

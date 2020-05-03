@@ -78,7 +78,7 @@ class Worker(threading.Thread):
             # Check if there are other registered users: if there aren't any, the first user will be owner of the bot
             will_be_owner = (self.session.query(db.Admin).first() is None)
             # Create the new record
-            self.user = db.User(self.chat)
+            self.user = db.User(self.telegram_user)
             # Add the new record to the db
             self.session.add(self.user)
             # Flush the session to get an userid
@@ -100,20 +100,15 @@ class Worker(threading.Thread):
             log.info(f"Created new user: {self.user}")
             if will_be_owner:
                 log.warning(f"User was auto-promoted to Admin as no other admins existed: {self.user}")
-        # Detect language from Telegram metadata
-        default_language = configloader.config["Config"]["language"]
-        language = self.telegram_user.language_code
-        if language:
-            log.debug(f"Detected language: {language}")
-            if not localization.Localization.is_supported(language):
-                log.debug(f"Unsupported language, using default: {default_language}")
-                language = default_language
-        else:
-            log.debug(f"No language detected, using default: {default_language}")
-            language = default_language
+        # Check if the user's language is enabled; if it isn't, change it to the default
+        if self.user.language not in configloader.config["Language"]["enabled_languages"]:
+            log.debug(f"User's language '{self.user.language}' is not enabled, changing it to the default")
+            self.user.language = configloader.config["Language"]["default_language"]
+            self.session.commit()
         # Create a Localization object
         self.loc = localization.Localization(
-            language=language,
+            language=self.user.language,
+            fallback=configloader.config["Language"]["fallback_language"],
             replacements={
                 "user_string": str(self.user),
                 "user_mention": self.user.mention(),

@@ -8,6 +8,9 @@ import telegram
 import requests
 import utils
 import importlib
+import logging
+
+log = logging.getLogger(__name__)
 
 language = configloader.config["Config"]["language"]
 strings = importlib.import_module("strings." + language)
@@ -31,6 +34,7 @@ class User(TableDeclarativeBase):
     first_name = Column(String, nullable=False)
     last_name = Column(String)
     username = Column(String)
+    language = Column(String, nullable=False)
 
     # Current wallet credit
     credit = Column(Integer, nullable=False)
@@ -38,14 +42,15 @@ class User(TableDeclarativeBase):
     # Extra table parameters
     __tablename__ = "users"
 
-    def __init__(self, telegram_chat: telegram.Chat, **kwargs):
+    def __init__(self, telegram_user: telegram.User, **kwargs):
         # Initialize the super
         super().__init__(**kwargs)
         # Get the data from telegram
-        self.user_id = telegram_chat.id
-        self.first_name = telegram_chat.first_name
-        self.last_name = telegram_chat.last_name
-        self.username = telegram_chat.username
+        self.user_id = telegram_user.id
+        self.first_name = telegram_user.first_name
+        self.last_name = telegram_user.last_name
+        self.username = telegram_user.username
+        self.language = telegram_user.language_code if telegram_user.language_code else configloader.config["Language"]["default_language"]
         # The starting wallet value is 0
         self.credit = 0
 
