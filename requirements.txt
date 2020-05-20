@@ -4,3 +4,4 @@ requests
 raven
 websocket_client
 flask
+gunicorn
