@@ -283,20 +283,12 @@ class ChatWorker(threading.Thread):
         ws.close()
         return
 
-    def __wait_for_callback(self, address, amount):
-        # Send a message containing the pay info
+    def __send_btc_payment_info(self, address, amount):
+        # Send a message containing the btc pay info
         self.bot.send_message_markdown(self.chat.id, "To pay, send this amount:\n`" 
                                                     + str(amount) 
                                                     + "`\nto this bitcoin address:\n`" 
                                                     + address + "`")
-
-    def __wait_for_successfulbtcpayment(self, address, amount):
-        # check config for use_websocket
-        use_websocket = configloader.config["Bitcoin"]["use_websocket"]
-        if use_websocket == "False":
-            self.__wait_for_callback(address, amount)
-        else:
-            self.__wait_for_websocket(address, amount)
 
     def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
@@ -808,8 +800,8 @@ class ChatWorker(threading.Thread):
             #Add and commit the btc transaction
             self.session.add(new_transaction)
         self.session.commit()
-        # Wait for the bitcoin payment
-        self.__wait_for_successfulbtcpayment(btc_address, btc_amount)
+        # Send a message containing the btc pay info
+        self.__send_btc_payment_info(btc_address, btc_amount)
 
     def __bot_info(self):
         """Send information about the bot."""
