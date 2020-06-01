@@ -1,7 +1,7 @@
 import typing
 from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
 from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean, Float
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 import configloader
 import telegram
@@ -68,6 +68,11 @@ class User(TableDeclarativeBase):
             return f"@{self.username}"
         else:
             return f"[{self.first_name}](tg://user?id={self.user_id})"
+
+    def recalculate_credit(self):
+        """Recalculate the credit for this user by calculating the sum of the values of all their transactions."""
+        valid_transactions: typing.List[Transaction] = [t for t in self.transactions if not t.refunded]
+        self.credit = sum(map(lambda t: t.value, valid_transactions)) / (10 ** int(configloader.config["Payments"]["currency_exp"]))
 
     def __repr__(self):
         return f"<User {self} having {self.credit} credit>"
@@ -149,7 +154,7 @@ class Transaction(TableDeclarativeBase):
     transaction_id = Column(Integer, primary_key=True)
     # The user whose credit is affected by this transaction
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    user = relationship("User")
+    user = relationship("User", backref=backref("transactions"))
     # The value of this transaction. Can be both negative and positive.
     value = Column(Integer, nullable=False)
     # Refunded status: if True, ignore the value of this transaction when recalculating
