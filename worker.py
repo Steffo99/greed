@@ -593,7 +593,7 @@ class Worker(threading.Thread):
                                           order_id=order.order_id)
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
-        credit_required = self.__get_cart_value(cart) - self.user.credit
+        credit_required = self.__get_cart_value(cart) - utils.Price(str(self.user.credit))
         # Notify user in case of insufficient credit
         if credit_required > 0:
             self.bot.send_message(self.chat.id, strings.error_not_enough_credit)
@@ -605,7 +605,7 @@ class Worker(threading.Thread):
                         utils.Price(int(configloader.config["Credit Card"]["max_amount"])):
                 self.__make_payment(utils.Price(credit_required))
         # If afer requested payment credit is still insufficient (either payment failure or cancel)
-        if self.user.credit < self.__get_cart_value(cart):
+        if utils.Price(str(self.user.credit)) < self.__get_cart_value(cart):
             # Rollback all the changes
             self.session.rollback()
         else:
