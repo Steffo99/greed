@@ -62,6 +62,7 @@ If you plan on accepting Bitcoin payments:
 3. Configure settings in config.ini file
 	* Set api_key seen on Blockonomics Merchants Page
 	* Set secret as YOUR_SECRET
+4. Run `python -OO callback.py` to run the bitcoin callback listener.
 
 ## Credits
 This project is a fork of [greed project](https://github.com/Steffo99/greed) by @Steffo99. We would like to thank @Steffo99 for putting this in public domain. 
