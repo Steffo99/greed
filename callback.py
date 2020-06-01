@@ -52,7 +52,6 @@ def callback():
                 satoshi = float(flask.request.args.get("value"))
                 received_btc = satoshi/1.0e8
                 received_dec = round(Decimal(received_btc * transaction.price), int(configloader.config["Payments"]["currency_exp"]))
-                received_value = int(received_dec * (10 ** int(configloader.config["Payments"]["currency_exp"])))
                 received_float = float(received_dec)
                 print ("Recieved "+str(received_float)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
                 # Add the credit to the user account
@@ -60,7 +59,7 @@ def callback():
                 user.credit += received_float
                 # Add a transaction to list
                 new_transaction = db.Transaction(user=user,
-                                             value=received_value,
+                                             value=utils.Price(str(received_float)),
                                              provider="Bitcoin",
                                              notes = address)
                 # Add and commit the transaction
