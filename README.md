@@ -47,20 +47,19 @@ git stash pop
 
 ### By redownloading the zip file
 
-If you downloaded `greed` through the zip archive, you can update it by redownloading [the latest version](https://github.com/Steffo99/greed/archive/master.zip) and by moving your `config.ini` and `database.sqlite` (if applicable) files to the new folder.
+If you downloaded `greed` through the zip archive, you can update it by redownloading [the latest version](https://github.com/DarrenWestwood/greed/archive/master.zip) and by moving your `config.ini` and `database.sqlite` (if applicable) files to the new folder.
 
 ### Integrating Bitcoin
 
 If you plan on accepting Bitcoin payments:
 
-1. Complete merchant setup wizard by clicking on Get Started for Free on Blockonomics Merchants Page.
-2. Depending on where you are deploying, you should set the callback URL on Blockonomics merchants page.
-	* Testing: http://localhost/callback?secret=YOUR_SECRET (you can use any dummy host in place of localhost, important thing is secret should match the one in config.ini
-	* Production: You need a publicly reachable URL like this https://greed.herokuapp.com/callback?secret=YOUR_SECRET
+1. Complete merchant setup wizard by clicking on Get Started for Free on [Blockonomics Merchants Page](https://www.blockonomics.co/merchants#).
+2. Set the HTTP Callback URL on the Blockonomics Merchants Page. eg. https://greed.ngrok.io/callback?secret=YOUR_SECRET
+	* [Deploy using ngrok](https://blockonomics.freshdesk.com/support/home)
+	* [Deploy using Heroku](https://blockonomics.freshdesk.com/support/home)
 3. Configure settings in config.ini file
 	* Set api_key seen on Blockonomics Merchants Page
 	* Set secret as YOUR_SECRET
-	* For testing, leave use_websockets = True. For production set use_websockets = False	
 
 ## Credits
 This project is a fork of [greed project](https://github.com/Steffo99/greed) by @Steffo99. We would like to thank @Steffo99 for putting this in public domain. 
