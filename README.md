@@ -51,13 +51,14 @@ If you downloaded `greed` through the zip archive, you can update it by redownlo
 
 ### Integrating Bitcoin
 
+[Deploy using ngrok](https://blockonomics.freshdesk.com/support/home)
+[Deploy using Heroku](https://blockonomics.freshdesk.com/support/home)
+	
 If you plan on accepting Bitcoin payments:
 
 1. Complete merchant setup wizard by clicking on Get Started for Free on [Blockonomics Merchants Page](https://www.blockonomics.co/merchants#).
-2. Set the HTTP Callback URL on the Blockonomics Merchants Page. 
-	eg. `https://greed.ngrok.io/callback?secret=YOUR_SECRET`
-	* [Deploy using ngrok](https://blockonomics.freshdesk.com/support/home)
-	* [Deploy using Heroku](https://blockonomics.freshdesk.com/support/home)
+2. Set the HTTP Callback URL on the Blockonomics Merchants Page.
+eg. `https://greed.ngrok.io/callback?secret=YOUR_SECRET`
 3. Configure settings in config.ini file
 	* Set api_key seen on Blockonomics Merchants Page
 	* Set secret as YOUR_SECRET
