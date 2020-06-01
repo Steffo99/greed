@@ -13,7 +13,6 @@ import os
 from html import escape
 import requests
 from blockonomics import Blockonomics
-from websocket import create_connection
 import time
 import json
 import importlib
@@ -228,75 +227,12 @@ class ChatWorker(threading.Thread):
             # Return the successfulpayment
             return update.message.successful_payment
 
-    def __wait_for_websocket(self, address, amount):
-        # Start the websocket
-        ws = create_connection("wss://www.blockonomics.co/payment/" + address)
-        # Send a message containing the button to cancel or pay
+    def __send_btc_payment_info(self, address, amount):
+        # Send a message containing the btc pay info
         self.bot.send_message_markdown(self.chat.id, "To pay, send this amount:\n`" 
                                                     + str(amount) 
                                                     + "`\nto this bitcoin address:\n`" 
                                                     + address + "`")
-
-        result =  ws.recv()
-        if result:
-            result = json.loads(result)
-            # fund the account instantly
-            status = result['status']
-            value = float(result['value'])
-            # Fetch the current transaction by address
-            transaction = self.session.query(db.BtcTransaction).filter(db.BtcTransaction.address == address).one_or_none()
-            # Check not processed
-            if transaction.status != 2:
-                # Check the status
-                if transaction.status == -1:
-                    current_time = datetime.datetime.now()
-                    timeout = 30
-                    # If timeout has passed, use new btc price
-                    if current_time - datetime.timedelta(minutes = timeout) > datetime.datetime.strptime(transaction.timestamp, '%Y-%m-%d %H:%M:%S.%f'):
-                        transaction.price = Blockonomics.fetch_new_btc_price()
-                    transaction.timestamp = current_time
-                    transaction.status = 0
-                if status >= 0:
-                    # Convert satoshi to fiat
-                    received_btc = value/1.0e8
-                    received_value = round(received_btc*transaction.price, int(configloader.config["Payments"]["currency_exp"]))
-
-                    # Add the credit to the user account
-                    user = self.session.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
-                    user.credit += received_value
-                    # Update the value + status + timestamp for transaction in DB
-                    transaction.value += received_value
-                    transaction.status = 2
-                    # Add a transaction to list
-                    new_transaction = db.Transaction(user=user,
-                                                 value=received_value,
-                                                 provider="Bitcoin",
-                                                 notes = address)
-                    # Add and commit the transaction
-                    self.session.add(new_transaction)
-                    self.session.commit()
-                else:
-                    self.session.commit()
-            else:
-                self.session.commit()
-            self.bot.send_message(self.chat.id, "Payment recieved!\nYour account has been credited.")
-        ws.close()
-        return
-
-    def __wait_for_callback(self, address, amount):
-        # Send a message containing the pay info
-        self.bot.send_message_markdown(self.chat.id, "To pay, send this amount:\n`" 
-                                                    + str(amount) 
-                                                    + "`\nto this bitcoin address:\n`" 
-                                                    + address + "`")
-
-    def __wait_for_successfulbtcpayment(self, address, amount):
-        # check config for use_websocket
-        use_websocket = configloader.config["Bitcoin"]["use_websocket"]
-        if use_websocket == "False":
-            self.__wait_for_callback(address, amount)
-        else:
-            self.__wait_for_websocket(address, amount)
 
     def __wait_for_photo(self, cancellable: bool=False) -> typing.Union[typing.List[telegram.PhotoSize], CancelSignal]:
         """Continue getting updates until a photo is received, then return it."""
@@ -808,8 +744,8 @@ class ChatWorker(threading.Thread):
             #Add and commit the btc transaction
             self.session.add(new_transaction)
         self.session.commit()
-        # Wait for the bitcoin payment
-        self.__wait_for_successfulbtcpayment(btc_address, btc_amount)
+        # Send a message containing the btc pay info
+        self.__send_btc_payment_info(btc_address, btc_amount)
 
     def __bot_info(self):
         """Send information about the bot."""

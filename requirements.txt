@@ -2,5 +2,4 @@ python-telegram-bot
 sqlalchemy
 requests
 raven
-websocket_client
 flask
