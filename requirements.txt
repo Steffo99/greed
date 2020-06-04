@@ -3,3 +3,4 @@ sqlalchemy
 requests
 raven
 flask
+gunicorn
