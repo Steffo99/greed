@@ -51,18 +51,35 @@ If you downloaded `greed` through the zip archive, you can update it by redownlo
 
 ## Integrating Bitcoin
 
-* [Deploy using ngrok](https://blockonomics.freshdesk.com/support/home)
-* [Deploy using Heroku](https://blockonomics.freshdesk.com/support/home)
-	
-If you plan on accepting Bitcoin payments:
+* You will require a Blockonomics API Key - Complete merchant setup wizard by clicking on Get Started for Free on Blockonomics Merchants Page.
 
-1. Complete merchant setup wizard by clicking on Get Started for Free on [Blockonomics Merchants Page](https://www.blockonomics.co/merchants#).
-2. Set the HTTP Callback URL on the Blockonomics Merchants Page.
-	* eg. `https://greed.ngrok.io/callback?secret=YOUR_SECRET`
-3. Configure settings in config.ini file
-	* Set api_key seen on Blockonomics Merchants Page
-	* Set secret as YOUR_SECRET
-4. Run `python -OO callback.py` to run the bitcoin callback listener.
+* Edit the config.ini file to set your Blockonomics api_key 
+
+* A public HTTP Callback URL is required to accept Bitcoin Payments. Below are instructions on how to deploy your bot to obtain a Callback URL for your bot using ngrok or Heroku.
+
+### Deploy using ngrok
+* Run `python -OO callback.py` to run the bitcoin callback listener.
+* Download ngrok: https://ngrok.com/download
+* Run ngrok on the same port `./ngrok http 5000`
+![](assets/images/ngrok.png) 
+* Set the HTTP Callback URL on the Blockonomics Merchants Page.
+   eg. https://greed.ngrok.io/callback?secret=YOUR_SECRET
+
+### Deploy using Heroku
+* Test using heroku cli command: `heroku local`
+* You will also be able to login to heroku and push your bot to heroku master to launch it into production using the following commands:
+```
+git init .
+git add .
+git commit -m "Deploy to Heroku"
+heroku login -i
+heroku git:remote -a {your-heroku-project-name}
+git push heroku master
+```
+* You can now start the greed bot and blockonomics callback from the Heroku Dashboard > Resources.
+![](assets/images/heroku.png) 
+* Set the HTTP Callback URL on the Blockonomics Merchants Page.
+    eg. https://greed.herokuapp.com/callback?secret=YOUR_SECRET
 
 ## Credits
 This project is a fork of [greed project](https://github.com/Steffo99/greed) by @Steffo99. We would like to thank @Steffo99 for putting this in public domain. 
