@@ -1,2 +1,2 @@
-web: gunicorn flask_app:app
+web: gunicorn callback:app
 worker: python3 core.py
