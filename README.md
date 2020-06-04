@@ -51,11 +51,13 @@ If you downloaded `greed` through the zip archive, you can update it by redownlo
 
 ## Integrating Bitcoin
 
-* You will require a Blockonomics API Key - Complete merchant setup wizard by clicking on Get Started for Free on Blockonomics Merchants Page.
+1. You will require a Blockonomics API Key - Complete merchant setup wizard by clicking on Get Started for Free on [Blockonomics Merchants Page](https://www.blockonomics.co/merchants#/).
 
-* Edit the config.ini file to set your Blockonomics api_key 
+2. Edit the config.ini file to set your Blockonomics api_key 
 
-* A public HTTP Callback URL is required to accept Bitcoin Payments. Below are instructions on how to deploy your bot to obtain a Callback URL for your bot using ngrok or Heroku.
+3. Set the HTTP Callback URL on the Blockonomics Merchants Page
+
+Below are instructions on how to deploy your bot to obtain a Callback URL for your bot using ngrok or Heroku.
 
 ### Deploy using ngrok
 * Run `python -OO callback.py` to run the bitcoin callback listener.
