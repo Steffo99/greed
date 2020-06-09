@@ -8,17 +8,11 @@ import sys
 import importlib
 import logging
 import traceback
+import localization
 
 
 log = logging.getLogger(__name__)
 
-
-language = config["Config"]["language"]
-try:
-    strings = importlib.import_module("strings." + language)
-except ModuleNotFoundError:
-    print("The strings file you specified in the config file does not exist.")
-    sys.exit(1)
 
 if config["Error Reporting"]["sentry_token"] != \
         "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
@@ -39,7 +33,9 @@ class Price:
     """The base class for the prices in greed.
     Its int value is in minimum units, while its float and str values are in decimal format.int("""
 
-    def __init__(self, value: typing.Union[int, float, str, "Price"] = 0):
+    def __init__(self, value: typing.Union[int, float, str, "Price"], loc: localization.Localization):
+        # Keep a reference to the localization file
+        self.loc = loc
         if isinstance(value, int):
             # Keep the value as it is
             self.value = int(value)
@@ -57,9 +53,9 @@ class Price:
         return f"<Price of value {self.value}>"
 
     def __str__(self):
-        return strings.currency_format_string.format(symbol=(config["Payments"]["currency_symbol"] or strings.currency_symbol),
-                                                     value="{0:.2f}".format(
-                                                         self.value / (10 ** int(config["Payments"]["currency_exp"]))))
+        return self.loc.get("currency_format_string",
+                            symbol=config["Payments"]["currency_symbol"],
+                            value="{0:.2f}".format(self.value / (10 ** int(config["Payments"]["currency_exp"]))))
 
     def __int__(self):
         return self.value
@@ -68,48 +64,48 @@ class Price:
         return self.value / (10 ** int(config["Payments"]["currency_exp"]))
 
     def __ge__(self, other):
-        return self.value >= Price(other).value
+        return self.value >= Price(other, self.loc).value
 
     def __le__(self, other):
-        return self.value <= Price(other).value
+        return self.value <= Price(other, self.loc).value
 
     def __eq__(self, other):
-        return self.value == Price(other).value
+        return self.value == Price(other, self.loc).value
 
     def __gt__(self, other):
-        return self.value > Price(other).value
+        return self.value > Price(other, self.loc).value
 
     def __lt__(self, other):
-        return self.value < Price(other).value
+        return self.value < Price(other, self.loc).value
 
     def __add__(self, other):
-        return Price(self.value + Price(other).value)
+        return Price(self.value + Price(other, self.loc).value, self.loc)
 
     def __sub__(self, other):
-        return Price(self.value - Price(other).value)
+        return Price(self.value - Price(other, self.loc).value, self.loc)
 
     def __mul__(self, other):
-        return Price(int(self.value * other))
+        return Price(int(self.value * other), self.loc)
 
     def __floordiv__(self, other):
-        return Price(int(self.value // other))
+        return Price(int(self.value // other), self.loc)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __rsub__(self, other):
-        return Price(Price(other).value - self.value)
+        return Price(Price(other, self.loc).value - self.value, self.loc)
 
     def __rmul__(self, other):
 
         return self.__mul__(other)
 
     def __iadd__(self, other):
-        self.value += Price(other).value
+        self.value += Price(other, self.loc).value
         return self
 
     def __isub__(self, other):
-        self.value -= Price(other).value
+        self.value -= Price(other, self.loc).value
         return self
 
     def __imul__(self, other):
@@ -235,7 +231,3 @@ class DuckBot:
         return self.bot.send_document(*args, **kwargs)
 
     # More methods can be added here
-
-
-def boolmoji(boolean: bool):
-    return strings.emoji_yes if boolean else strings.emoji_no

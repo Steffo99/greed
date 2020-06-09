@@ -4,16 +4,13 @@ import worker
 import configloader
 import utils
 import threading
-import importlib
+import localization
 import logging
 
 try:
     import coloredlogs
 except ImportError:
     coloredlogs = None
-
-language = configloader.config["Config"]["language"]
-strings = importlib.import_module("strings." + language)
 
 
 def main():
@@ -48,6 +45,11 @@ def main():
         sys.exit(1)
     log.debug("Bot token is valid!")
 
+    # Finding default language
+    default_language = configloader.config["Language"]["default_language"]
+    # Creating localization object
+    default_loc = localization.Localization(language=default_language, fallback=default_language)
+
     # Create a dictionary linking the chat ids to the Worker objects
     # {"1234": <Worker>}
     chat_workers = {}
@@ -72,7 +74,7 @@ def main():
                 if update.message.chat.type != "private":
                     log.debug(f"Received a message from a non-private chat: {update.message.chat.id}")
                     # Notify the chat
-                    bot.send_message(update.message.chat.id, strings.error_nonprivate_chat)
+                    bot.send_message(update.message.chat.id, default_loc.get("error_nonprivate_chat"))
                     # Skip the update
                     continue
                 # If the message is a start command...
@@ -85,7 +87,9 @@ def main():
                         log.debug(f"Received request to stop {old_worker.name}")
                         old_worker.stop("request")
                     # Initialize a new worker for the chat
-                    new_worker = worker.Worker(bot, update.message.chat)
+                    new_worker = worker.Worker(bot=bot,
+                                               chat=update.message.chat,
+                                               telegram_user=update.message.from_user)
                     # Start the worker
                     log.debug(f"Starting {new_worker.name}")
                     new_worker.start()
@@ -99,12 +103,12 @@ def main():
                 if receiving_worker is None or not receiving_worker.is_alive():
                     log.debug(f"Received a message in a chat without worker: {update.message.chat.id}")
                     # Suggest that the user restarts the chat with /start
-                    bot.send_message(update.message.chat.id, strings.error_no_worker_for_chat,
+                    bot.send_message(update.message.chat.id, default_loc.get("error_no_worker_for_chat"),
                                      reply_markup=telegram.ReplyKeyboardRemove())
                     # Skip the update
                     continue
                 # If the message contains the "Cancel" string defined in the strings file...
-                if update.message.text == strings.menu_cancel:
+                if update.message.text == receiving_worker.loc.get("menu_cancel"):
                     log.debug(f"Forwarding CancelSignal to {receiving_worker}")
                     # Send a CancelSignal to the worker instead of the update
                     receiving_worker.queue.put(worker.CancelSignal())
@@ -120,7 +124,7 @@ def main():
                 if receiving_worker is None:
                     log.debug(f"Received a callback query in a chat without worker: {update.callback_query.from_user.id}")
                     # Suggest that the user restarts the chat with /start
-                    bot.send_message(update.callback_query.from_user.id, strings.error_no_worker_for_chat)
+                    bot.send_message(update.callback_query.from_user.id, default_loc.get("error_no_worker_for_chat"))
                     # Skip the update
                     continue
                 # Check if the pressed inline key is a cancel button
@@ -146,7 +150,7 @@ def main():
                     try:
                         bot.answer_pre_checkout_query(update.pre_checkout_query.id,
                                                       ok=False,
-                                                      error_message=strings.error_invoice_expired)
+                                                      error_message=default_loc.get("error_invoice_expired"))
                     except telegram.error.BadRequest:
                         log.error("pre-checkout query expired before an answer could be sent!")
                     # Go to the next update

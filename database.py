@@ -7,10 +7,10 @@ import configloader
 import telegram
 import requests
 import utils
-import importlib
+import localization
+import logging
 
-language = configloader.config["Config"]["language"]
-strings = importlib.import_module("strings." + language)
+log = logging.getLogger(__name__)
 
 # Create a (lazy) database engine
 engine = create_engine(configloader.config["Database"]["engine"])
@@ -31,6 +31,7 @@ class User(TableDeclarativeBase):
     first_name = Column(String, nullable=False)
     last_name = Column(String)
     username = Column(String)
+    language = Column(String, nullable=False)
 
     # Current wallet credit
     credit = Column(Integer, nullable=False)
@@ -38,14 +39,16 @@ class User(TableDeclarativeBase):
     # Extra table parameters
     __tablename__ = "users"
 
-    def __init__(self, telegram_chat: telegram.Chat, **kwargs):
+    def __init__(self, telegram_user: telegram.User, **kwargs):
         # Initialize the super
         super().__init__(**kwargs)
         # Get the data from telegram
-        self.user_id = telegram_chat.id
-        self.first_name = telegram_chat.first_name
-        self.last_name = telegram_chat.last_name
-        self.username = telegram_chat.username
+        self.user_id = telegram_user.id
+        self.first_name = telegram_user.first_name
+        self.last_name = telegram_user.last_name
+        self.username = telegram_user.username
+        self.language = telegram_user.language_code if telegram_user.language_code else configloader.config["Language"][
+            "default_language"]
         # The starting wallet value is 0
         self.credit = 0
 
@@ -74,6 +77,13 @@ class User(TableDeclarativeBase):
         valid_transactions: typing.List[Transaction] = [t for t in self.transactions if not t.refunded]
         self.credit = sum(map(lambda t: t.value, valid_transactions))
 
+    @property
+    def full_name(self):
+        if self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        else:
+            return self.first_name
+
     def __repr__(self):
         return f"<User {self} having {self.credit} credit>"
 
@@ -99,40 +109,37 @@ class Product(TableDeclarativeBase):
 
     # No __init__ is needed, the default one is sufficient
 
-    def __str__(self):
-        return self.text()
-
-    def text(self, style: str="full", cart_qty: int=None):
+    def text(self, *, loc: localization.Localization, style: str = "full", cart_qty: int = None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
         if style == "short":
-            return f"{cart_qty}x {utils.telegram_html_escape(self.name)} - {str(utils.Price(self.price) * cart_qty)}"
+            return f"{cart_qty}x {utils.telegram_html_escape(self.name)} - {str(utils.Price(self.price, loc) * cart_qty)}"
         elif style == "full":
             if cart_qty is not None:
-                cart = strings.in_cart_format_string.format(quantity=cart_qty)
+                cart = loc.get("in_cart_format_string", quantity=cart_qty)
             else:
                 cart = ''
-            return strings.product_format_string.format(name=utils.telegram_html_escape(self.name),
-                                                        description=utils.telegram_html_escape(self.description),
-                                                        price=str(utils.Price(self.price)),
-                                                        cart=cart)
+            return loc.get("product_format_string", name=utils.telegram_html_escape(self.name),
+                           description=utils.telegram_html_escape(self.description),
+                           price=str(utils.Price(self.price, loc)),
+                           cart=cart)
         else:
             raise ValueError("style is not an accepted value")
 
     def __repr__(self):
         return f"<Product {self.name}>"
 
-    def send_as_message(self, chat_id: int) -> dict:
+    def send_as_message(self, loc: localization.Localization, chat_id: int) -> dict:
         """Send a message containing the product data."""
         if self.image is None:
             r = requests.get(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendMessage",
                              params={"chat_id": chat_id,
-                                     "text": self.text(),
+                                     "text": self.text(loc=loc),
                                      "parse_mode": "HTML"})
         else:
             r = requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendPhoto",
                               files={"photo": self.image},
                               params={"chat_id": chat_id,
-                                      "caption": self.text(),
+                                      "caption": self.text(loc=loc),
                                       "parse_mode": "HTML"})
         return r.json()
 
@@ -181,10 +188,10 @@ class Transaction(TableDeclarativeBase):
     __tablename__ = "transactions"
     __table_args__ = (UniqueConstraint("provider", "provider_charge_id"),)
 
-    def __str__(self):
-        string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {utils.Price(self.value)}"
+    def text(self, *, loc: localization.Localization):
+        string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {utils.Price(self.value, loc)}"
         if self.refunded:
-            string += f" | {strings.emoji_refunded}"
+            string += f" | {loc.get('emoji_refunded')}"
         if self.provider:
             string += f" | {self.provider}"
         if self.notes:
@@ -247,36 +254,38 @@ class Order(TableDeclarativeBase):
     def __repr__(self):
         return f"<Order {self.order_id} placed by User {self.user_id}>"
 
-    def get_text(self, session, user=False):
+    def text(self, *, loc: localization.Localization, session, user=False):
         joined_self = session.query(Order).filter_by(order_id=self.order_id).join(Transaction).one()
         items = ""
         for item in self.items:
             items += str(item) + "\n"
         if self.delivery_date is not None:
-            status_emoji = strings.emoji_completed
-            status_text = strings.text_completed
+            status_emoji = loc.get("emoji_completed")
+            status_text = loc.get("text_completed")
         elif self.refund_date is not None:
-            status_emoji = strings.emoji_refunded
-            status_text = strings.text_refunded
+            status_emoji = loc.get("emoji_refunded")
+            status_text = loc.get("text_refunded")
         else:
-            status_emoji = strings.emoji_not_processed
-            status_text = strings.text_not_processed
+            status_emoji = loc.get("emoji_not_processed")
+            status_text = loc.get("text_not_processed")
         if user and configloader.config["Appearance"]["full_order_info"] == "no":
-            return strings.user_order_format_string.format(status_emoji=status_emoji,
-                                                           status_text=status_text,
-                                                           items=items,
-                                                           notes=self.notes,
-                                                           value=str(utils.Price(-joined_self.transaction.value))) + \
-                (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
+            return loc.get("user_order_format_string",
+                           status_emoji=status_emoji,
+                           status_text=status_text,
+                           items=items,
+                           notes=self.notes,
+                           value=str(utils.Price(-joined_self.transaction.value, loc))) + \
+                   (loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
         else:
             return status_emoji + " " + \
-                strings.order_number.format(id=self.order_id) + "\n" + \
-                strings.order_format_string.format(user=self.user.mention(),
-                                                   date=self.creation_date.isoformat(),
-                                                   items=items,
-                                                   notes=self.notes if self.notes is not None else "",
-                                                   value=str(utils.Price(-joined_self.transaction.value))) + \
-                (strings.refund_reason.format(reason=self.refund_reason) if self.refund_date is not None else "")
+                   loc.get("order_number", id=self.order_id) + "\n" + \
+                   loc.get("order_format_string",
+                           user=self.user.mention(),
+                           date=self.creation_date.isoformat(),
+                           items=items,
+                           notes=self.notes if self.notes is not None else "",
+                           value=str(utils.Price(-joined_self.transaction.value, loc))) + \
+                   (loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
 
 
 class OrderItem(TableDeclarativeBase):
@@ -293,8 +302,8 @@ class OrderItem(TableDeclarativeBase):
     # Extra table parameters
     __tablename__ = "orderitems"
 
-    def __str__(self):
-        return f"{self.product.name} - {str(utils.Price(self.product.price))}"
+    def text(self, *, loc: localization.Localization):
+        return f"{self.product.name} - {str(utils.Price(self.product.price, loc))}"
 
     def __repr__(self):
         return f"<OrderItem {self.item_id}>"
