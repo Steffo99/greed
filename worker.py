@@ -1142,8 +1142,10 @@ class Worker(threading.Thread):
                               self.loc.get("conversation_open_help_menu"),
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([self.loc.get("menu_guide"), self.loc.get("menu_contact_shopkeeper"),
-                                                      self.loc.get("menu_cancel")])
+        selection = self.__wait_for_specific_message([
+            self.loc.get("menu_guide"),
+            self.loc.get("menu_contact_shopkeeper")
+        ], cancellable=True)
         # If the user has selected the Guide option...
         if selection == self.loc.get("menu_guide"):
             # Send them the bot guide
