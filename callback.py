@@ -59,13 +59,13 @@ def callback():
                 user.credit += received_float
                 # Add a transaction to list
                 new_transaction = db.Transaction(user=user,
-                                             value=utils.Price(str(received_float)),
+                                             value=int(received_float * (10 ** int(configloader.config["Payments"]["currency_exp"]))),
                                              provider="Bitcoin",
                                              notes = address)
                 # Add and commit the transaction
                 dbsession.add(new_transaction)
                 # Update the received_value for address in DB
-                transaction.value += received_float
+                transaction.value += str(received_float)
                 transaction.txid = flask.request.args.get("txid")
                 transaction.status = 2
                 dbsession.commit()
