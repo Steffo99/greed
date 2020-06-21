@@ -36,7 +36,7 @@ def callback():
         # Fetch the current transaction by address
         dbsession = db.Session()
         transaction = dbsession.query(db.BtcTransaction).filter(db.BtcTransaction.address == address).one_or_none()
-        if transaction.txid == "":
+        if transaction and transaction.txid == "":
             # Check the status
             if transaction.status == -1:
                 current_time = datetime.datetime.now()
@@ -56,7 +56,7 @@ def callback():
                 print ("Recieved "+str(received_float)+" "+configloader.config["Payments"]["currency"]+" on address "+address)
                 # Add the credit to the user account
                 user = dbsession.query(db.User).filter(db.User.user_id == transaction.user_id).one_or_none()
-                user.credit += received_float
+                user.credit += int(received_float * (10 ** int(configloader.config["Payments"]["currency_exp"])))
                 # Add a transaction to list
                 new_transaction = db.Transaction(user=user,
                                              value=int(received_float * (10 ** int(configloader.config["Payments"]["currency_exp"]))),
@@ -65,7 +65,7 @@ def callback():
                 # Add and commit the transaction
                 dbsession.add(new_transaction)
                 # Update the received_value for address in DB
-                transaction.value += str(received_float)
+                transaction.value += received_float
                 transaction.txid = flask.request.args.get("txid")
                 transaction.status = 2
                 dbsession.commit()
