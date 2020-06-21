@@ -664,14 +664,14 @@ class Worker(threading.Thread):
             keyboard.append([telegram.KeyboardButton(self.loc.get("menu_credit_card"))])
         # Bitcoin Payments
         if configloader.config["Bitcoin"]["api_key"] != "":
-            keyboard.append([telegram.KeyboardButton(self.loc.get("menu_bitcoin"))])
+            keyboard.append([telegram.KeyboardButton("🛡 Bitcoin")])
         # Keyboard: go back to the previous menu
         keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cancel"))])
         # Send the keyboard to the user
         self.bot.send_message(self.chat.id, self.loc.get("conversation_payment_method"),
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([self.loc.get("menu_cash"), self.loc.get("menu_credit_card"), self.loc.get("menu_bitcoin"), self.loc.get("menu_cancel")],
+        selection = self.__wait_for_specific_message([self.loc.get("menu_cash"), self.loc.get("menu_credit_card"), "🛡 Bitcoin", self.loc.get("menu_cancel")],
                                                      cancellable=True)
         # If the user has selected the Cash option...
         if selection == self.loc.get("menu_cash"):
@@ -683,7 +683,7 @@ class Worker(threading.Thread):
             # Go to the pay with credit card function
             self.__add_credit_cc()
         # If the user has selected the Bitcoin option...
-        elif selection == self.loc.get("menu_bitcoin"):
+        elif selection == "🛡 Bitcoin":
             # Go to the pay with bitcoin function
             self.__add_credit_btc()
         # If the user has selected the Cancel option...

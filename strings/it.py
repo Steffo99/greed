@@ -148,9 +148,6 @@ menu_cash = "💵 In contanti"
 # User menu: credit card
 menu_credit_card = "💳 Con una carta di credito"
 
-# User menu: bitcoin
-menu_bitcoin = "🛡 Bitcoin"
-
 # Admin menu: products
 menu_products = "📝️ Prodotti"
 
