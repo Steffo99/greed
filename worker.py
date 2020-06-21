@@ -785,13 +785,12 @@ class Worker(threading.Thread):
         self.session.commit()
 
     def __add_credit_btc(self):
-        """Add money to the wallet through a credit card payment."""
+        """Add money to the wallet through a bitcoin payment."""
+        log.debug("Displaying __add_credit_btc")
         # Create a keyboard to be sent later
-        keyboard = [[telegram.KeyboardButton(str(utils.Price("10.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("25.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("50.00")))],
-                    [telegram.KeyboardButton(str(utils.Price("100.00")))],
-                    [telegram.KeyboardButton(self.loc.get("menu_cancel"))]]
+        presets = list(map(lambda s: s.strip(" "), configloader.config["Credit Card"]["payment_presets"].split('|')))
+        keyboard = [[telegram.KeyboardButton(str(utils.Price(preset, self.loc)))] for preset in presets]
+        keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cancel"))])
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
         raw_value = 0
@@ -801,16 +800,15 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, self.loc.get("payment_cc_amount"),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait until a valid amount is sent
-            # TODO: check and debug the regex
-            selection = self.__wait_for_regex(r"([0-9]{1,3}(?:[.,][0-9]+)?|" + self.loc.get("menu_cancel") + r")")
+            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + self.loc.get("menu_cancel") + r")", cancellable=True)
             # If the user cancelled the action
-            if selection == self.loc.get("menu_cancel"):
+            if isinstance(selection, CancelSignal):
                 # Exit the loop
                 cancelled = True
                 continue
             raw_value = selection
             # Convert the amount to an integer
-            value = utils.Price(selection)
+            value = utils.Price(selection, self.loc)
             break
         # If the user cancelled the action...
         else:
