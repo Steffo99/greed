@@ -402,7 +402,7 @@ class Worker(threading.Thread):
             if product.price is None:
                 continue
             # Send the message without the keyboard to get the message id
-            message = product.send_as_message(self.chat.id)
+            message = product.send_as_message(loc=self.loc, chat_id=self.chat.id)
             # Add the product to the cart
             cart[message['result']['message_id']] = [product, 0]
             # Create the inline keyboard to add the product to the cart
@@ -806,9 +806,12 @@ class Worker(threading.Thread):
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
                                   )
             # Wait for a reply from the user
-            selection = self.__wait_for_specific_message([self.loc.get("menu_products"), self.loc.get("menu_orders"),
-                                                          self.loc.get("menu_user_mode"), self.loc.get("menu_edit_credit"),
-                                                          self.loc.get("menu_transactions"), self.loc.get("menu_csv"),
+            selection = self.__wait_for_specific_message([self.loc.get("menu_products"),
+                                                          self.loc.get("menu_orders"),
+                                                          self.loc.get("menu_user_mode"),
+                                                          self.loc.get("menu_edit_credit"),
+                                                          self.loc.get("menu_transactions"),
+                                                          self.loc.get("menu_csv"),
                                                           self.loc.get("menu_edit_admins")])
             # If the user has selected the Products option...
             if selection == self.loc.get("menu_products"):
