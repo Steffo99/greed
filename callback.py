@@ -9,9 +9,6 @@ import datetime
 import importlib
 from decimal import Decimal
 
-language = configloader.config["Config"]["language"]
-strings = importlib.import_module("strings." + language)
-
 # Start the bitcoin callback listener
 app = flask.Flask(__name__)
 @app.route('/callback', methods=['GET'])
