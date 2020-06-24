@@ -1129,9 +1129,11 @@ class Worker(threading.Thread):
         self.session.commit()
         # Notify the user of the credit/debit
         self.bot.send_message(user.user_id,
-                              self.loc.get("notification_transaction_created", transaction=str(transaction)))
+                              self.loc.get("notification_transaction_created",
+                                           transaction=transaction.text(loc=self.loc)))
         # Notify the admin of the success
-        self.bot.send_message(self.chat.id, self.loc.get("success_transaction_created", transaction=str(transaction)))
+        self.bot.send_message(self.chat.id, self.loc.get("success_transaction_created",
+                                                         transaction=transaction.text(loc=self.loc)))
 
     def __help_menu(self):
         """Help menu. Allows the user to ask for assistance, get a guide or see some info about the bot."""
