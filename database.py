@@ -85,7 +85,7 @@ class User(TableDeclarativeBase):
             return self.first_name
 
     def __repr__(self):
-        return f"<User {self} having {self.credit} credit>"
+        return f"<User {self.mention()} having {self.credit} credit>"
 
 
 class Product(TableDeclarativeBase):
@@ -199,7 +199,7 @@ class Transaction(TableDeclarativeBase):
         return string
 
     def __repr__(self):
-        return f"<Transaction {self.transaction_id} for User {self.user_id} {str(self)}>"
+        return f"<Transaction {self.transaction_id} for User {self.user_id}>"
 
 class BtcTransaction(TableDeclarativeBase):
     """A btc wallet transaction.
@@ -289,7 +289,7 @@ class Order(TableDeclarativeBase):
         joined_self = session.query(Order).filter_by(order_id=self.order_id).join(Transaction).one()
         items = ""
         for item in self.items:
-            items += str(item) + "\n"
+            items += item.text(loc=loc) + "\n"
         if self.delivery_date is not None:
             status_emoji = loc.get("emoji_completed")
             status_text = loc.get("text_completed")
