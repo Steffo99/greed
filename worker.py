@@ -1277,7 +1277,7 @@ class Worker(threading.Thread):
             # Create the inline keyboard markup
             inline_keyboard = telegram.InlineKeyboardMarkup(inline_keyboard_list)
             # Create the message text
-            transactions_string = "\n".join([str(transaction) for transaction in transactions])
+            transactions_string = "\n".join([transaction.text(loc=self.loc) for transaction in transactions])
             text = self.loc.get("transactions_page", page=page + 1, transactions=transactions_string)
             # Update the previously sent message
             self.bot.edit_message_text(chat_id=self.chat.id, message_id=message.message_id, text=text,
