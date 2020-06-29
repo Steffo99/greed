@@ -20,7 +20,7 @@ Use the special credit card number `4242 4242 4242 4242` to add unlimited credit
 * _Optional: a [git client](https://git-scm.com/)_
 * _Optional: a [sentry.io](https://sentry.io) token_
 
-Consider renting a VPS to host the bot on
+Consider renting a VPS to host the bot on; a cheap one should do, as greed is pretty lightweight! :)
 
 ## Installation
 
