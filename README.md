@@ -2,13 +2,19 @@
 
 A [customizable](/config/template_config.ini), [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
 
-![](https://img.shields.io/badge/version-beta-blue.svg)
-
 ## Demo
 
 Send a message to [@greedtestbot](https://t.me/greedtestbot) on Telegram to view a demo of the bot in action!
 
 Use the special credit card number `4242 4242 4242 4242` to add unlimited credit to your account. 
+
+## Screenshots
+
+![](https://i.imgur.com/FdT2tRV.png)
+
+![](https://i.imgur.com/rDYWdUB.png)
+
+![](https://i.imgur.com/9plMzO6.png)
 
 ## Requirements
 
