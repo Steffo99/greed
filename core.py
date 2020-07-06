@@ -39,7 +39,7 @@ def main():
     # Test the specified token
     log.debug("Testing bot token...")
     try:
-        bot.get_me()
+        me = bot.get_me()
     except telegram.error.Unauthorized:
         logging.fatal("The token you have entered in the config file is invalid. Fix it, then restart greed.")
         sys.exit(1)
@@ -58,7 +58,7 @@ def main():
     next_update = None
 
     # Notify on the console that the bot is starting
-    log.info("greed is starting!")
+    log.info(f"@{me.username} is starting!")
 
     # Main loop of the program
     while True:
