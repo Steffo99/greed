@@ -246,12 +246,22 @@ class Worker(threading.Thread):
             # Return the precheckoutquery
             return update.pre_checkout_query
 
-    def __wait_for_successfulpayment(self) -> telegram.SuccessfulPayment:
+    def __wait_for_successfulpayment(self,
+                                     cancellable: bool = False) -> Union[telegram.SuccessfulPayment, CancelSignal]:
         """Continue getting updates until a successfulpayment is received."""
         log.debug("Waiting for a SuccessfulPayment...")
         while True:
             # Get the next update
             update = self.__receive_next_update()
+            # If a CancelSignal is received...
+            if isinstance(update, CancelSignal):
+                # And the wait is cancellable...
+                if cancellable:
+                    # Return the CancelSignal
+                    return update
+                else:
+                    # Ignore the signal
+                    continue
             # Ensure the update contains a message
             if update.message is None:
                 continue
@@ -754,7 +764,7 @@ class Worker(threading.Thread):
         # Accept the checkout
         self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=True)
         # Wait for the payment
-        successfulpayment = self.__wait_for_successfulpayment()
+        successfulpayment = self.__wait_for_successfulpayment(cancellable=False)
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
                                      value=int(successfulpayment.total_amount) - fee,
