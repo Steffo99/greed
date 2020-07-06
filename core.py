@@ -100,7 +100,7 @@ def main():
                 # Otherwise, forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.message.chat.id)
                 # Ensure a worker exists for the chat and is alive
-                if receiving_worker is None or not receiving_worker.is_alive():
+                if receiving_worker is None or not receiving_worker.is_ready():
                     log.debug(f"Received a message in a chat without worker: {update.message.chat.id}")
                     # Suggest that the user restarts the chat with /start
                     bot.send_message(update.message.chat.id, default_loc.get("error_no_worker_for_chat"),

@@ -130,6 +130,10 @@ class Worker(threading.Thread):
                 self.sentry_client.captureException()
             traceback.print_exception(*sys.exc_info())
 
+    def is_ready(self):
+        # Change this if more parameters are added!
+        return self.loc is not None
+
     def stop(self, reason: str = ""):
         """Gracefully stop the worker process"""
         # Send a stop message to the thread
