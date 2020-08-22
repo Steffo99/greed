@@ -315,7 +315,7 @@ payment_cc_amount = "您想添加多少钱到钱包里？\n" \
                     "<i>使用下面的按钮选择一个金额，或使用键盘手动输入</i>"
 
 # Payment: add funds invoice title
-payment_invoice_title = "添加资金"
+payment_invoice_title = "充值余额""
 
 # Payment: add funds invoice description
 payment_invoice_description = "支付此发票会将{amount} 添加到您的钱包中."
