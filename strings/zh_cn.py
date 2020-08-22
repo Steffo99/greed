@@ -58,7 +58,7 @@ conversation_after_start = "您好!\n" \
                            "欢迎使用greed系统!\n" \
                            "此软件版本是🅱️ <b>的Beta</b>版本.\n" \
                            "它完全可用，但可能仍然存在一些错误.\n" \
-                           "“如果发现任何问题，请在https://github.com/Steffo99/greed/issues中报告."
+                           "“如果发现任何问题，请在https://github.com/Steffo99/greed/issues 中报告."
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "您想做什么?\n" \
@@ -383,7 +383,7 @@ success_transaction_created = "✅ 交易已成功创建!\n" \
                               "{transaction}"
 
 # Error: message received not in a private chat
-error_nonprivate_chat = "⚠️ 该机器人仅适用于私人聊天s."
+error_nonprivate_chat = "⚠️ 该机器人仅适用于私人聊天."
 
 # Error: a message was sent in a chat, but no worker exists for that chat.
 # Suggest the creation of a new worker with /start
