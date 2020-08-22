@@ -343,7 +343,7 @@ notification_transaction_created = "ℹ️  新交易已应用于您的钱包:\n
                                    "{transaction}"
 
 # Refund reason
-refund_reason = "Refund reason:\n" \
+refund_reason = "退款原因:\n" \
                 "{reason}"
 
 # Info: informazioni sul bot
