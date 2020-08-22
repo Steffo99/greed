@@ -205,7 +205,7 @@ menu_next = "▶️ 下一个"
 menu_previous = "◀️ 上一个"
 
 # Menu: contact the shopkeeper
-menu_contact_shopkeeper = "👨‍💼 联系商店”
+menu_contact_shopkeeper = "👨‍💼 联系商店"
 
 # Menu: generate transactions .csv file
 menu_csv = "📄 .csv"
@@ -248,7 +248,7 @@ ask_product_description = "产品说明应该是什么?"
 
 # Add product: price?
 ask_product_price = "产品价格应该是多少?\n" \
-                    "输入" <code>X</code> 如果不希望该产品被出售"
+                    "输入 <code>X</code> 如果不希望该产品被出售"
 
 # Add product: image?
 ask_product_image = "🖼 您希望产品具有什么图片？\n" \
