@@ -1366,6 +1366,10 @@ class Worker(threading.Thread):
             lang = "🇺🇦 Українська"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "uk"
+        if "zh_cn" in configloader.config["Language"]["enabled_languages"]:
+            lang = "🇨🇳"
+            keyboard.append([telegram.KeyboardButton(lang)])
+            options[lang] = "zh_cn"
         # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
         self.bot.send_message(self.chat.id,
                               self.loc.get("conversation_language_select"),
