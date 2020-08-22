@@ -59,7 +59,7 @@ conversation_after_start = "! היי וברוך הבא \n" \
                            "הלקוחות שלנו חשובים לנו ונשמח לעמוד לרשותכם לכל עת בעמוד הבית"
 
 # Conversation: to send an inline keyboard you need to send a message with it
-conversation_open_user_menu = "היי וברוך הבא לרפליקות שעונים\n" \
+conversation_open_user_menu = "היי וברוך הבא\n" \
                               "💰 <b>{credit}</b> :  כמה כסף יש לי בארנק\n" \
                               "\n" \
                               "<i>לחץ על הכפתור שבתפריט כדי לבחור שירות\n" \
