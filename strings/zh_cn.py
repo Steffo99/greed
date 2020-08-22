@@ -327,19 +327,19 @@ payment_invoice_label = "重新加载"
 payment_invoice_fee_label = "交易费"
 
 # Notification: order has been placed
-notification_order_placed = "A new order was placed:\n" \
+notification_order_placed = "新订单是:\n" \
                             "{order}"
 
 # Notification: order has been completed
-notification_order_completed = "Your order has been completed!\n" \
+notification_order_completed = "您的订单已完成\n" \
                                "{order}"
 
 # Notification: order has been refunded
-notification_order_refunded = "Your order has been refunded!\n" \
+notification_order_refunded = "您的订单已退款\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied
-notification_transaction_created = "ℹ️  A new transaction has been applied to your wallet:\n" \
+notification_transaction_created = "ℹ️  新交易已应用于您的钱包:\n" \
                                    "{transaction}"
 
 # Refund reason
@@ -347,75 +347,75 @@ refund_reason = "Refund reason:\n" \
                 "{reason}"
 
 # Info: informazioni sul bot
-bot_info = 'This bot is using <a href="https://github.com/Steffo99/greed">greed</a>,' \
-           ' a framework by @Steffo for Telegram payments released under the' \
+bot_info = '此机器人正在使用 <a href="https://github.com/Steffo99/greed">greed</a>,' \
+           ' @Steffo框架下的Telegram支付系统,中文翻译由@zhihuiyuze完成' \
            ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE.txt">' \
            'Affero General Public License 3.0</a>.\n'
 
 # Help: guide
-help_msg = "greed's guide is available at this address:\n" \
+help_msg = "greed的指南可在此地址获得(未翻译):\n" \
            "https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/"
 
 # Help: contact shopkeeper
-contact_shopkeeper = "Currently, the staff available to provide user assistance is composed of:\n" \
+contact_shopkeeper = "目前可提供帮助和支持的人员包括:\n" \
                      "{shopkeepers}\n" \
-                     "<i>Click / Tap one of their names to contact them in a Telegram chat.</i>"
+                     "<i>点击他们的姓名之一，以通过Telegranm与他们联系.</i>"
 
 # Success: product has been added/edited to the database
-success_product_edited = "✅ The product has been successfully added/modified!"
+success_product_edited = "✅ 产品已成功添加/修改"
 
 # Success: product has been added/edited to the database
-success_product_deleted = "✅ The product has been successfully deleted!"
+success_product_deleted = "✅ 该产品已成功删除!"
 
 # Success: order has been created
-success_order_created = "✅ The order was sent successfully!\n" \
+success_order_created = "✅ 订单已成功发送!\n" \
                         "\n" \
                         "{order}"
 
 # Success: order was marked as completed
-success_order_completed = "✅ You marked the order #{order_id} as completed."
+success_order_completed = "✅ 您的订单 #{order_id} 已标记完成."
 
 # Success: order was refunded successfully
-success_order_refunded = "✴️ Order #{order_id} was refunded."
+success_order_refunded = "✴️ 订单 #{order_id} 已退款."
 
 # Success: transaction was created successfully
-success_transaction_created = "✅ The transaction was successfully created!\n" \
+success_transaction_created = "✅ 交易已成功创建!\n" \
                               "{transaction}"
 
 # Error: message received not in a private chat
-error_nonprivate_chat = "⚠️ This bot only works in private chats."
+error_nonprivate_chat = "⚠️ 该机器人仅适用于私人聊天s."
 
 # Error: a message was sent in a chat, but no worker exists for that chat.
 # Suggest the creation of a new worker with /start
-error_no_worker_for_chat = "⚠️ The conversation with the bot was interrupted.\n" \
-                           "To restart it, send the /start command to the bot."
+error_no_worker_for_chat = "⚠️ 与机器人对话被中断.\n" \
+                           "要重新启动它，请将 /start 命令发送给机器人"
 
 # Error: add funds amount over max
-error_payment_amount_over_max = "⚠️ The maximum amount that can be added in a single transaction is {max_amount}."
+error_payment_amount_over_max = "⚠️ 单笔交易中可以添加的最大金额为{max_amount}."
 
 # Error: add funds amount under min
-error_payment_amount_under_min = "⚠️ The minimum amount that can be added in a single transaction is {min_amount}."
+error_payment_amount_under_min = "⚠️ 单笔交易中可以添加的最小金额为{min_amount}."
 
 # Error: the invoice has expired and can't be paid
-error_invoice_expired = "⚠️ This invoice has expired and was canceled. If you still want to add funds, use the Add" \
-                        " funds menu option."
+error_invoice_expired = "⚠️ 该发票已过期，且已被取消。 如果您仍想添加资金，请使用添加" \
+                        " 资金菜单选项."
 
 # Error: a product with that name already exists
-error_duplicate_name = "️⚠️ A product with the same name already exists."
+error_duplicate_name = "️⚠️ 具有相同名称的产品已经存在."
 
 # Error: not enough credit to order
-error_not_enough_credit = "⚠️ You do not have enough credit to place the order."
+error_not_enough_credit = "⚠️ 您的信用额不足，无法下订单."
 
 # Error: order has already been cleared
-error_order_already_cleared = "⚠️  This order has already been processed."
+error_order_already_cleared = "⚠️  该订单已被处理."
 
 # Error: no orders have been placed, so none can be shown
-error_no_orders = "⚠️  You haven't placed any order yet, so there is nothing to display."
+error_no_orders = "⚠️  您尚未下任何订单，因此无任何显示."
 
 # Error: selected user does not exist
-error_user_does_not_exist = "⚠️  The selected user does not exist."
+error_user_does_not_exist = "⚠️  所选用户不存在."
 
 # Fatal: conversation raised an exception
-fatal_conversation_exception = "☢️ Oh no! An <b>error</b> interrupted this conversation\n" \
-                               "The error was reported to the bot owner so that he can fix it.\n" \
-                               "To restart the conversation, send the /start command again."
+fatal_conversation_exception = "☢️ 啊啊啊啊! 一个 <b>error</b> 阻止了此对话\n" \
+                               "该错误已报告给机器人所有者，以便他可以修复它\n" \
+                               "如果要重新开始对话，请发送 /start"
