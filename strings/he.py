@@ -1,8 +1,6 @@
 # Strings / localization file for greed
 # Can be edited, but DON'T REMOVE THE REPLACEMENT FIELDS (words surrounded by {curly braces})
 
-# Part of the translation by https://github.com/DarrenWestwood
-
 # Currency symbol
 currency_symbol = "€"
 
@@ -92,7 +90,7 @@ conversation_cart_actions = "<i>תוכל להוסיף מוצרים לעגלת ה
                             " ולחץ כל כפתור בוצע לסיום</i>"
 
 # Conversation: confirm the cart contents
-conversation_confirm_cart = "🛒העגלה שלך מכילה את הפריטים הבאים\n" \
+conversation_confirm_cart = "🛒 העגלה שלך מכילה את הפריטים הבאים\n" \
                             "{product_list}" \
                             "<b>{total_cost}</b> :סך הכל\n" \
                             "\n" \
@@ -123,27 +121,27 @@ conversation_switch_to_user_mode = " כעת תעבור למצב שמדמה קו�
                                    "/start אם תרצה לחזור בכל זמן לחזור לפאל הניהול, לחץ על"
 
 # Notification: the conversation has expired
-conversation_expired = "🕐המערכת זיהתה שלא הייתה שום פעילות כבר זמן ממושך. לכן המערכת מושהית" \
+conversation_expired = "🕐 המערכת זיהתה שלא הייתה שום פעילות כבר זמן ממושך. לכן המערכת מושהית" \
                        " כדי לחסוך במשאבים\n" \
                        "/start כדי להתחיל מחדש פשוט לחצו על"
 
 # User menu: order
-menu_order = "🛒רשימת פריטים"
+menu_order = "🛒 רשימת פריטים"
 
 # User menu: order status
-menu_order_status = "🛍ההזמנות שלי"
+menu_order_status = "🛍 ההזמנות שלי"
 
 # User menu: add credit
-menu_add_credit = "💵טעינת כסף בחשבון"
+menu_add_credit = "💵 טעינת כסף בחשבון"
 
 # User menu: bot info
 menu_bot_info = "ℹ️מידע על הבוט"
 
 # User menu: cash
-menu_cash = "💵במזומן"
+menu_cash = "💵 במזומן"
 
 # User menu: credit card
-menu_credit_card = "💳בכרטיס אשראי"
+menu_credit_card = "💳 בכרטיס אשראי"
 
 # Admin menu: products
 menu_products = "📝️ מוצרים"
@@ -170,7 +168,7 @@ menu_delete_product = "❌ מחיקת מוצר קיים"
 menu_cancel = "🔙ביטול"
 
 # Menu: skip
-menu_skip = "⏭דלג"
+menu_skip = "⏭ דלג"
 
 # Menu: done
 menu_done = "✅️ בוצע"
@@ -185,7 +183,7 @@ menu_complete = "✅ בוצע"
 menu_refund = "✴️ החזר כספי"
 
 # Menu: stop
-menu_stop = "🛑עצור"
+menu_stop = "🛑 עצור"
 
 # Menu: add to cart
 menu_add_to_cart = "➕ הוסף"
@@ -206,7 +204,7 @@ menu_next = "▶️ הבא"
 menu_previous = "◀️ הקודם"
 
 # Menu: contact the shopkeeper
-menu_contact_shopkeeper = "👨‍ 💼צור קשר עם החנות"
+menu_contact_shopkeeper = "👨‍ 💼 צור קשר עם החנות"
 
 # Menu: generate transactions .csv file
 menu_csv = "📄 .csv"
@@ -215,7 +213,7 @@ menu_csv = "📄 .csv"
 menu_edit_admins = "🏵 עריכת מנהלים"
 
 # Menu: language
-menu_language = "🇬🇧 שפות נוספות"
+menu_language = "🇮🇱 שפות נוספות"
 
 # Emoji: unprocessed order
 emoji_not_processed = "*️⃣"
@@ -374,7 +372,7 @@ success_order_created = "✅ ההזמנה נשלחה בהצלחה\n" \
                         "{order}"
 
 # Success: order was marked as completed
-success_order_completed = "✅  #{order_id} סימנת את העסקא הבאה כבוצעה בהצלחה"
+success_order_completed = "✅ #{order_id} סימנת את העסקא הבאה כבוצעה בהצלחה"
 
 # Success: order was refunded successfully
 success_order_refunded = "✴️ #{order_id}: בוצע החזר כספי לעסקה"

@@ -1350,10 +1350,6 @@ class Worker(threading.Thread):
         keyboard = []
         options: Dict[str, str] = {}
         # https://en.wikipedia.org/wiki/List_of_language_names
-        if "heb" in configloader.config["Language"]["enabled_languages"]:
-            lang = "🇮🇱 עברית"
-            keyboard.append([telegram.KeyboardButton(lang)])
-            options[lang] = "heb"
         if "it" in configloader.config["Language"]["enabled_languages"]:
             lang = "🇮🇹 Italiano"
             keyboard.append([telegram.KeyboardButton(lang)])
@@ -1374,6 +1370,10 @@ class Worker(threading.Thread):
             lang = "🇨🇳 简体中文"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "zh_cn"
+        if "he" in configloader.config["Language"]["enabled_languages"]:
+            lang = "🇮🇱 עברית"
+            keyboard.append([telegram.KeyboardButton(lang)])
+            options[lang] = "he"
         # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
         self.bot.send_message(self.chat.id,
                               self.loc.get("conversation_language_select"),
