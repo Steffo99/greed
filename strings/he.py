@@ -135,7 +135,7 @@ menu_order_status = "🛍 ההזמנות שלי"
 menu_add_credit = "💵 טעינת כסף בחשבון"
 
 # User menu: bot info
-menu_bot_info = "ℹ️מידע על הבוט"
+menu_bot_info = "ℹ ️מידע על הבוט"
 
 # User menu: cash
 menu_cash = "💵 במזומן"
@@ -165,7 +165,7 @@ menu_add_product = "✨ הוספת מוצר חדש"
 menu_delete_product = "❌ מחיקת מוצר קיים"
 
 # Menu: cancel
-menu_cancel = "🔙ביטול"
+menu_cancel = "🔙 ביטול"
 
 # Menu: skip
 menu_skip = "⏭ דלג"
