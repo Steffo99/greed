@@ -106,7 +106,8 @@ class Worker(threading.Thread):
         # noinspection PyBroadException
         try:
             # Welcome the user to the bot
-            self.bot.send_message(self.chat.id, self.loc.get("conversation_after_start"))
+            if configloader.config["Appearance"]["display_welcome_message"] == "yes":
+                self.bot.send_message(self.chat.id, self.loc.get("conversation_after_start"))
             # If the user is not an admin, send him to the user menu
             if self.admin is None:
                 self.__user_menu()
