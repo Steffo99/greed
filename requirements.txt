@@ -1,5 +1,6 @@
 python-telegram-bot
 sqlalchemy
 requests
+alembic
 toml
 alembic
