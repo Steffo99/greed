@@ -3,7 +3,6 @@ from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
 from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
-import configloader
 import telegram
 import requests
 import utils

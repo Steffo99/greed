@@ -3,12 +3,11 @@ from typing import *
 import uuid
 import datetime
 import telegram
-import configloader
+import nuconfig
 import sys
 import queue as queuem
 import database as db
 import re
-import utils
 import os
 import traceback
 from html import escape
@@ -33,13 +32,20 @@ class CancelSignal:
 class Worker(threading.Thread):
     """A worker for a single conversation. A new one is created every time the /start command is sent."""
 
-    def __init__(self, bot: utils.DuckBot, chat: telegram.Chat, telegram_user: telegram.User, *args, **kwargs):
+    def __init__(self,
+                 bot,
+                 chat: telegram.Chat,
+                 telegram_user: telegram.User,
+                 cfg: nuconfig.NuConfig,
+                 *args, 
+                 **kwargs):
         # Initialize the thread
         super().__init__(name=f"Worker {chat.id}", *args, **kwargs)
-        # Store the bot and chat info inside the class
-        self.bot: utils.DuckBot = bot
+        # Store the bot, chat info and config inside the class
+        self.bot = bot
         self.chat: telegram.Chat = chat
         self.telegram_user: telegram.User = telegram_user
+        self.cfg = cfg
         # Open a new database session
         log.debug(f"Opening new database session for {self.name}")
         self.session = db.Session()
@@ -50,22 +56,103 @@ class Worker(threading.Thread):
         self.queue = queuem.Queue()
         # The current active invoice payload; reject all invoices with a different payload
         self.invoice_payload = None
-        # The localization strings for this user
-        self.loc = None
-        # The Sentry client for reporting errors encountered by the user
-        if configloader.config["Error Reporting"]["sentry_token"] != \
-                "https://00000000000000000000000000000000:00000000000000000000000000000000@sentry.io/0000000":
-            import raven
-            self.sentry_client = raven.Client(configloader.config["Error Reporting"]["sentry_token"],
-                                              release=raven.fetch_git_sha(os.path.dirname(__file__)),
-                                              environment="Dev" if __debug__ else "Prod")
-            log.debug("Sentry: enabled")
-        else:
-            self.sentry_client = None
-            log.debug("Sentry: disabled")
+        # The price class of this worker.
+        self.Price = self.price_factory()
 
     def __repr__(self):
         return f"<{self.__class__.__qualname__} {self.chat.id}>"
+
+    # noinspection PyMethodParameters
+    def price_factory(worker):
+        class Price:
+            """The base class for the prices in greed.
+            Its int value is in minimum units, while its float and str values are in decimal format."""
+
+            def __init__(self, value: Union[int, float, str, "Price"]):
+                if isinstance(value, int):
+                    # Keep the value as it is
+                    self.value = int(value)
+                elif isinstance(value, float):
+                    # Convert the value to minimum units
+                    self.value = int(value * (10 ** worker.cfg["Payments"]["currency_exp"]))
+                elif isinstance(value, str):
+                    # Remove decimal points, then cast to int
+                    self.value = int(float(value.replace(",", ".")) * (10 ** worker.cfg["Payments"]["currency_exp"]))
+                elif isinstance(value, Price):
+                    # Copy self
+                    self.value = value.value
+
+            def __repr__(self):
+                return f"<{self.__class__.__qualname__} of value {self.value}>"
+
+            def __str__(self):
+                return worker.loc.get(
+                    "currency_format_string",
+                    symbol=worker.cfg["Payments"]["currency_symbol"],
+                    value="{0:.2f}".format(self.value / (10 ** worker.cfg["Payments"]["currency_exp"]))
+                )
+
+            def __int__(self):
+                return self.value
+
+            def __float__(self):
+                return self.value / (10 ** worker.cfg["Payments"]["currency_exp"])
+
+            def __ge__(self, other):
+                return self.value >= Price(other).value
+
+            def __le__(self, other):
+                return self.value <= Price(other).value
+
+            def __eq__(self, other):
+                return self.value == Price(other).value
+
+            def __gt__(self, other):
+                return self.value > Price(other).value
+
+            def __lt__(self, other):
+                return self.value < Price(other).value
+
+            def __add__(self, other):
+                return Price(self.value + Price(other).value)
+
+            def __sub__(self, other):
+                return Price(self.value - Price(other).value)
+
+            def __mul__(self, other):
+                return Price(int(self.value * other))
+
+            def __floordiv__(self, other):
+                return Price(int(self.value // other))
+
+            def __radd__(self, other):
+                return self.__add__(other)
+
+            def __rsub__(self, other):
+                return Price(Price(other).value - self.value)
+
+            def __rmul__(self, other):
+
+                return self.__mul__(other)
+
+            def __iadd__(self, other):
+                self.value += Price(other).value
+                return self
+
+            def __isub__(self, other):
+                self.value -= Price(other).value
+                return self
+
+            def __imul__(self, other):
+                self.value *= other
+                self.value = int(self.value)
+                return self
+
+            def __ifloordiv__(self, other):
+                self.value //= other
+                return self
+
+        return Price
 
     def run(self):
         """The conversation code."""
@@ -106,7 +193,7 @@ class Worker(threading.Thread):
         # noinspection PyBroadException
         try:
             # Welcome the user to the bot
-            if configloader.config["Appearance"]["display_welcome_message"] == "yes":
+            if self.cfg["Appearance"]["display_welcome_message"] == "yes":
                 self.bot.send_message(self.chat.id, self.loc.get("conversation_after_start"))
             # If the user is not an admin, send him to the user menu
             if self.admin is None:
@@ -119,16 +206,14 @@ class Worker(threading.Thread):
                 self.session.commit()
                 # Open the admin menu
                 self.__admin_menu()
-        except Exception:
+        except Exception as e:
             # Try to notify the user of the exception
             # noinspection PyBroadException
             try:
                 self.bot.send_message(self.chat.id, self.loc.get("fatal_conversation_exception"))
-            except Exception:
-                pass
-            # If the Sentry integration is enabled, log the exception
-            if self.sentry_client is not None:
-                self.sentry_client.captureException()
+            except Exception as ne:
+                log.error(f"Failed to notify the user of a conversation exception: {ne}")
+            log.error(f"Exception in {self}: {e}")
             traceback.print_exception(*sys.exc_info())
 
     def is_ready(self):
@@ -155,7 +240,7 @@ class Worker(threading.Thread):
         If a stop signal is sent, try to gracefully stop the thread."""
         # Pop data from the queue
         try:
-            data = self.queue.get(timeout=int(configloader.config["Telegram"]["conversation_timeout"]))
+            data = self.queue.get(timeout=self.cfg["Telegram"]["conversation_timeout"])
         except queuem.Empty:
             # If the conversation times out, gracefully stop the thread
             self.__graceful_stop(StopSignal("timeout"))
@@ -365,7 +450,7 @@ class Worker(threading.Thread):
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id,
                                   self.loc.get("conversation_open_user_menu",
-                                               credit=utils.Price(self.user.credit, self.loc)),
+                                               credit=self.Price(self.user.credit)),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([
@@ -573,12 +658,12 @@ class Worker(threading.Thread):
         if credit_required > 0:
             self.bot.send_message(self.chat.id, self.loc.get("error_not_enough_credit"))
             # Suggest payment for missing credit value if configuration allows refill
-            if configloader.config["Credit Card"]["credit_card_token"] != "" \
-                    and configloader.config["Appearance"]["refill_on_checkout"] == 'yes' \
-                    and utils.Price(int(configloader.config["Credit Card"]["min_amount"]), self.loc) <= \
+            if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "" \
+                    and self.cfg["Appearance"]["refill_on_checkout"] == 'yes' \
+                    and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
                         credit_required <= \
-                        utils.Price(int(configloader.config["Credit Card"]["max_amount"]), self.loc):
-                self.__make_payment(utils.Price(credit_required, self.loc))
+                        self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
+                self.__make_payment(self.Price(credit_required))
         # If afer requested payment credit is still insufficient (either payment failure or cancel)
         if self.user.credit < self.__get_cart_value(cart):
             # Rollback all the changes
@@ -589,7 +674,7 @@ class Worker(threading.Thread):
 
     def __get_cart_value(self, cart):
         # Calculate total items value in cart
-        value = utils.Price(0, self.loc)
+        value = self.Price(0)
         for product in cart:
             value += cart[product][0].price * cart[product][1]
         return value
@@ -665,7 +750,7 @@ class Worker(threading.Thread):
         # Cash
         keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cash"))])
         # Telegram Payments
-        if configloader.config["Credit Card"]["credit_card_token"] != "":
+        if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "":
             keyboard.append([telegram.KeyboardButton(self.loc.get("menu_credit_card"))])
         # Keyboard: go back to the previous menu
         keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cancel"))])
@@ -693,8 +778,8 @@ class Worker(threading.Thread):
         """Add money to the wallet through a credit card payment."""
         log.debug("Displaying __add_credit_cc")
         # Create a keyboard to be sent later
-        presets = list(map(lambda s: s.strip(" "), configloader.config["Credit Card"]["payment_presets"].split('|')))
-        keyboard = [[telegram.KeyboardButton(str(utils.Price(preset, self.loc)))] for preset in presets]
+        presets = list(map(lambda s: s.strip(" "), self.cfg["Payments"]["CreditCard"]["payment_presets"].split('|')))
+        keyboard = [[telegram.KeyboardButton(str(self.Price(preset)))] for preset in presets]
         keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cancel"))])
         # Boolean variable to check if the user has cancelled the action
         cancelled = False
@@ -711,15 +796,15 @@ class Worker(threading.Thread):
                 cancelled = True
                 continue
             # Convert the amount to an integer
-            value = utils.Price(selection, self.loc)
+            value = self.Price(selection)
             # Ensure the amount is within the range
-            if value > utils.Price(int(configloader.config["Credit Card"]["max_amount"]), self.loc):
+            if value > self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
                 self.bot.send_message(self.chat.id,
-                                      self.loc.get("error_payment_amount_over_max", max_amount=utils.Price(configloader.config["Credit Card"]["max_amount"], self.loc)))
+                                      self.loc.get("error_payment_amount_over_max", max_amount=self.Price(self.cfg["Credit Card"]["max_amount"])))
                 continue
-            elif value < utils.Price(int(configloader.config["Credit Card"]["min_amount"]), self.loc):
+            elif value < self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]):
                 self.bot.send_message(self.chat.id,
-                                      self.loc.get("error_payment_amount_under_min", min_amount=utils.Price(configloader.config["Credit Card"]["min_amount"], self.loc)))
+                                      self.loc.get("error_payment_amount_under_min", min_amount=self.Price(self.cfg["Credit Card"]["min_amount"])))
                 continue
             break
         # If the user cancelled the action...
@@ -740,7 +825,8 @@ class Worker(threading.Thread):
             prices.append(telegram.LabeledPrice(label=self.loc.get("payment_invoice_fee_label"),
                                                 amount=fee))
         # Create the invoice keyboard
-        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_pay"), pay=True)],
+        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_pay"),
+                                                                                        pay=True)],
                                                          [telegram.InlineKeyboardButton(self.loc.get("menu_cancel"),
                                                                                         callback_data="cmd_cancel")]])
         # The amount is valid, send the invoice
@@ -748,13 +834,13 @@ class Worker(threading.Thread):
                               title=self.loc.get("payment_invoice_title"),
                               description=self.loc.get("payment_invoice_description", amount=str(amount)),
                               payload=self.invoice_payload,
-                              provider_token=configloader.config["Credit Card"]["credit_card_token"],
+                              provider_token=self.cfg["Payments"]["CreditCard"]["credit_card_token"],
                               start_parameter="tempdeeplink",
-                              currency=configloader.config["Payments"]["currency"],
+                              currency=self.cfg["Payments"]["currency"],
                               prices=prices,
-                              need_name=configloader.config["Credit Card"]["name_required"] == "yes",
-                              need_email=configloader.config["Credit Card"]["email_required"] == "yes",
-                              need_phone_number=configloader.config["Credit Card"]["phone_required"] == "yes",
+                              need_name=self.cfg["Payments"]["CreditCard"]["name_required"],
+                              need_email=self.cfg["Payments"]["CreditCard"]["email_required"],
+                              need_phone_number=self.cfg["Payments"]["CreditCard"]["phone_required"],
                               reply_markup=inline_keyboard)
         # Wait for the precheckout query
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
@@ -782,11 +868,10 @@ class Worker(threading.Thread):
         # Commit all the changes
         self.session.commit()
 
-    @staticmethod
-    def __get_total_fee(amount):
+    def __get_total_fee(self, amount):
         # Calculate a fee for the required amount
-        fee_percentage = float(configloader.config["Credit Card"]["fee_percentage"]) / 100
-        fee_fixed = int(configloader.config["Credit Card"]["fee_fixed"])
+        fee_percentage = self.cfg["Payments"]["CreditCard"]["fee_percentage"] / 100
+        fee_fixed = self.cfg["Payments"]["CreditCard"]["fee_fixed"]
         total_fee = amount * fee_percentage + fee_fixed
         if total_fee > 0:
             return total_fee
@@ -818,8 +903,7 @@ class Worker(threading.Thread):
             keyboard.append([self.loc.get("menu_user_mode")])
             # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
             self.bot.send_message(self.chat.id, self.loc.get("conversation_open_admin_menu"),
-                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
-                                  )
+                                  reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([self.loc.get("menu_products"),
                                                           self.loc.get("menu_orders"),
@@ -934,8 +1018,8 @@ class Worker(threading.Thread):
         if product:
             self.bot.send_message(self.chat.id,
                                   self.loc.get("edit_current_value",
-                                      value=(str(utils.Price(product.price, self.loc))
-                                             if product.price is not None else 'Non in vendita')),
+                                  value=(str(self.Price(product.price))
+                                         if product.price is not None else 'Non in vendita')),
                                   reply_markup=cancel)
         # Wait for an answer
         price = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]{1,2})?|[Xx])",
@@ -946,7 +1030,7 @@ class Worker(threading.Thread):
         elif price.lower() == "x":
             price = None
         else:
-            price = utils.Price(price, self.loc)
+            price = self.Price(price)
         # Ask for the product image
         self.bot.send_message(self.chat.id, self.loc.get("ask_product_image"), reply_markup=cancel)
         # Wait for an answer
@@ -1131,7 +1215,7 @@ class Worker(threading.Thread):
         if isinstance(reply, CancelSignal):
             return
         # Convert the reply to a price object
-        price = utils.Price(reply, self.loc)
+        price = self.Price(reply)
         # Ask the user for notes
         self.bot.send_message(self.chat.id, self.loc.get("ask_transaction_notes"), reply_markup=cancel)
         # Wait for an answer
@@ -1280,7 +1364,7 @@ class Worker(threading.Thread):
         # Reopen the file for reading
         with open(f"transactions_{self.chat.id}.csv") as file:
             # Send the file via a manual request to Telegram
-            requests.post(f"https://api.telegram.org/bot{configloader.config['Telegram']['token']}/sendDocument",
+            requests.post(f"https://api.telegram.org/bot{self.cfg['Telegram']['token']}/sendDocument",
                           files={"document": file},
                           params={"chat_id": self.chat.id,
                                   "parse_mode": "HTML"})
@@ -1299,9 +1383,11 @@ class Worker(threading.Thread):
         admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
         if admin is None:
             # Create the keyboard to be sent
-            keyboard = telegram.ReplyKeyboardMarkup([[self.loc.get("emoji_yes"), self.loc.get("emoji_no")]], one_time_keyboard=True)
+            keyboard = telegram.ReplyKeyboardMarkup([[self.loc.get("emoji_yes"), self.loc.get("emoji_no")]],
+                                                    one_time_keyboard=True)
             # Ask for confirmation
-            self.bot.send_message(self.chat.id, self.loc.get("conversation_confirm_admin_promotion"), reply_markup=keyboard)
+            self.bot.send_message(self.chat.id, self.loc.get("conversation_confirm_admin_promotion"),
+                                  reply_markup=keyboard)
             # Wait for an answer
             selection = self.__wait_for_specific_message([self.loc.get("emoji_yes"), self.loc.get("emoji_no")])
             # Proceed only if the answer is yes
@@ -1321,17 +1407,26 @@ class Worker(threading.Thread):
         while True:
             # Create the inline keyboard with the admin status
             inline_keyboard = telegram.InlineKeyboardMarkup([
-                [telegram.InlineKeyboardButton(f"{self.loc.boolmoji(admin.edit_products)} {self.loc.get('prop_edit_products')}",
-                                               callback_data="toggle_edit_products")],
-                [telegram.InlineKeyboardButton(f"{self.loc.boolmoji(admin.receive_orders)} {self.loc.get('prop_receive_orders')}",
-                                               callback_data="toggle_receive_orders")],
+                [telegram.InlineKeyboardButton(
+                    f"{self.loc.boolmoji(admin.edit_products)} {self.loc.get('prop_edit_products')}",
+                    callback_data="toggle_edit_products"
+                )],
+                [telegram.InlineKeyboardButton(
+                    f"{self.loc.boolmoji(admin.receive_orders)} {self.loc.get('prop_receive_orders')}",
+                    callback_data="toggle_receive_orders"
+                )],
                 [telegram.InlineKeyboardButton(
                     f"{self.loc.boolmoji(admin.create_transactions)} {self.loc.get('prop_create_transactions')}",
-                    callback_data="toggle_create_transactions")],
+                    callback_data="toggle_create_transactions"
+                )],
                 [telegram.InlineKeyboardButton(
                     f"{self.loc.boolmoji(admin.display_on_help)} {self.loc.get('prop_display_on_help')}",
-                    callback_data="toggle_display_on_help")],
-                [telegram.InlineKeyboardButton(self.loc.get('menu_done'), callback_data="cmd_done")]
+                    callback_data="toggle_display_on_help"
+                )],
+                [telegram.InlineKeyboardButton(
+                    self.loc.get('menu_done'),
+                    callback_data="cmd_done"
+                )]
             ])
             # Update the inline keyboard
             self.bot.edit_message_reply_markup(message_id=message.message_id,
@@ -1358,27 +1453,27 @@ class Worker(threading.Thread):
         keyboard = []
         options: Dict[str, str] = {}
         # https://en.wikipedia.org/wiki/List_of_language_names
-        if "it" in configloader.config["Language"]["enabled_languages"]:
+        if "it" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇮🇹 Italiano"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "it"
-        if "en" in configloader.config["Language"]["enabled_languages"]:
+        if "en" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇬🇧 English"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "en"
-        if "ru" in configloader.config["Language"]["enabled_languages"]:
+        if "ru" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇷🇺 Русский"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "ru"
-        if "uk" in configloader.config["Language"]["enabled_languages"]:
+        if "uk" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇺🇦 Українська"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "uk"
-        if "zh_cn" in configloader.config["Language"]["enabled_languages"]:
+        if "zh_cn" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇨🇳 简体中文"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "zh_cn"
-        if "he" in configloader.config["Language"]["enabled_languages"]:
+        if "he" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇮🇱 עברית"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "he"
@@ -1397,14 +1492,14 @@ class Worker(threading.Thread):
 
     def __create_localization(self):
         # Check if the user's language is enabled; if it isn't, change it to the default
-        if self.user.language not in configloader.config["Language"]["enabled_languages"]:
+        if self.user.language not in self.cfg["Language"]["enabled_languages"]:
             log.debug(f"User's language '{self.user.language}' is not enabled, changing it to the default")
-            self.user.language = configloader.config["Language"]["default_language"]
+            self.user.language = self.cfg["Language"]["default_language"]
             self.session.commit()
         # Create a new Localization object
         self.loc = localization.Localization(
             language=self.user.language,
-            fallback=configloader.config["Language"]["fallback_language"],
+            fallback=self.cfg["Language"]["fallback_language"],
             replacements={
                 "user_string": str(self.user),
                 "user_mention": self.user.mention(),
