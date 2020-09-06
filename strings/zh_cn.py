@@ -101,12 +101,18 @@ conversation_confirm_cart = "🛒 您的购物车包含以下产品:\n" \
                             "<i>如果要继续，请按此消息下方的“完成”按钮.\n" \
                             "如果要取消，请按取消按钮.</i>"
 
-# Conversation: the user activated the live orders mode
-conversation_live_orders_start = "您处于<b>实时订单</b>模式\n" \
-                                 "客户下的所有新订单将实时显示在此聊天中," \
-                                 "您可以将能够将它们标记为 ✅ 已完成." \
-                                 " 或者 ✴️ 您可以退款给客户.\n" \
-                                 " 反馈</i>"
+# Live orders mode: start
+# TODO: This string is incomplete!
+# conversation_live_orders_start = "您处于<b>实时订单</b>模式\n" \
+#                                  "客户下的所有新订单将实时显示在此聊天中," \
+#                                  "您可以将能够将它们标记为 ✅ 已完成." \
+#                                  " 或者 ✴️ 您可以退款给客户.\n" \
+#                                  " 反馈</i>"
+
+# Live orders mode: stop receiving messages
+# TODO: This string is missing.
+# conversation_live_orders_stop = ""
+
 # Conversation: help menu has been opened
 conversation_open_help_menu = "您需要什么样的帮助?"
 

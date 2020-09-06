@@ -1021,7 +1021,14 @@ class Worker(threading.Thread):
         cancel_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_cancel"),
                                                                                         callback_data="cmd_cancel")]])
         # Send a small intro message on the Live Orders mode
-        self.bot.send_message(self.chat.id, self.loc.get("conversation_live_orders_start"), reply_markup=stop_keyboard)
+        # Remove the keyboard with the first message... (#39)
+        self.bot.send_message(self.chat.id,
+                              self.loc.get("conversation_live_orders_start"),
+                              reply_markup=telegram.ReplyKeyboardRemove())
+        # ...and display a small inline keyboard with the following one
+        self.bot.send_message(self.chat.id,
+                              self.loc.get("conversation_live_orders_stop"),
+                              reply_markup=stop_keyboard)
         # Create the order keyboard
         order_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_complete"),
                                                                                        callback_data="order_complete")],

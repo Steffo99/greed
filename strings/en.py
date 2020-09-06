@@ -102,13 +102,14 @@ conversation_confirm_cart = "🛒 Your cart contains the following products:\n" 
                             "<i>If you want to proceed, press the Done button below this message.\n" \
                             "To cancel, press the Cancel button.</i>"
 
-# Conversation: the user activated the live orders mode
+# Live orders mode: start
 conversation_live_orders_start = "You are in <b>Live Orders</b> mode\n" \
                                  "All new orders placed by customers will appear in real time in this chat, and you" \
                                  " will be able to mark them as ✅ Completed" \
-                                 " or ✴️ Refund the credit to the customer.\n" \
-                                 "\n" \
-                                 "<i>Press the Stop button below this message to stop the" \
+                                 " or ✴️ Refund the credit to the customer."
+
+# Live orders mode: stop receiving messages
+conversation_live_orders_stop = "<i>Press the Stop button below this message to stop the" \
                                  " feed.</i>"
 
 # Conversation: help menu has been opened

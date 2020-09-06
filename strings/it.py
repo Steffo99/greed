@@ -102,14 +102,15 @@ conversation_confirm_cart = "🛒 Il tuo carrello contiene questi prodotti:\n" \
                             "<i>Se vuoi procedere, premi il tasto Fatto sotto a questo messaggio.\n" \
                             "Per annullare, premi il tasto Annulla.</i>"
 
-# Conversation: the user activated the live orders mode
+# Live orders mode: start
 conversation_live_orders_start = "Sei in modalità di <b>Ricezione Ordini</b>!\n" \
                                  "Tutti i nuovi ordini piazzati dai clienti ti appariranno in tempo reale in questa" \
                                  " chat, e potrai segnarli come ✅ completati" \
-                                 " oppure ✴️ rimborsare il credito al cliente.\n" \
-                                 "\n" \
-                                 "<i>Premi il tasto Interrompi sotto a questo messaggio per interrompere la" \
-                                 " ricezione.</i>"
+                                 " oppure ✴️ rimborsare il credito al cliente."
+
+# Live orders mode: stop receiving messages
+conversation_live_orders_stop = "<i>Premi il tasto Interrompi sotto a questo messaggio per interrompere la" \
+                                " ricezione.</i>"
 
 # Conversation: help menu has been opened
 conversation_open_help_menu = "Che tipo di assistenza desideri ricevere?"
