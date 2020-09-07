@@ -110,7 +110,7 @@ conversation_live_orders_start = "You are in <b>Live Orders</b> mode\n" \
 
 # Live orders mode: stop receiving messages
 conversation_live_orders_stop = "<i>Press the Stop button below this message to stop the" \
-                                 " feed.</i>"
+                                " feed.</i>"
 
 # Conversation: help menu has been opened
 conversation_open_help_menu = "What kind of help do you need?"

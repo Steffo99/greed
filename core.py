@@ -1,16 +1,18 @@
+import logging
 import os
 import sys
-import telegram
-import worker
-import nuconfig
 import threading
-import localization
-import logging
-import duckbot
+
 import sqlalchemy
-import sqlalchemy.orm
 import sqlalchemy.ext.declarative as sed
+import sqlalchemy.orm
+import telegram
+
 import database
+import duckbot
+import localization
+import nuconfig
+import worker
 
 try:
     import coloredlogs
@@ -38,7 +40,7 @@ def main():
         log.debug("config/config.toml does not exist.")
 
         with open("config/template_config.toml", encoding="utf8") as template_cfg_file, \
-             open("config/config.toml", "w", encoding="utf8") as user_cfg_file:
+                open("config/config.toml", "w", encoding="utf8") as user_cfg_file:
             # Copy the template file to the config file
             user_cfg_file.write(template_cfg_file.read())
 
@@ -48,7 +50,7 @@ def main():
 
     # Compare the template config with the user-made one
     with open("config/template_config.toml", encoding="utf8") as template_cfg_file, \
-         open("config/config.toml", encoding="utf8") as user_cfg_file:
+            open("config/config.toml", encoding="utf8") as user_cfg_file:
         template_cfg = nuconfig.NuConfig(template_cfg_file)
         user_cfg = nuconfig.NuConfig(user_cfg_file)
         if not template_cfg.cmplog(user_cfg):
@@ -173,7 +175,8 @@ def main():
                 receiving_worker = chat_workers.get(update.callback_query.from_user.id)
                 # Ensure a worker exists for the chat
                 if receiving_worker is None:
-                    log.debug(f"Received a callback query in a chat without worker: {update.callback_query.from_user.id}")
+                    log.debug(
+                        f"Received a callback query in a chat without worker: {update.callback_query.from_user.id}")
                     # Suggest that the user restarts the chat with /start
                     bot.send_message(update.callback_query.from_user.id, default_loc.get("error_no_worker_for_chat"))
                     # Skip the update

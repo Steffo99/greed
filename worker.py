@@ -1,26 +1,29 @@
-import threading
-from typing import *
-import uuid
 import datetime
-import telegram
-import nuconfig
-import sys
-import queue as queuem
-import database as db
-import re
-import os
-import traceback
-from html import escape
-import requests
 import logging
-import localization
+import os
+import queue as queuem
+import re
+import sys
+import threading
+import traceback
+import uuid
+from html import escape
+from typing import *
+
+import requests
 import sqlalchemy.orm
+import telegram
+
+import database as db
+import localization
+import nuconfig
 
 log = logging.getLogger(__name__)
 
 
 class StopSignal:
     """A data class that should be sent to the worker when the conversation has to be stopped abnormally."""
+
     def __init__(self, reason: str = ""):
         self.reason = reason
 
@@ -39,7 +42,7 @@ class Worker(threading.Thread):
                  telegram_user: telegram.User,
                  cfg: nuconfig.NuConfig,
                  engine,
-                 *args, 
+                 *args,
                  **kwargs):
         # Initialize the thread
         super().__init__(name=f"Worker {chat.id}", *args, **kwargs)
@@ -662,8 +665,8 @@ class Worker(threading.Thread):
             if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "" \
                     and self.cfg["Appearance"]["refill_on_checkout"] == 'yes' \
                     and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
-                        credit_required <= \
-                        self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
+                    credit_required <= \
+                    self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
                 self.__make_payment(self.Price(credit_required))
         # If afer requested payment credit is still insufficient (either payment failure or cancel)
         if self.user.credit < self.__get_cart_value(cart):
@@ -759,8 +762,9 @@ class Worker(threading.Thread):
         self.bot.send_message(self.chat.id, self.loc.get("conversation_payment_method"),
                               reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
         # Wait for a reply from the user
-        selection = self.__wait_for_specific_message([self.loc.get("menu_cash"), self.loc.get("menu_credit_card"), self.loc.get("menu_cancel")],
-                                                     cancellable=True)
+        selection = self.__wait_for_specific_message(
+            [self.loc.get("menu_cash"), self.loc.get("menu_credit_card"), self.loc.get("menu_cancel")],
+            cancellable=True)
         # If the user has selected the Cash option...
         if selection == self.loc.get("menu_cash"):
             # Go to the pay with cash function
@@ -790,7 +794,8 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, self.loc.get("payment_cc_amount"),
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait until a valid amount is sent
-            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + self.loc.get("menu_cancel") + r")", cancellable=True)
+            selection = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]+)?|" + self.loc.get("menu_cancel") + r")",
+                                              cancellable=True)
             # If the user cancelled the action
             if isinstance(selection, CancelSignal):
                 # Exit the loop
@@ -801,11 +806,13 @@ class Worker(threading.Thread):
             # Ensure the amount is within the range
             if value > self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
                 self.bot.send_message(self.chat.id,
-                                      self.loc.get("error_payment_amount_over_max", max_amount=self.Price(self.cfg["Credit Card"]["max_amount"])))
+                                      self.loc.get("error_payment_amount_over_max",
+                                                   max_amount=self.Price(self.cfg["Credit Card"]["max_amount"])))
                 continue
             elif value < self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]):
                 self.bot.send_message(self.chat.id,
-                                      self.loc.get("error_payment_amount_under_min", min_amount=self.Price(self.cfg["Credit Card"]["min_amount"])))
+                                      self.loc.get("error_payment_amount_under_min",
+                                                   min_amount=self.Price(self.cfg["Credit Card"]["min_amount"])))
                 continue
             break
         # If the user cancelled the action...
@@ -1019,8 +1026,8 @@ class Worker(threading.Thread):
         if product:
             self.bot.send_message(self.chat.id,
                                   self.loc.get("edit_current_value",
-                                  value=(str(self.Price(product.price))
-                                         if product.price is not None else 'Non in vendita')),
+                                               value=(str(self.Price(product.price))
+                                                      if product.price is not None else 'Non in vendita')),
                                   reply_markup=cancel)
         # Wait for an answer
         price = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]{1,2})?|[Xx])",
@@ -1162,7 +1169,8 @@ class Worker(threading.Thread):
                                            message_id=update.message.message_id)
                 # Notify the user of the completition
                 self.bot.send_message(order.user_id,
-                                      self.loc.get("notification_order_completed", order=order.text(w=self, session=self.session, user=True)))
+                                      self.loc.get("notification_order_completed",
+                                                   order=order.text(w=self, session=self.session, user=True)))
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
                 # Ask for a refund reason
@@ -1302,7 +1310,8 @@ class Worker(threading.Thread):
                     telegram.InlineKeyboardButton(self.loc.get("menu_next"), callback_data="cmd_next")
                 )
             # Add a Done button
-            inline_keyboard_list.append([telegram.InlineKeyboardButton(self.loc.get("menu_done"), callback_data="cmd_done")])
+            inline_keyboard_list.append(
+                [telegram.InlineKeyboardButton(self.loc.get("menu_done"), callback_data="cmd_done")])
             # Create the inline keyboard markup
             inline_keyboard = telegram.InlineKeyboardMarkup(inline_keyboard_list)
             # Create the message text
