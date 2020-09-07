@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "greedbot"
+version = "0.1.0"
+description = "A customizable, multilanguage Telegram shop bot with Telegram Payments support"
+authors = ["Stefano Pigozzi <ste.pigozzi@gmail.com>"]
+license = "AGPL-3.0+"
+readme = "README.md"
+homepage = "https://github.com/Steffo99/greed"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.6",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)"
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+python-telegram-bot = "*"
+sqlalchemy = "*"
+requests = "*"
+toml = "*"
+coloredlogs = {version="*", optional=true}
+
+
+[tool.poetry.dev-dependencies]
+
+
+[tool.poetry.extras]
+coloredlogs = ["coloredlogs"]
+
+
+[tool.poetry.scripts]
+greedbot = 'greedbot.__main__:run'
+
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

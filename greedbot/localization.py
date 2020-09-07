@@ -19,7 +19,7 @@ class Localization:
         log.debug(f"Creating localization for {language}")
         self.language: str = language
         log.debug(f"Importing strings.{language}")
-        self.module: types.ModuleType = importlib.import_module(f"strings.{language}")
+        self.module: types.ModuleType = importlib.import_module(f".strings.{language}", package="greedbot")
         if language != fallback:
             log.debug(f"Importing strings.{fallback} as fallback")
             self.fallback_language: str = fallback

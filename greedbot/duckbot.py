@@ -5,7 +5,7 @@ import traceback
 
 import telegram.error
 
-import nuconfig
+from greedbot import nuconfig
 
 log = logging.getLogger(__name__)
 

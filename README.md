@@ -1,6 +1,6 @@
 # Greed
 
-A [customizable](/config/template_config.ini), [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
+A [customizable](/config/template_config.ini), [multilanguage](/greedbot/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
 
 ## Demo
 
@@ -114,7 +114,7 @@ If you find a bug, have an idea for a new feature or just require help with `gre
 
 If you can read Italian, you can try to read the [paper](https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/edit?usp=sharing) I wrote about greed for my final High School exam.
 
-If you are proficient in Python, you can also try reading the code. Most of the bot interactions can be found in the [`worker.py`](worker.py) file, so try to have a look there.
+If you are proficient in Python, you can also try reading the code. Most of the bot interactions can be found in the [`worker.py`](greedbot/worker.py) file, so try to have a look there.
 
 ## Forks
 

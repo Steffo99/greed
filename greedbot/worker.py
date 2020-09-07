@@ -14,9 +14,7 @@ import requests
 import sqlalchemy.orm
 import telegram
 
-import database as db
-import localization
-import nuconfig
+from greedbot import nuconfig, database as db, localization
 
 log = logging.getLogger(__name__)
 
