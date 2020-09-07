@@ -1,10 +1,11 @@
-import importlib
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from ..nuconfig import NuConfig
+from ..database import TableDeclarativeBase
 
 
 # this is the Alembic Config object, which provides
@@ -19,12 +20,18 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = TableDeclarativeBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+greed_cfg_file = config.get_main_option("greed_config_file")
+with open(greed_cfg_file) as f:
+    greed_cfg = NuConfig(f)
+config["sqlalchemy.url"] = greed_cfg["Database"]["engine"]
 
 
 def run_migrations_offline():
