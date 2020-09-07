@@ -8,10 +8,8 @@ from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime,
 from sqlalchemy.ext.declarative import declarative_base, DeferredReflection
 from sqlalchemy.orm import relationship, backref
 
-import utils
-
 if typing.TYPE_CHECKING:
-    import worker
+    from greedbot import worker, utils
 
 log = logging.getLogger(__name__)
 

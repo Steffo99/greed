@@ -8,11 +8,7 @@ import sqlalchemy.ext.declarative as sed
 import sqlalchemy.orm
 import telegram
 
-import database
-import duckbot
-import localization
-import nuconfig
-import worker
+from greedbot import worker, duckbot, nuconfig, database, localization
 
 try:
     import coloredlogs
