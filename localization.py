@@ -1,15 +1,15 @@
-from typing import *
 import importlib
-import types
-import logging
 import json
-
+import logging
+import types
+from typing import *
 
 log = logging.getLogger(__name__)
 
 
 class IgnoreDict(dict):
     """A dictionary that if passed to format_map, ignores the missing replacement fields."""
+
     def __missing__(self, key):
         return "{" + key + "}"
 

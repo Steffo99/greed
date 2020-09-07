@@ -1,21 +1,23 @@
-import typing
-from sqlalchemy import create_engine, Column, ForeignKey, UniqueConstraint
-from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declarative_base, DeferredReflection
-import telegram
-import requests
-import utils
 import logging
+import typing
+
+import requests
+import telegram
+from sqlalchemy import Column, ForeignKey, UniqueConstraint
+from sqlalchemy import Integer, BigInteger, String, Text, LargeBinary, DateTime, Boolean
+from sqlalchemy.ext.declarative import declarative_base, DeferredReflection
+from sqlalchemy.orm import relationship, backref
+
+import utils
 
 if typing.TYPE_CHECKING:
     import worker
-
 
 log = logging.getLogger(__name__)
 
 # Create a base class to define all the database subclasses
 TableDeclarativeBase = declarative_base()
+
 
 # Define all the database tables using the sqlalchemy declarative base
 class User(DeferredReflection, TableDeclarativeBase):

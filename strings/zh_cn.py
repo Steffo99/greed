@@ -52,7 +52,7 @@ transactions_page = "Page <b>{page}</b>:\n" \
 # transactions.csv caption
 csv_caption = "生成了一个📄.csv文件,其中包含bot的数据库中多所有事物\n" \
               "您可以使用其他程序(例如LibreOffice Calc)打开此文件并进行处理数据" \
-
+ \
 # Conversation: the start command was sent and the bot should welcome the user
 conversation_after_start = "您好!\n" \
                            "欢迎使用greed系统!\n" \

@@ -1,9 +1,11 @@
-import nuconfig
-import telegram.error
 import logging
+import sys
 import time
 import traceback
-import sys
+
+import telegram.error
+
+import nuconfig
 
 log = logging.getLogger(__name__)
 

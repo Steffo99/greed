@@ -1,7 +1,7 @@
-from typing import *
-import toml
 import logging
+from typing import *
 
+import toml
 
 log = logging.getLogger(__name__)
 CompareReport = Dict[str, Union[str, List[str], "Missing"]]
