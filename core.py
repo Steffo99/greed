@@ -7,6 +7,10 @@ import threading
 import localization
 import logging
 import duckbot
+import sqlalchemy
+import sqlalchemy.orm
+import sqlalchemy.ext.declarative as sed
+import database
 
 try:
     import coloredlogs
@@ -33,8 +37,8 @@ def main():
     if not os.path.isfile("config/config.toml"):
         log.debug("config/config.toml does not exist.")
 
-        with open("config/template_config.ini", encoding="utf8") as template_cfg_file, \
-             open("config/config.ini", "w", encoding="utf8") as user_cfg_file:
+        with open("config/template_config.toml", encoding="utf8") as template_cfg_file, \
+             open("config/config.toml", "w", encoding="utf8") as user_cfg_file:
             # Copy the template file to the config file
             user_cfg_file.write(template_cfg_file.read())
 
@@ -43,8 +47,8 @@ def main():
         exit(1)
 
     # Compare the template config with the user-made one
-    with open("config/template_config.ini", encoding="utf8") as template_cfg_file, \
-         open("config/config.ini", encoding="utf8") as user_cfg_file:
+    with open("config/template_config.toml", encoding="utf8") as template_cfg_file, \
+         open("config/config.toml", encoding="utf8") as user_cfg_file:
         template_cfg = nuconfig.NuConfig(template_cfg_file)
         user_cfg = nuconfig.NuConfig(user_cfg_file)
         if not template_cfg.cmplog(user_cfg):
@@ -64,6 +68,16 @@ def main():
 
     # Ignore most python-telegram-bot logs, as they are useless most of the time
     logging.getLogger("telegram").setLevel("ERROR")
+
+    # Create the database engine
+    log.debug("Creating the sqlalchemy engine...")
+    engine = sqlalchemy.create_engine(user_cfg["Database"]["engine"])
+    log.debug("Preparing the tables through deferred reflection...")
+    sed.DeferredReflection.prepare(engine)
+    log.debug("Binding metadata to the engine...")
+    database.TableDeclarativeBase.metadata.bind = engine
+    log.debug("Creating all missing tables...")
+    database.TableDeclarativeBase.metadata.create_all()
 
     # Create a bot instance
     bot = duckbot.factory(user_cfg)()
@@ -122,7 +136,8 @@ def main():
                     new_worker = worker.Worker(bot=bot,
                                                chat=update.message.chat,
                                                telegram_user=update.message.from_user,
-                                               cfg=user_cfg)
+                                               cfg=user_cfg,
+                                               engine=engine)
                     # Start the worker
                     log.debug(f"Starting {new_worker.name}")
                     new_worker.start()

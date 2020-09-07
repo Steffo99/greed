@@ -14,6 +14,7 @@ from html import escape
 import requests
 import logging
 import localization
+import sqlalchemy.orm
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class Worker(threading.Thread):
                  chat: telegram.Chat,
                  telegram_user: telegram.User,
                  cfg: nuconfig.NuConfig,
+                 engine,
                  *args, 
                  **kwargs):
         # Initialize the thread
@@ -48,7 +50,7 @@ class Worker(threading.Thread):
         self.cfg = cfg
         # Open a new database session
         log.debug(f"Opening new database session for {self.name}")
-        self.session = db.Session()
+        self.session = sqlalchemy.orm.sessionmaker(bind=engine)()
         # Get the user db data from the users and admin tables
         self.user: Optional[db.User] = None
         self.admin: Optional[db.Admin] = None
@@ -132,7 +134,6 @@ class Worker(threading.Thread):
                 return Price(Price(other).value - self.value)
 
             def __rmul__(self, other):
-
                 return self.__mul__(other)
 
             def __iadd__(self, other):
@@ -165,7 +166,7 @@ class Worker(threading.Thread):
             # Check if there are other registered users: if there aren't any, the first user will be owner of the bot
             will_be_owner = (self.session.query(db.Admin).first() is None)
             # Create the new record
-            self.user = db.User(self.telegram_user)
+            self.user = db.User(w=self)
             # Add the new record to the db
             self.session.add(self.user)
             # Flush the session to get an userid
@@ -502,7 +503,7 @@ class Worker(threading.Thread):
             if product.price is None:
                 continue
             # Send the message without the keyboard to get the message id
-            message = product.send_as_message(loc=self.loc, chat_id=self.chat.id)
+            message = product.send_as_message(w=self, chat_id=self.chat.id)
             # Add the product to the cart
             cart[message['result']['message_id']] = [product, 0]
             # Create the inline keyboard to add the product to the cart
@@ -513,12 +514,12 @@ class Worker(threading.Thread):
             if product.image is None:
                 self.bot.edit_message_text(chat_id=self.chat.id,
                                            message_id=message['result']['message_id'],
-                                           text=product.text(loc=self.loc),
+                                           text=product.text(w=self),
                                            reply_markup=inline_keyboard)
             else:
                 self.bot.edit_message_caption(chat_id=self.chat.id,
                                               message_id=message['result']['message_id'],
-                                              caption=product.text(loc=self.loc),
+                                              caption=product.text(w=self),
                                               reply_markup=inline_keyboard)
         # Create the keyboard with the cancel button
         inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_cancel"),
@@ -562,13 +563,13 @@ class Worker(threading.Thread):
                 if product.image is None:
                     self.bot.edit_message_text(chat_id=self.chat.id,
                                                message_id=callback.message.message_id,
-                                               text=product.text(loc=self.loc,
+                                               text=product.text(w=self,
                                                                  cart_qty=cart[callback.message.message_id][1]),
                                                reply_markup=product_inline_keyboard)
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id,
                                                   message_id=callback.message.message_id,
-                                                  caption=product.text(loc=self.loc,
+                                                  caption=product.text(w=self,
                                                                        cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
 
@@ -610,13 +611,13 @@ class Worker(threading.Thread):
                 # Edit the product message
                 if product.image is None:
                     self.bot.edit_message_text(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                               text=product.text(loc=self.loc,
+                                               text=product.text(w=self,
                                                                  cart_qty=cart[callback.message.message_id][1]),
                                                reply_markup=product_inline_keyboard)
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id,
                                                   message_id=callback.message.message_id,
-                                                  caption=product.text(loc=self.loc,
+                                                  caption=product.text(w=self,
                                                                        cart_qty=cart[callback.message.message_id][1]),
                                                   reply_markup=product_inline_keyboard)
 
@@ -684,7 +685,7 @@ class Worker(threading.Thread):
         product_list = ""
         for product_id in cart:
             if cart[product_id][1] > 0:
-                product_list += cart[product_id][0].text(loc=self.loc,
+                product_list += cart[product_id][0].text(w=self,
                                                          style="short",
                                                          cart_qty=cart[product_id][1]) + "\n"
         return product_list
@@ -706,7 +707,7 @@ class Worker(threading.Thread):
 
     def __order_notify_admins(self, order):
         # Notify the user of the order result
-        self.bot.send_message(self.chat.id, self.loc.get("success_order_created", order=order.text(loc=self.loc,
+        self.bot.send_message(self.chat.id, self.loc.get("success_order_created", order=order.text(w=self,
                                                                                                    session=self.session,
                                                                                                    user=True)))
         # Notify the admins (in Live Orders mode) of the new order
@@ -721,7 +722,7 @@ class Worker(threading.Thread):
         for admin in admins:
             self.bot.send_message(admin.user_id,
                                   self.loc.get('notification_order_placed',
-                                               order=order.text(loc=self.loc, session=self.session)),
+                                               order=order.text(w=self, session=self.session)),
                                   reply_markup=order_keyboard)
 
     def __order_status(self):
@@ -738,7 +739,7 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, self.loc.get("error_no_orders"))
         # Display the order status to the user
         for order in orders:
-            self.bot.send_message(self.chat.id, order.text(loc=self.loc, session=self.session, user=True))
+            self.bot.send_message(self.chat.id, order.text(w=self, session=self.session, user=True))
         # TODO: maybe add a page displayer instead of showing the latest 5 orders
 
     def __add_credit_menu(self):
@@ -1128,7 +1129,7 @@ class Worker(threading.Thread):
         # Create a message for every one of them
         for order in orders:
             # Send the created message
-            self.bot.send_message(self.chat.id, order.text(loc=self.loc, session=self.session),
+            self.bot.send_message(self.chat.id, order.text(w=self, session=self.session),
                                   reply_markup=order_keyboard)
         # Set the Live mode flag to True
         self.admin.live_mode = True
@@ -1157,11 +1158,11 @@ class Worker(threading.Thread):
                 # Commit the transaction
                 self.session.commit()
                 # Update order message
-                self.bot.edit_message_text(order.text(loc=self.loc, session=self.session), chat_id=self.chat.id,
+                self.bot.edit_message_text(order.text(w=self, session=self.session), chat_id=self.chat.id,
                                            message_id=update.message.message_id)
                 # Notify the user of the completition
                 self.bot.send_message(order.user_id,
-                                      self.loc.get("notification_order_completed", order=order.text(loc=self.loc, session=self.session, user=True)))
+                                      self.loc.get("notification_order_completed", order=order.text(w=self, session=self.session, user=True)))
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
                 # Ask for a refund reason
@@ -1185,12 +1186,12 @@ class Worker(threading.Thread):
                 # Commit the changes
                 self.session.commit()
                 # Update the order message
-                self.bot.edit_message_text(order.text(loc=self.loc, session=self.session),
+                self.bot.edit_message_text(order.text(w=self, session=self.session),
                                            chat_id=self.chat.id,
                                            message_id=update.message.message_id)
                 # Notify the user of the refund
                 self.bot.send_message(order.user_id,
-                                      self.loc.get("notification_order_refunded", order=order.text(loc=self.loc,
+                                      self.loc.get("notification_order_refunded", order=order.text(w=self,
                                                                                                    session=self.session,
                                                                                                    user=True)))
                 # Notify the admin of the refund
@@ -1236,10 +1237,10 @@ class Worker(threading.Thread):
         # Notify the user of the credit/debit
         self.bot.send_message(user.user_id,
                               self.loc.get("notification_transaction_created",
-                                           transaction=transaction.text(loc=self.loc)))
+                                           transaction=transaction.text(w=self)))
         # Notify the admin of the success
         self.bot.send_message(self.chat.id, self.loc.get("success_transaction_created",
-                                                         transaction=transaction.text(loc=self.loc)))
+                                                         transaction=transaction.text(w=self)))
 
     def __help_menu(self):
         """Help menu. Allows the user to ask for assistance, get a guide or see some info about the bot."""
@@ -1305,7 +1306,7 @@ class Worker(threading.Thread):
             # Create the inline keyboard markup
             inline_keyboard = telegram.InlineKeyboardMarkup(inline_keyboard_list)
             # Create the message text
-            transactions_string = "\n".join([transaction.text(loc=self.loc) for transaction in transactions])
+            transactions_string = "\n".join([transaction.text(w=self) for transaction in transactions])
             text = self.loc.get("transactions_page", page=page + 1, transactions=transactions_string)
             # Update the previously sent message
             self.bot.edit_message_text(chat_id=self.chat.id, message_id=message.message_id, text=text,
