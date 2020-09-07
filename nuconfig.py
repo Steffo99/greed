@@ -25,12 +25,12 @@ class NuConfig:
     def __cmplog_log(compare_report: CompareReport, root: str = "") -> None:
         """The recursive portion of :meth:`.cmplog`."""
         for item in compare_report.get("__missing__", []):
-            log.error(f"Missing config key: {root}{item}")
+            log.error(f"Missing key: {root}{item}")
 
         for item in compare_report.get("__invalid__", []):
-            log.error(f"Invalid config key: {root}{item}")
+            log.error(f"Key has an invalid type: {root}{item}")
 
-        for key, value in compare_report:
+        for key, value in compare_report.items():
             if key == "__missing__" or key == "__invalid__":
                 continue
             NuConfig.__cmplog_log(value, root=f"{root}{key}.")

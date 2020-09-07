@@ -42,8 +42,8 @@ def main():
             # Copy the template file to the config file
             user_cfg_file.write(template_cfg_file.read())
 
-        print("A config file has been created in config/config.toml."
-              " Edit it with your configuration, then restart this script.")
+        log.fatal("A config file has been created in config/config.toml."
+                  " Customize it, then restart greed!")
         exit(1)
 
     # Compare the template config with the user-made one
@@ -52,8 +52,10 @@ def main():
         template_cfg = nuconfig.NuConfig(template_cfg_file)
         user_cfg = nuconfig.NuConfig(user_cfg_file)
         if not template_cfg.cmplog(user_cfg):
-            log.fatal("Invalid configuration, refusing to start.")
+            log.fatal("There were errors while parsing the config.toml file. Please fix them and restart greed!")
             exit(2)
+        else:
+            log.debug("Configuration parsed successfully!")
 
     # Finish logging setup
     logging.root.setLevel(user_cfg["Logging"]["level"])
@@ -109,9 +111,10 @@ def main():
     # Main loop of the program
     while True:
         # Get a new batch of 100 updates and mark the last 100 parsed as read
-        log.debug("Getting updates from Telegram")
+        update_timeout = user_cfg["Telegram"]["long_polling_timeout"]
+        log.debug(f"Getting updates from Telegram with a timeout of {update_timeout} seconds")
         updates = bot.get_updates(offset=next_update,
-                                  timeout=int(user_cfg["Telegram"]["long_polling_timeout"]))
+                                  timeout=update_timeout)
         # Parse all the updates
         for update in updates:
             # If the update is a message...
