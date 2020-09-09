@@ -51,6 +51,7 @@ class Worker(threading.Thread):
         self.chat: telegram.Chat = chat
         self.telegram_user: telegram.User = telegram_user
         self.cfg = cfg
+        self.loc = None
         # Open a new database session
         log.debug(f"Opening new database session for {self.name}")
         self.session = sqlalchemy.orm.sessionmaker(bind=engine)()
