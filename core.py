@@ -154,10 +154,18 @@ def main():
                 # Otherwise, forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.message.chat.id)
                 # Ensure a worker exists for the chat and is alive
-                if receiving_worker is None or not receiving_worker.is_ready():
+                if receiving_worker is None:
                     log.debug(f"Received a message in a chat without worker: {update.message.chat.id}")
                     # Suggest that the user restarts the chat with /start
                     bot.send_message(update.message.chat.id, default_loc.get("error_no_worker_for_chat"),
+                                     reply_markup=telegram.ReplyKeyboardRemove())
+                    # Skip the update
+                    continue
+                # If the worker is not ready...
+                if not receiving_worker.is_ready():
+                    log.debug(f"Received a message in a chat where the worker wasn't ready yet: {update.message.chat.id}")
+                    # Suggest that the user restarts the chat with /start
+                    bot.send_message(update.message.chat.id, default_loc.get("error_worker_not_ready"),
                                      reply_markup=telegram.ReplyKeyboardRemove())
                     # Skip the update
                     continue

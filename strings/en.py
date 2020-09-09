@@ -395,6 +395,10 @@ error_nonprivate_chat = "⚠️ This bot only works in private chats."
 error_no_worker_for_chat = "⚠️ The conversation with the bot was interrupted.\n" \
                            "To restart it, send the /start command to the bot."
 
+# Error: a message was sent in a chat, but the worker for that chat is not ready.
+error_worker_not_ready = "🕒 The conversation with the bot is currently starting.\n" \
+                         "Please, wait a few moments before sending more commands!"
+
 # Error: add funds amount over max
 error_payment_amount_over_max = "⚠️ The maximum amount that can be added in a single transaction is {max_amount}."
 
