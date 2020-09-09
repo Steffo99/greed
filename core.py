@@ -142,7 +142,8 @@ def main():
                                                chat=update.message.chat,
                                                telegram_user=update.message.from_user,
                                                cfg=user_cfg,
-                                               engine=engine)
+                                               engine=engine,
+                                               daemon=True)
                     # Start the worker
                     log.debug(f"Starting {new_worker.name}")
                     new_worker.start()
