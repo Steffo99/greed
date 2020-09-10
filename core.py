@@ -76,12 +76,12 @@ def main():
     # Create the database engine
     log.debug("Creating the sqlalchemy engine...")
     engine = sqlalchemy.create_engine(user_cfg["Database"]["engine"])
-    log.debug("Preparing the tables through deferred reflection...")
-    sed.DeferredReflection.prepare(engine)
     log.debug("Binding metadata to the engine...")
     database.TableDeclarativeBase.metadata.bind = engine
     log.debug("Creating all missing tables...")
     database.TableDeclarativeBase.metadata.create_all()
+    log.debug("Preparing the tables through deferred reflection...")
+    sed.DeferredReflection.prepare(engine)
 
     # Create a bot instance
     bot = duckbot.factory(user_cfg)()
