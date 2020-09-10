@@ -16,63 +16,62 @@ Use the special credit card number `4242 4242 4242 4242` to add unlimited credit
 
 ![](https://i.imgur.com/9plMzO6.png)
 
-## Requirements
+## Installation
 
+This installation procedure assumes you are on a Linux system, using `bash` and have `python3.8` installed. 
+
+### Requirements
+
+* [Git](https://git-scm.com/)
 * [Python 3.6 (or higher)](https://www.python.org/)
-* The packages specified in `requirements.txt` (install with `pip install -r requirements.txt`)
 * An Internet connection
 * A Telegram bot token (obtainable at [@Botfather](https://t.me/Botfather))
 * A payment provider token (obtainable by [connecting a provider with your bot](https://t.me/Botfather))
-* _Optional: a [git client](https://git-scm.com/)_
-* _Optional: a [sentry.io](https://sentry.io) token_
 
 Consider renting a VPS to host the bot on; a cheap one should do, as greed is pretty lightweight! :)
 
-## Installation
-
-This installation procedure assumes you have `python3.8` installed on an Ubuntu server. If you have a different version installed, 
+### Steps
 
 1. Download the project files by running:
    ```bash
    git clone https://github.com/Steffo99/greed.git
    ```
-
-2. Create a new virtualenv:
+   
+2. Enter the newly created folder:
    ```bash
-   virtualenv -p python3.8 venv
+   cd greed
    ```
 
-3. Activate the virtualenv:
+3. Create a new virtualenv:
+   ```bash
+   python3.8 -m venv venv
+   ```
+
+4. Activate the virtualenv:
    ```bash
    source venv/bin/activate
    ```
 
-4. Install the project requirements:
+5. Install the project requirements:
    ```bash
    pip install -r requirements.txt
    ```
    
-5. _Optional:_ For colored output, install [coloredlogs](https://pypi.org/project/coloredlogs/):
+6. _Optional:_ For colored console output, install [coloredlogs](https://pypi.org/project/coloredlogs/):
    ```bash
    pip install coloredlogs
    ```
 
-6. Generate the configuration file:
+7. Generate the configuration file:
    ```bash
    python -OO core.py
    ```
 
-7. Edit the configuration file to your preferences:
+8. Edit the configuration file, adding your bot and payment tokens to it:
    ```bash
-   nano config/config.ini
+   nano config/config.toml
    ```
-   Ensure the `is_template` field is set to `no`.  
-   Press **Ctrl+X** and then two times **Enter** to save and quit.
-   
-8. Generate the database:
-   ```bash
-   python -OO database.py
-   ```
+   (Press **Ctrl+X** and then two times **Enter** to save and quit `nano`.)
 
 9. _Optional:_ customize the files in the `strings` folder for custom messages.
 
@@ -81,9 +80,37 @@ This installation procedure assumes you have `python3.8` installed on an Ubuntu 
     python -OO core.py
     ```
 
-11. Open Telegram, and send a `/start` command to your bot to be promoted to 💼 Manager.
+11. Open Telegram, and send a `/start` command to your bot to be automatically promoted to 💼 Manager.
 
-12. _Optional:_ Stop the bot, and start it in a `screen` so it can keep running even after you close the console window:
+12. Stop the bot by pressing **Ctrl+C**.
+
+### Running the bot
+
+After the installation, to run the bot, you'll need to:
+
+1. Activate the virtualenv (if it's not already activated in the current console session):
+   ```bash
+   source venv/bin/activate
+   ```
+
+2. Start the bot:
+   ```bash
+   python -OO core.py
+   ```
+
+### Keep the bot running
+
+If you want to keep the bot open even after you closed your terminal window, you'll need to use some external program.  
+
+Some of them are:
+
+- `screen`
+- `systemd`
+- `nohup`
+
+#### `screen`
+
+1. Open a `screen` that will be running the bot with the following command:
     ```bash
     screen venv/bin/python -OO core.py
     ```
