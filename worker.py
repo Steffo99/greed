@@ -1447,7 +1447,7 @@ class Worker(threading.Thread):
             callback = self.__wait_for_inlinekeyboard_callback()
             # Toggle the correct property
             if callback.data == "toggle_edit_products":
-                admin.edit_products = not admin.edit_products1
+                admin.edit_products = not admin.edit_products
             elif callback.data == "toggle_receive_orders":
                 admin.receive_orders = not admin.receive_orders
             elif callback.data == "toggle_create_transactions":
