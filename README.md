@@ -104,9 +104,8 @@ If you want to keep the bot open even after you closed your terminal window, you
 
 Some of them are:
 
-- `screen`
-- `systemd`
-- `nohup`
+- `screen` (easier, but doesn't restart automatically)
+- `systemd` (recommended, but more difficult)
 
 #### `screen`
 
@@ -116,16 +115,50 @@ Some of them are:
     ```
     To safely detach the screen, press Ctrl+A and then Ctrl+D.
 
-## Usage
+#### `systemd`
 
-All features can be accessed through the Telegram bot chat.
+Assuming you downloaded `greed` in `/srv/greed`:
 
-As a 💼 Manager, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
-You can also add additional 💼 Managers.
+1. Create a new user named `greed`:
+   ```bash
+   useradd greed --system
+   ```
+   
+2. Give ownership of the greed folder you downloaded earlier to the `greed` user:
+   ```bash
+   chown -R greed: /srv/greed
+   ```
 
-Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
+3. Create a new file in `/etc/systemd/system` named `bot-royalnet.service` with the following contents:
+   ```ini
+   [Unit]
+   Name=bot-greed
+   Description=Greed Bot
+   Wants=network-online.target
+   After=network-online.target nss-lookup.target
+   
+   [Service]
+   Type=exec
+   User=greed
+   WorkingDirectory=/srv/greed
+   ExecStart=/srv/greed/venv/bin/python -OO /srv/greed/core.py
+   Environment=PYTHONUNBUFFERED=1
+   
+   [Install]
+   WantedBy=multi-user.target
+   ```
 
-## Updating
+4. Start the bot-greed service:
+   ```bash
+   systemctl start bot-greed
+   ```
+   
+5. If everything goes well, enable the bot-greed service, so it will automatically start on a reboot:
+   ```bash
+   systemctl enable bot-greed   
+   ```
+   
+### Updating
 
 To update the bot, run the following commands:
 
@@ -134,6 +167,17 @@ git stash
 git pull
 git stash pop
 ```
+
+> If you're using an older version of greed, you may need to recreate the configuration, as greed won't use `config.ini` anymore and will use `config.toml` instead.
+
+## Usage
+
+All features can be accessed through the Telegram bot chat.
+
+As a 💼 Manager, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
+You can also add additional 💼 Managers.
+
+Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
 
 ## Documentation and help
 
@@ -148,7 +192,8 @@ If you are proficient in Python, you can also try reading the code. Most of the 
 Some people made a copy of Greed and added or changed some things to it (they made a _fork_).  
 These forks are listed below.
 
-> Please note that @Steffo99, the main developer of `greed`, does not endorse any of these forks.
+> Please note that @Steffo99, the main developer of `greed`, does not endorse any of these forks.  
+> **Do not file bug reports here for bugs in a fork!**
 
 ### Bitcoin - Blockonomics
 
