@@ -129,7 +129,7 @@ Assuming you downloaded `greed` in `/srv/greed`:
    chown -R greed: /srv/greed
    ```
 
-3. Create a new file in `/etc/systemd/system` named `bot-royalnet.service` with the following contents:
+3. Create a new file in `/etc/systemd/system` named `bot-greed.service` with the following contents:
    ```ini
    [Unit]
    Name=bot-greed
