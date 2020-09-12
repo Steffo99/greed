@@ -784,7 +784,7 @@ class Worker(threading.Thread):
         """Add money to the wallet through a credit card payment."""
         log.debug("Displaying __add_credit_cc")
         # Create a keyboard to be sent later
-        presets = list(map(lambda s: s.strip(" "), self.cfg["Payments"]["CreditCard"]["payment_presets"].split('|')))
+        presets = self.cfg["Payments"]["CreditCard"]["payment_presets"]
         keyboard = [[telegram.KeyboardButton(str(self.Price(preset)))] for preset in presets]
         keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cancel"))])
         # Boolean variable to check if the user has cancelled the action
