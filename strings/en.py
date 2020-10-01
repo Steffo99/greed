@@ -132,7 +132,7 @@ conversation_expired = "🕐  I haven't received any messages in a while, so I c
                        "If you want to start a new one, send a new /start command."
 
 # User menu: order
-menu_order = "🛒 Orders"
+menu_order = "🛒 Order products"
 
 # User menu: order status
 menu_order_status = "🛍 My orders"
