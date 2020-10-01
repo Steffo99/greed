@@ -664,7 +664,7 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, self.loc.get("error_not_enough_credit"))
             # Suggest payment for missing credit value if configuration allows refill
             if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "" \
-                    and self.cfg["Appearance"]["refill_on_checkout"] == 'yes' \
+                    and self.cfg["Appearance"]["refill_on_checkout"] \
                     and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
                     credit_required <= \
                     self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
