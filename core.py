@@ -209,7 +209,7 @@ def main():
                 if receiving_worker is None or \
                         update.pre_checkout_query.invoice_payload != receiving_worker.invoice_payload:
                     # Notify the user that the invoice has expired
-                    log.debug(f"Received a pre-checkout query for an expired invoice in: {update.message.chat.id}")
+                    log.debug(f"Received a pre-checkout query for an expired invoice in: {update.pre_checkout_query.from_user.id}")
                     try:
                         bot.answer_pre_checkout_query(update.pre_checkout_query.id,
                                                       ok=False,
