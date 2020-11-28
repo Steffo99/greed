@@ -190,7 +190,7 @@ class Transaction(DeferredReflection, TableDeclarativeBase):
     def text(self, w: "worker.Worker"):
         string = f"<b>T{self.transaction_id}</b> | {str(self.user)} | {w.Price(self.value)}"
         if self.refunded:
-            string += f" | {w.loc['emoji_refunded']}"
+            string += f" | {w.loc.get('emoji_refunded')}"
         if self.provider:
             string += f" | {self.provider}"
         if self.notes:
