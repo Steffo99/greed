@@ -9,8 +9,9 @@
 # ru - Russian, by https://github.com/pzhuk
 # zh_cn - Simplified Chinese, by https://github.com/zhihuiyuze
 # he - Hebrew, by https://github.com/netanelkoli
+# es_mx - Spanish (Mexican), by https://github.com/mastersuv
 # The lanugages that messages can be displayed in
-enabled_languages = ["it", "en", "uk", "ru", "zh_cn", "he"]
+enabled_languages = ["it", "en", "uk", "ru", "zh_cn", "he", "es_mx"]
 # The default language to be set for users whose language cannot be autodetected or whose language is not enabled
 default_language = "it"
 # The language to fallback to if a string is missing in a specific language
