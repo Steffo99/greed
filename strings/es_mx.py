@@ -50,7 +50,7 @@ transactions_page = "Página <b>{page}</b>:\n" \
                     "{transactions}"
 
 # transactions.csv caption
-csv_caption = "Un archivo 📄 .csv file que contiene todas las transacciones almacenadas en la base de datos del bot fue generado.\n" \
+csv_caption = "Se generó un archivo 📄 .csv que contiene todas las transacciones almacenadas en la base de datos del bot.\n" \
               "Puedes abrir este archivo con otros programas, como LibreOffice Calc, para procesar los datos."
 
 # Conversation: the start command was sent and the bot should welcome the user
@@ -85,6 +85,12 @@ conversation_admin_select_product = "✏️ ¿Qué producto quieres editar?"
 # Conversation: select a product to delete
 conversation_admin_select_product_to_delete = "❌ ¿Qué producto quieres eliminar?"
 
+# Conversation: select a category to edit
+conversation_admin_select_category = "✏️ ¿Qué categoría quieres editar?"
+
+# Conversation: select a category to delete
+conversation_admin_select_category_to_delete = "❌ ¿Qué categoría quieres eliminar?"
+
 # Conversation: select a user to edit
 conversation_admin_select_user = "Selecciona un usuario para editar."
 
@@ -92,6 +98,9 @@ conversation_admin_select_user = "Selecciona un usuario para editar."
 conversation_cart_actions = "<i>Agrega productos al carrito desplazándote hacia arriba y presionando el botón <b>Agregar</b>" \
                             " debajo del producto que quieres agregar. Cuando termines, vuelve a este mensaje y presiona" \
                             " el botón <b>Listo</b> debajo de este mensaje.</i>"
+
+# Conversation: select category
+conversation_select_category = "Selecciona una categoría"
 
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "🛒 Tu carrito contiene los siguientes productos:\n" \
@@ -130,6 +139,12 @@ conversation_expired = "🕐  No he recibido ningún mensaje en un tiempo, así 
                        " recursos.\n" \
                        "Si quieres iniciar una nueva, envía un nuevo comando /start."
 
+# Menu: all products
+menu_all_products = "Todos los productos"
+
+# Menu: uncategorized
+menu_uncategorized = "Sin categorizar"
+
 # User menu: order
 menu_order = "🛒 Ordenar productos"
 
@@ -151,6 +166,9 @@ menu_credit_card = "💳 Con tarjeta"
 # Admin menu: products
 menu_products = "📝️ Productos"
 
+# Admin menu: categories
+menu_categories = "📝️ Categorías"
+
 # Admin menu: orders
 menu_orders = "📦 Ordenes"
 
@@ -169,8 +187,17 @@ menu_add_product = "✨ Nuevo producto"
 # Admin menu: delete product
 menu_delete_product = "❌ Eliminar producto"
 
+# Admin menu: add category
+menu_add_category = "✨ Nueva categoría"
+
+# Admin menu: delete category
+menu_delete_category = "❌ Eliminar categoría"
+
 # Menu: cancel
 menu_cancel = "🔙 Cancelar"
+
+# Menu: go back
+menu_go_back = "🔙 Regresar"
 
 # Menu: skip
 menu_skip = "⏭ Omitir"
@@ -244,6 +271,9 @@ text_completed = "Completada"
 # Text: refunded order
 text_refunded = "Reembolsada"
 
+# Add product: category?
+ask_product_category = "¿Cuál debería ser la categoría del producto?"
+
 # Add product: name?
 ask_product_name = "¿Cuál debería ser el nombre del producto?"
 
@@ -254,10 +284,16 @@ ask_product_description = "¿Cuál debería ser la descripción del producto?"
 ask_product_price = "¿Cuál debería ser el precio del producto?\n" \
                     "Ingresa una <code>X</code> si quieres que el producto aún no esté a la venta."
 
+# Add product: Not for sale yet (Non in vendita) text
+not_for_sale_yet = "Aún no está a la venta"
+
 # Add product: image?
 ask_product_image = "🖼 ¿Qué imagen quieres que tenga el producto?\n" \
                     "\n" \
                     "<i>Envía la foto, u <b>Omite</b> esta fase para no agregar ninguna imagen.</i>"
+
+# Add category: name?
+ask_category_name = "¿Cuál debería ser el nombre de la categoría?"
 
 # Order product: notes?
 ask_order_notes = "¿Quieres dejar una nota junto con el pedido?\n" \
@@ -288,6 +324,9 @@ admin_properties = "<b>Permisos de {name}:</b>"
 # Edit admin: can edit products?
 prop_edit_products = "Editar productos"
 
+# Edit admin: can edit categories?
+prop_edit_categories = "Editar categorías"
+
 # Edit admin: can receive orders?
 prop_receive_orders = "Recibir órdenes"
 
@@ -298,7 +337,7 @@ prop_create_transactions = "Administrar transacciones"
 prop_display_on_help = "Mostrarlo al cliente como contacto de ayuda"
 
 # Thread has started downloading an image and might be unresponsive
-downloading_image = "¡Estoy descargando la imágen!\n" \
+downloading_image = "¡Estoy descargando la imagen!\n" \
                     "Esto podría tomar tiempo... Por favor, se paciente.\n" \
                     "No podré responderte mientras estoy descargando."
 
@@ -371,6 +410,12 @@ success_product_edited = "✅ ¡El producto se ha agregado/modificado satisfacto
 # Success: product has been added/edited to the database
 success_product_deleted = "✅ ¡El producto se ha eliminado satisfactoriamente!"
 
+# Success: category has been added/edited to the database
+success_category_edited = "✅ ¡La categoría se ha agregado/modificado satisfactoriamente!"
+
+# Success: category has been added/edited to the database
+success_category_deleted = "✅ ¡La categoría se ha eliminado satisfactoriamente!"
+
 # Success: order has been created
 success_order_created = "✅ ¡La orden se envió satisfactoriamente!\n" \
                         "\n" \
@@ -392,7 +437,7 @@ error_nonprivate_chat = "⚠️ Este bot solo funciona en chats privados."
 # Error: a message was sent in a chat, but no worker exists for that chat.
 # Suggest the creation of a new worker with /start
 error_no_worker_for_chat = "⚠️ La conversación con el bot fue interrumpida.\n" \
-                           "Para reiniciarla, envía el comando /start."
+                           "Para reiniciarla, envía de nuevo el comando /start."
 
 # Error: a message was sent in a chat, but the worker for that chat is not ready.
 error_worker_not_ready = "🕒 La conversación con el bot está comenzando.\n" \
@@ -424,6 +469,6 @@ error_no_orders = "⚠️ Aún no has realizado ninguna orden, no hay nada que m
 error_user_does_not_exist = "⚠️ El usuario seleccionado no existe."
 
 # Fatal: conversation raised an exception
-fatal_conversation_exception = "☢️ Oh no! Un <b>error</b> ha interrumpido esta conversación\n" \
+fatal_conversation_exception = "☢️ ¡Oh no! Un <b>error</b> ha interrumpido esta conversación\n" \
                                "El error ha sido reportado al propietario del bot para que pueda solucionarlo.\n" \
                                "Para reiniciar la conversación, envía el comando /start nuevamente."
