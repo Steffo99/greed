@@ -9,9 +9,8 @@
 # ru - Russian, by https://github.com/pzhuk
 # zh_cn - Simplified Chinese, by https://github.com/zhihuiyuze
 # he - Hebrew, by https://github.com/netanelkoli
-# es_mx - Spanish (Mexican), by https://github.com/mastersuv
 # The lanugages that messages can be displayed in
-enabled_languages = ["it", "en", "uk", "ru", "zh_cn", "he", "es_mx"]
+enabled_languages = ["it", "en", "uk", "ru", "zh_cn", "he"]
 # The default language to be set for users whose language cannot be autodetected or whose language is not enabled
 default_language = "it"
 # The language to fallback to if a string is missing in a specific language
@@ -39,6 +38,13 @@ long_polling_timeout = 30
 timed_out_pause = 1
 # Time in seconds before retrying a request that returned an error
 error_pause = 5
+
+
+# Store mode settings
+[Mode]
+# Category mode. If enabled, the admin menu will allow you to create categories for your products.
+# Default: false (Normal store operation)
+category_mode = false
 
 
 # General payment settings
