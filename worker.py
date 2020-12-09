@@ -180,6 +180,7 @@ class Worker(threading.Thread):
                 # Become owner
                 self.admin = db.Admin(user_id=self.user.user_id,
                                       edit_products=True,
+                                      edit_categories=True,
                                       receive_orders=True,
                                       create_transactions=True,
                                       display_on_help=True,
@@ -196,6 +197,8 @@ class Worker(threading.Thread):
         self.__create_localization()
         # Capture exceptions that occour during the conversation
         # noinspection PyBroadException
+        log.debug("TEST")
+        log.debug(self.admin)
         try:
             # Welcome the user to the bot
             if self.cfg["Appearance"]["display_welcome_message"] == "yes":
@@ -494,188 +497,304 @@ class Worker(threading.Thread):
                 self.__help_menu()
 
     def __order_menu(self):
-        """User menu to order products from the shop."""
-        log.debug("Displaying __order_menu")
-        # Get the products list from the db
-        products = self.session.query(db.Product).filter_by(deleted=False).all()
         # Create a dict to be used as 'cart'
         # The key is the message id of the product list
         cart: Dict[List[db.Product, int]] = {}
-        # Initialize the products list
-        for product in products:
-            # If the product is not for sale, don't display it
-            if product.price is None:
-                continue
-            # Send the message without the keyboard to get the message id
-            message = product.send_as_message(w=self, chat_id=self.chat.id)
-            # Add the product to the cart
-            cart[message['result']['message_id']] = [product, 0]
-            # Create the inline keyboard to add the product to the cart
-            inline_keyboard = telegram.InlineKeyboardMarkup(
-                [[telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"), callback_data="cart_add")]]
-            )
-            # Edit the sent message and add the inline keyboard
-            if product.image is None:
-                self.bot.edit_message_text(chat_id=self.chat.id,
-                                           message_id=message['result']['message_id'],
-                                           text=product.text(w=self),
-                                           reply_markup=inline_keyboard)
-            else:
-                self.bot.edit_message_caption(chat_id=self.chat.id,
-                                              message_id=message['result']['message_id'],
-                                              caption=product.text(w=self),
-                                              reply_markup=inline_keyboard)
-        # Create the keyboard with the cancel button
-        inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_cancel"),
-                                                                                        callback_data="cart_cancel")]])
-        # Send a message containing the button to cancel or pay
-        final_msg = self.bot.send_message(self.chat.id,
-                                          self.loc.get("conversation_cart_actions"),
-                                          reply_markup=inline_keyboard)
-        # Wait for user input
+        CategoryMode = self.cfg["Mode"]["category_mode"]
+        FinalStep = False
+    
         while True:
-            callback = self.__wait_for_inlinekeyboard_callback()
-            # React to the user input
-            # If the cancel button has been pressed...
-            if callback.data == "cart_cancel":
-                # Stop waiting for user input and go back to the previous menu
-                return
-            # If a Add to Cart button has been pressed...
-            elif callback.data == "cart_add":
-                # Get the selected product, ensuring it exists
-                p = cart.get(callback.message.message_id)
-                if p is None:
+            if CategoryMode:
+                # Get the categories list from the db
+                categories = self.session.query(db.Category).filter_by(deleted=False).all()
+                category_names = [category.name for category in categories]
+                
+                # Remove categories with no products assigned
+                for category in categories:
+                    p = self.session.query(db.Product).filter_by(deleted=False).filter_by(category_id=category.id).all()
+                    if not p:
+                        category_names.remove(category.name)
+                
+                # Insert at the start of the list the Cancel and the All products options
+                category_names.insert(0, self.loc.get("menu_cancel"))
+                category_names.insert(1, self.loc.get("menu_all_products"))
+                
+                # Insert at the start of the list the Uncategozied option (if they exist)
+                # Uncategorized products could happen if admin deletes a category with existing products in it
+                products_with_no_category = self.session.query(db.Product).filter_by(deleted=False).filter_by(category_id=None).all()
+                if products_with_no_category:
+                    category_names.insert(2, self.loc.get("menu_uncategorized"))
+                    
+                # Create a keyboard using the category names
+                keyboard = [[telegram.KeyboardButton(category_name)] for category_name in category_names]
+                # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+                self.bot.send_message(self.chat.id, self.loc.get("conversation_select_category"),
+                                      reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+                # Wait for a reply from the user
+                selection = self.__wait_for_specific_message(category_names, cancellable=True)
+                
+                # If the user has selected the Cancel option...
+                if isinstance(selection, CancelSignal):
+                    # Exit the menu
+                    return
+                # If the user has selected the All products option...
+                elif selection == self.loc.get("menu_all_products"):
+                    # Get all the products list from the db
+                    products = self.session.query(db.Product).filter_by(deleted=False).all()
+                # If the user has selected the Uncategorized option...
+                elif selection == self.loc.get("menu_uncategorized"):
+                    # Get only products where category_id is not set
+                    products = products_with_no_category
+                # If the user has selected a category
+                else:
+                    # Find the selected category
+                    category = self.session.query(db.Category).filter_by(name=selection, deleted=False).one()
+                    # Get only products where category_id is the selected category
+                    products = self.session.query(db.Product).filter_by(deleted=False).filter_by(category_id=category.id).all()
+                    
+                    # Hide the "Select category" keyboard from the user.
+                    self.bot.send_message(self.chat.id, selection,
+                                          reply_markup=telegram.ReplyKeyboardRemove())
+            else:
+                # Get the products list from the db
+                products = self.session.query(db.Product).filter_by(deleted=False).all()
+
+            """User menu to order products from the shop."""
+            log.debug("Displaying __order_menu")
+            # Initialize the products list
+            for product in products:
+                # If the product is not for sale, don't display it
+                if product.price is None:
                     continue
-                product = p[0]
-                # Add 1 copy to the cart
-                cart[callback.message.message_id][1] += 1
-                # Create the product inline keyboard
-                product_inline_keyboard = telegram.InlineKeyboardMarkup(
-                    [
-                        [telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"),
-                                                       callback_data="cart_add"),
-                         telegram.InlineKeyboardButton(self.loc.get("menu_remove_from_cart"),
-                                                       callback_data="cart_remove")]
-                    ])
-                # Create the final inline keyboard
-                final_inline_keyboard = telegram.InlineKeyboardMarkup(
-                    [
-                        [telegram.InlineKeyboardButton(self.loc.get("menu_cancel"), callback_data="cart_cancel")],
-                        [telegram.InlineKeyboardButton(self.loc.get("menu_done"), callback_data="cart_done")]
-                    ])
-                # Edit both the product and the final message
+                # Send the message without the keyboard to get the message id
+                message = product.send_as_message(w=self, chat_id=self.chat.id)
+                # Add the product to the cart
+                cart[message['result']['message_id']] = [product, 0]
+                # Update existing products in the cart
+                # This allows the user to go back to category selection preserving cart values on the new message id and deleting the old one (Avoid duplication)
+                old_message_ids = [k for k,v in cart.items() if v[0].id == product.id]
+                if(len(old_message_ids) > 1):
+                    cart[message['result']['message_id']][1] = cart[old_message_ids[0]][1]
+                    del cart[old_message_ids[0]]
+                 
+                # Create the inline keyboard to add the product to the cart
+                inline_keyboard_list = [[telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"),
+                                                                      callback_data="cart_add")]]
+                if cart[message['result']['message_id']][1] > 0:
+                    inline_keyboard_list[0].append(telegram.InlineKeyboardButton(self.loc.get("menu_remove_from_cart"),
+                                                                                callback_data="cart_remove"))
+                inline_keyboard = telegram.InlineKeyboardMarkup(inline_keyboard_list)
+                
+                # Edit the sent message and add the inline keyboard
                 if product.image is None:
                     self.bot.edit_message_text(chat_id=self.chat.id,
-                                               message_id=callback.message.message_id,
+                                               message_id=message['result']['message_id'],
                                                text=product.text(w=self,
-                                                                 cart_qty=cart[callback.message.message_id][1]),
-                                               reply_markup=product_inline_keyboard)
+                                                                 cart_qty=cart[message['result']['message_id']][1]),
+                                               reply_markup=inline_keyboard)
                 else:
                     self.bot.edit_message_caption(chat_id=self.chat.id,
-                                                  message_id=callback.message.message_id,
+                                                  message_id=message['result']['message_id'],
                                                   caption=product.text(w=self,
-                                                                       cart_qty=cart[callback.message.message_id][1]),
-                                                  reply_markup=product_inline_keyboard)
+                                                                       cart_qty=cart[message['result']['message_id']][1]),
+                                                  reply_markup=inline_keyboard)
+            
+            # Create the keyboard with the cancel/go back button
+            if CategoryMode:
+                inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_go_back"),
+                                                                                                callback_data="cart_go_back")]])
+            else:
+                inline_keyboard = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_cancel"),
+                                                                                                callback_data="cart_cancel")]])
+                                                                                                
+            # Send a message containing the button to cancel or pay
+            final_msg = self.bot.send_message(self.chat.id,
+                                              self.loc.get("conversation_cart_actions"),
+                                              reply_markup=inline_keyboard)
+            
+            # If cart has products, edit final message to display cart summary (Applies only to Category Mode)
+            if cart and CategoryMode:
+                hasQty = [v for k,v in cart.items() if v[1] > 0]
+                if len(hasQty) > 0:
+                    # Create the final inline keyboard
+                    final_inline_keyboard = telegram.InlineKeyboardMarkup(
+                        [
+                            [telegram.InlineKeyboardButton(self.loc.get("menu_go_back"), callback_data="cart_go_back")],
+                            [telegram.InlineKeyboardButton(self.loc.get("menu_done"), callback_data="cart_done")]
+                        ])
+                    self.bot.edit_message_text(
+                        chat_id=self.chat.id,
+                        message_id=final_msg.message_id,
+                        text=self.loc.get("conversation_confirm_cart",
+                                          product_list=self.__get_cart_summary(cart),
+                                          total_cost=str(self.__get_cart_value(cart))),
+                        reply_markup=final_inline_keyboard)
+            # Wait for user input
+            while True:
+                callback = self.__wait_for_inlinekeyboard_callback()
+                # React to the user input
+                
+                # If the cancel button has been pressed...
+                if callback.data == "cart_go_back":
+                    # Stop waiting for user input and go back to the previous menu (Category selection)
+                    break
+                elif callback.data == "cart_cancel":
+                    # Stop waiting for user input and go back to the main menu
+                    return
+                # If a Add to Cart button has been pressed...
+                elif callback.data == "cart_add":
+                    # Get the selected product, ensuring it exists
+                    p = cart.get(callback.message.message_id)
+                    if p is None:
+                        continue
+                    product = p[0]
+                    # Add 1 copy to the cart
+                    cart[callback.message.message_id][1] += 1
+                    # Create the product inline keyboard
+                    product_inline_keyboard = telegram.InlineKeyboardMarkup(
+                        [
+                            [telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"),
+                                                           callback_data="cart_add"),
+                             telegram.InlineKeyboardButton(self.loc.get("menu_remove_from_cart"),
+                                                           callback_data="cart_remove")]
+                        ])
+                    # Create the final inline keyboard
+                    final_inline_keyboard_list = [[telegram.InlineKeyboardButton(self.loc.get("menu_done"),
+                                                                           callback_data="cart_done")]]
+                    if CategoryMode:
+                        final_inline_keyboard_list.insert(0, [telegram.InlineKeyboardButton(self.loc.get("menu_go_back"), 
+                                                                                     callback_data="cart_go_back")])
+                    else:
+                        final_inline_keyboard_list.insert(0, [telegram.InlineKeyboardButton(self.loc.get("menu_cancel"), 
+                                                                                     callback_data="cart_cancel")])
+                                                                                    
+                    final_inline_keyboard = telegram.InlineKeyboardMarkup(final_inline_keyboard_list)
+                    
+                    # Edit both the product and the final message
+                    if product.image is None:
+                        self.bot.edit_message_text(chat_id=self.chat.id,
+                                                   message_id=callback.message.message_id,
+                                                   text=product.text(w=self,
+                                                                     cart_qty=cart[callback.message.message_id][1]),
+                                                   reply_markup=product_inline_keyboard)
+                    else:
+                        self.bot.edit_message_caption(chat_id=self.chat.id,
+                                                      message_id=callback.message.message_id,
+                                                      caption=product.text(w=self,
+                                                                           cart_qty=cart[callback.message.message_id][1]),
+                                                      reply_markup=product_inline_keyboard)
 
-                self.bot.edit_message_text(
-                    chat_id=self.chat.id,
-                    message_id=final_msg.message_id,
-                    text=self.loc.get("conversation_confirm_cart",
-                                      product_list=self.__get_cart_summary(cart),
-                                      total_cost=str(self.__get_cart_value(cart))),
-                    reply_markup=final_inline_keyboard)
-            # If the Remove from cart button has been pressed...
-            elif callback.data == "cart_remove":
-                # Get the selected product, ensuring it exists
-                p = cart.get(callback.message.message_id)
-                if p is None:
-                    continue
-                product = p[0]
-                # Remove 1 copy from the cart
-                if cart[callback.message.message_id][1] > 0:
-                    cart[callback.message.message_id][1] -= 1
-                else:
-                    continue
-                # Create the product inline keyboard
-                product_inline_list = [[telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"),
-                                                                      callback_data="cart_add")]]
-                if cart[callback.message.message_id][1] > 0:
-                    product_inline_list[0].append(telegram.InlineKeyboardButton(self.loc.get("menu_remove_from_cart"),
-                                                                                callback_data="cart_remove"))
-                product_inline_keyboard = telegram.InlineKeyboardMarkup(product_inline_list)
-                # Create the final inline keyboard
-                final_inline_list = [[telegram.InlineKeyboardButton(self.loc.get("menu_cancel"),
-                                                                    callback_data="cart_cancel")]]
-                for product_id in cart:
-                    if cart[product_id][1] > 0:
-                        final_inline_list.append([telegram.InlineKeyboardButton(self.loc.get("menu_done"),
-                                                                                callback_data="cart_done")])
-                        break
-                final_inline_keyboard = telegram.InlineKeyboardMarkup(final_inline_list)
-                # Edit the product message
-                if product.image is None:
-                    self.bot.edit_message_text(chat_id=self.chat.id, message_id=callback.message.message_id,
-                                               text=product.text(w=self,
-                                                                 cart_qty=cart[callback.message.message_id][1]),
-                                               reply_markup=product_inline_keyboard)
-                else:
-                    self.bot.edit_message_caption(chat_id=self.chat.id,
-                                                  message_id=callback.message.message_id,
-                                                  caption=product.text(w=self,
-                                                                       cart_qty=cart[callback.message.message_id][1]),
-                                                  reply_markup=product_inline_keyboard)
+                    self.bot.edit_message_text(
+                        chat_id=self.chat.id,
+                        message_id=final_msg.message_id,
+                        text=self.loc.get("conversation_confirm_cart",
+                                          product_list=self.__get_cart_summary(cart),
+                                          total_cost=str(self.__get_cart_value(cart))),
+                        reply_markup=final_inline_keyboard)
+                # If the Remove from cart button has been pressed...
+                elif callback.data == "cart_remove":
+                    # Get the selected product, ensuring it exists
+                    p = cart.get(callback.message.message_id)
+                    if p is None:
+                        continue
+                    product = p[0]
+                    # Remove 1 copy from the cart
+                    if cart[callback.message.message_id][1] > 0:
+                        cart[callback.message.message_id][1] -= 1
+                    else:
+                        continue
+                    # Create the product inline keyboard
+                    product_inline_list = [[telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"),
+                                                                          callback_data="cart_add")]]
+                    if cart[callback.message.message_id][1] > 0:
+                        product_inline_list[0].append(telegram.InlineKeyboardButton(self.loc.get("menu_remove_from_cart"),
+                                                                                    callback_data="cart_remove"))
+                    product_inline_keyboard = telegram.InlineKeyboardMarkup(product_inline_list)
+                    
+                    # Create the final inline keyboard
+                    final_inline_keyboard_list = [[telegram.InlineKeyboardButton(self.loc.get("menu_done"),
+                                                                           callback_data="cart_done")]]
+                    if CategoryMode:
+                        final_inline_keyboard_list.insert(0, [telegram.InlineKeyboardButton(self.loc.get("menu_go_back"), 
+                                                                                               callback_data="cart_go_back")])
+                    else:
+                        final_inline_keyboard_list.insert(0, [telegram.InlineKeyboardButton(self.loc.get("menu_cancel"), 
+                                                                                                callback_data="cart_cancel")])
+                                                                                    
+                    final_inline_keyboard = telegram.InlineKeyboardMarkup(final_inline_keyboard_list)
+                    
+                    # Edit the product message
+                    if product.image is None:
+                        self.bot.edit_message_text(chat_id=self.chat.id, message_id=callback.message.message_id,
+                                                   text=product.text(w=self,
+                                                                     cart_qty=cart[callback.message.message_id][1]),
+                                                   reply_markup=product_inline_keyboard)
+                    else:
+                        self.bot.edit_message_caption(chat_id=self.chat.id,
+                                                      message_id=callback.message.message_id,
+                                                      caption=product.text(w=self,
+                                                                           cart_qty=cart[callback.message.message_id][1]),
+                                                      reply_markup=product_inline_keyboard)
 
-                self.bot.edit_message_text(
-                    chat_id=self.chat.id,
-                    message_id=final_msg.message_id,
-                    text=self.loc.get("conversation_confirm_cart",
-                                      product_list=self.__get_cart_summary(cart),
-                                      total_cost=str(self.__get_cart_value(cart))),
-                    reply_markup=final_inline_keyboard)
-            # If the done button has been pressed...
-            elif callback.data == "cart_done":
-                # End the loop
-                break
-        # Create an inline keyboard with a single skip button
-        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_skip"),
-                                                                               callback_data="cmd_cancel")]])
-        # Ask if the user wants to add notes to the order
-        self.bot.send_message(self.chat.id, self.loc.get("ask_order_notes"), reply_markup=cancel)
-        # Wait for user input
-        notes = self.__wait_for_regex(r"(.*)", cancellable=True)
-        # Create a new Order
-        order = db.Order(user=self.user,
-                         creation_date=datetime.datetime.now(),
-                         notes=notes if not isinstance(notes, CancelSignal) else "")
-        # Add the record to the session and get an ID
-        self.session.add(order)
-        self.session.flush()
-        # For each product added to the cart, create a new OrderItem
-        for product in cart:
-            # Create {quantity} new OrderItems
-            for i in range(0, cart[product][1]):
-                order_item = db.OrderItem(product=cart[product][0],
-                                          order_id=order.order_id)
-                self.session.add(order_item)
-        # Ensure the user has enough credit to make the purchase
-        credit_required = self.__get_cart_value(cart) - self.user.credit
-        # Notify user in case of insufficient credit
-        if credit_required > 0:
-            self.bot.send_message(self.chat.id, self.loc.get("error_not_enough_credit"))
-            # Suggest payment for missing credit value if configuration allows refill
-            if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "" \
-                    and self.cfg["Appearance"]["refill_on_checkout"] \
-                    and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
-                    credit_required <= \
-                    self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
-                self.__make_payment(self.Price(credit_required))
-        # If afer requested payment credit is still insufficient (either payment failure or cancel)
-        if self.user.credit < self.__get_cart_value(cart):
-            # Rollback all the changes
-            self.session.rollback()
-        else:
-            # User has credit and valid order, perform transaction now
-            self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
+                    self.bot.edit_message_text(
+                        chat_id=self.chat.id,
+                        message_id=final_msg.message_id,
+                        text=self.loc.get("conversation_confirm_cart",
+                                          product_list=self.__get_cart_summary(cart),
+                                          total_cost=str(self.__get_cart_value(cart))),
+                        reply_markup=final_inline_keyboard)
+                # If the done button has been pressed...
+                elif callback.data == "cart_done":
+                    # FinalStep being True will take us to the checkout in the next iteration instead of taking us back to category selection.
+                    FinalStep = True
+                    # End the loop
+                    break
+            
+            if FinalStep and not CategoryMode:
+                # Create an inline keyboard with a single skip button
+                cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_skip"),
+                                                                                       callback_data="cmd_cancel")]])
+                # Ask if the user wants to add notes to the order
+                self.bot.send_message(self.chat.id, self.loc.get("ask_order_notes"), reply_markup=cancel)
+                # Wait for user input
+                notes = self.__wait_for_regex(r"(.*)", cancellable=True)
+                # Create a new Order
+                order = db.Order(user=self.user,
+                                 creation_date=datetime.datetime.now(),
+                                 notes=notes if not isinstance(notes, CancelSignal) else "")
+                # Add the record to the session and get an ID
+                self.session.add(order)
+                self.session.flush()
+                # For each product added to the cart, create a new OrderItem
+                for product in cart:
+                    # Create {quantity} new OrderItems
+                    for i in range(0, cart[product][1]):
+                        order_item = db.OrderItem(product=cart[product][0],
+                                                  order_id=order.order_id)
+                        self.session.add(order_item)
+                # Ensure the user has enough credit to make the purchase
+                credit_required = self.__get_cart_value(cart) - self.user.credit
+                # Notify user in case of insufficient credit
+                if credit_required > 0:
+                    self.bot.send_message(self.chat.id, self.loc.get("error_not_enough_credit"))
+                    # Suggest payment for missing credit value if configuration allows refill
+                    if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "" \
+                            and self.cfg["Appearance"]["refill_on_checkout"] \
+                            and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
+                            credit_required <= \
+                            self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
+                        self.__make_payment(self.Price(credit_required))
+                # If afer requested payment credit is still insufficient (either payment failure or cancel)
+                if self.user.credit < self.__get_cart_value(cart):
+                    # Rollback all the changes
+                    self.session.rollback()
+                    # Take the user back to the main menu
+                    return
+                else:
+                    # User has credit and valid order, perform transaction now
+                    self.__order_transaction(order=order, value=-int(self.__get_cart_value(cart)))
+                    # Take the user back to the main menu
+                    return
 
     def __get_cart_value(self, cart):
         # Calculate total items value in cart
@@ -896,12 +1015,18 @@ class Worker(threading.Thread):
         """Function called from the run method when the user is an administrator.
         Administrative bot actions should be placed here."""
         log.debug("Displaying __admin_menu")
+        CategoryMode = self.cfg["Mode"]["category_mode"]
         # Loop used to return to the menu after executing a command
         while True:
             # Create a keyboard with the admin main menu based on the admin permissions specified in the db
             keyboard = []
-            if self.admin.edit_products:
-                keyboard.append([self.loc.get("menu_products")])
+            if self.admin.edit_products and self.admin.edit_categories:
+                keyboard.append([self.loc.get("menu_products"), self.loc.get("menu_categories")])
+            else:
+                if self.admin.edit_products:
+                    keyboard.append([self.loc.get("menu_products")])
+                if self.admin.edit_categories:
+                    keyboard.append([self.loc.get("menu_categories")])
             if self.admin.receive_orders:
                 keyboard.append([self.loc.get("menu_orders")])
             if self.admin.create_transactions:
@@ -915,16 +1040,22 @@ class Worker(threading.Thread):
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([self.loc.get("menu_products"),
+			                                              self.loc.get("menu_categories"),
                                                           self.loc.get("menu_orders"),
                                                           self.loc.get("menu_user_mode"),
                                                           self.loc.get("menu_edit_credit"),
                                                           self.loc.get("menu_transactions"),
                                                           self.loc.get("menu_csv"),
                                                           self.loc.get("menu_edit_admins")])
+                                                          
             # If the user has selected the Products option...
             if selection == self.loc.get("menu_products"):
                 # Open the products menu
                 self.__products_menu()
+			# If the user has selected the Categories option...
+            elif selection == self.loc.get("menu_categories"):
+                # Open the products menu
+                self.__categories_menu()
             # If the user has selected the Orders option...
             elif selection == self.loc.get("menu_orders"):
                 # Open the orders menu
@@ -995,8 +1126,37 @@ class Worker(threading.Thread):
         # Create an inline keyboard with a single skip button
         cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_skip"),
                                                                                callback_data="cmd_cancel")]])
+                                                                               
+        CategoryMode = self.cfg["Mode"]["category_mode"]
+       
         # Ask for the product name until a valid product name is specified
         while True:
+            category_id = None
+            if CategoryMode:
+                # Ask product category
+                # Get the categories list from the db
+                categories = self.session.query(db.Category).filter_by(deleted=False).all()
+                category_names = [category.name for category in categories]
+                
+                # Insert at the start of the list the Cancel option
+                category_names.insert(0, self.loc.get("menu_cancel"))
+
+                # Create a keyboard using the category names
+                keyboard = [[telegram.KeyboardButton(category_name)] for category_name in category_names]
+                # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+                self.bot.send_message(self.chat.id, self.loc.get("ask_product_category"),
+                                      reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+                # Wait for a reply from the user
+                selection = self.__wait_for_specific_message(category_names, cancellable=True)
+                
+                 # If the user has selected the Cancel option...
+                if isinstance(selection, CancelSignal):
+                    # Exit the menu
+                    return
+                # If the user has selected a category
+                else:
+                    category_id = next((x for x in categories if x.name == selection), None).id
+            
             # Ask the question to the user
             self.bot.send_message(self.chat.id, self.loc.get("ask_product_name"))
             # Display the current name if you're editing an existing product
@@ -1028,7 +1188,7 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id,
                                   self.loc.get("edit_current_value",
                                                value=(str(self.Price(product.price))
-                                                      if product.price is not None else 'Non in vendita')),
+                                                      if product.price is not None else self.loc.get("not_for_sale_yet"))),
                                   reply_markup=cancel)
         # Wait for an answer
         price = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]{1,2})?|[Xx])",
@@ -1048,7 +1208,8 @@ class Worker(threading.Thread):
         if not product:
             # Create the db record for the product
             # noinspection PyTypeChecker
-            product = db.Product(name=name,
+            product = db.Product(category_id=category_id if not isinstance(category_id, CancelSignal) else None,
+                                 name=name,
                                  description=description,
                                  price=int(price) if price is not None else None,
                                  deleted=False)
@@ -1057,9 +1218,14 @@ class Worker(threading.Thread):
         # If a product is being edited...
         else:
             # Edit the record with the new values
+            product.category_id = category_id if not isinstance(category_id, CancelSignal) else product.category_id
             product.name = name if not isinstance(name, CancelSignal) else product.name
             product.description = description if not isinstance(description, CancelSignal) else product.description
-            product.price = int(price) if not isinstance(price, CancelSignal) else product.price
+            if not price == None:
+                product.price = int(price) if not isinstance(price, CancelSignal) else product.price
+            else:
+                product.price = None
+
         # If a photo has been sent...
         if isinstance(photo_list, list):
             # Find the largest photo id
@@ -1105,6 +1271,113 @@ class Worker(threading.Thread):
             self.session.commit()
             # Notify the user
             self.bot.send_message(self.chat.id, self.loc.get("success_product_deleted"))
+
+    def __categories_menu(self):
+        """Display the admin menu to select a category to edit."""
+        log.debug("Displaying __categories_menu")
+        # Get the categories list from the db
+        categories = self.session.query(db.Category).filter_by(deleted=False).all()
+        # Create a list of category names
+        category_names = [category.name for category in categories]
+        # Insert at the start of the list the add category option, the remove category option and the Cancel option
+        category_names.insert(0, self.loc.get("menu_cancel"))
+        category_names.insert(1, self.loc.get("menu_add_category"))
+        category_names.insert(2, self.loc.get("menu_delete_category"))
+        # Create a keyboard using the category names
+        keyboard = [[telegram.KeyboardButton(category_name)] for category_name in category_names]
+        # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+        self.bot.send_message(self.chat.id, self.loc.get("conversation_admin_select_category"),
+                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+        # Wait for a reply from the user
+        selection = self.__wait_for_specific_message(category_names, cancellable=True)
+        # If the user has selected the Cancel option...
+        if isinstance(selection, CancelSignal):
+            # Exit the menu
+            return
+        # If the user has selected the Add Category option...
+        elif selection == self.loc.get("menu_add_category"):
+            # Open the add category menu
+            self.__edit_category_menu()
+        # If the user has selected the Remove Category option...
+        elif selection == self.loc.get("menu_delete_category"):
+            # Open the delete category menu
+            self.__delete_category_menu()
+        # If the user has selected a category
+        else:
+            # Find the selected category
+            category = self.session.query(db.Category).filter_by(name=selection, deleted=False).one()
+            # Open the edit menu for that specific category
+            self.__edit_category_menu(category=category)
+
+    def __edit_category_menu(self, category: Optional[db.Category] = None):
+        """Add a category to the database or edit an existing one."""
+        log.debug("Displaying __edit_category_menu")
+        # Create an inline keyboard with a single skip button
+        cancel = telegram.InlineKeyboardMarkup([[telegram.InlineKeyboardButton(self.loc.get("menu_skip"),
+                                                                               callback_data="cmd_cancel")]])
+        # Ask for the category name until a valid category name is specified
+        while True:
+            # Ask the question to the user
+            self.bot.send_message(self.chat.id, self.loc.get("ask_category_name"))
+            # Display the current name if you're editing an existing category
+            if category:
+                self.bot.send_message(self.chat.id, self.loc.get("edit_current_value", value=escape(category.name)),
+                                      reply_markup=cancel)
+            # Wait for an answer
+            name = self.__wait_for_regex(r"(.*)", cancellable=bool(category))
+            # Ensure a category with that name doesn't already exist
+            if (category and isinstance(name, CancelSignal)) or \
+                    self.session.query(db.Category).filter_by(name=name, deleted=False).one_or_none() in [None, category]:
+                # Exit the loop
+                break
+            self.bot.send_message(self.chat.id, self.loc.get("error_duplicate_name"))
+        # If a new category is being added...
+        if not category:
+            # Create the db record for the category
+            # noinspection PyTypeChecker
+            category = db.Category(name=name,
+                                 deleted=False)
+            # Add the record to the database
+            self.session.add(category)
+        # If a category is being edited...
+        else:
+            # Edit the record with the new values
+            category.name = category if not isinstance(name, CancelSignal) else category.name
+        # Commit the session changes
+        self.session.commit()
+        # Notify the user
+        self.bot.send_message(self.chat.id, self.loc.get("success_category_edited"))
+
+    def __delete_category_menu(self):
+        log.debug("Displaying __delete_category_menu")
+        # Get the category list from the db
+        categories = self.session.query(db.Category).filter_by(deleted=False).all()
+        # Create a list of category names
+        category_names = [category.name for category in categories]
+        # Insert at the start of the list the Cancel button
+        category_names.insert(0, self.loc.get("menu_cancel"))
+        # Create a keyboard using the category names
+        keyboard = [[telegram.KeyboardButton(category_name)] for category_name in category_names]
+        # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
+        self.bot.send_message(self.chat.id, self.loc.get("conversation_admin_select_category_to_delete"),
+                              reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
+        # Wait for a reply from the user
+        selection = self.__wait_for_specific_message(category_names, cancellable=True)
+        if isinstance(selection, CancelSignal):
+            # Exit the menu
+            return
+        else:
+            # Find the selected category
+            category = self.session.query(db.Category).filter_by(name=selection, deleted=False).one()
+            # "Delete" the category by setting the deleted flag to true
+            category.deleted = True
+            # If the deleted category has existing products in it, set their category_id to None
+            category_products = self.session.query(db.Product).filter_by(deleted=False).filter_by(category_id=category.id).all()
+            for p in category_products:
+                p.category_id = None
+            self.session.commit()
+            # Notify the user
+            self.bot.send_message(self.chat.id, self.loc.get("success_category_deleted"))
 
     def __orders_menu(self):
         """Display a live flow of orders."""
@@ -1407,6 +1680,7 @@ class Worker(threading.Thread):
             # Create a new admin
             admin = db.Admin(user=user,
                              edit_products=False,
+                             edit_categories=False,
                              receive_orders=False,
                              create_transactions=False,
                              is_owner=False,
@@ -1421,6 +1695,10 @@ class Worker(threading.Thread):
                 [telegram.InlineKeyboardButton(
                     f"{self.loc.boolmoji(admin.edit_products)} {self.loc.get('prop_edit_products')}",
                     callback_data="toggle_edit_products"
+                )],
+                [telegram.InlineKeyboardButton(
+                    f"{self.loc.boolmoji(admin.edit_categories)} {self.loc.get('prop_edit_categories')}",
+                    callback_data="toggle_edit_categories"
                 )],
                 [telegram.InlineKeyboardButton(
                     f"{self.loc.boolmoji(admin.receive_orders)} {self.loc.get('prop_receive_orders')}",
@@ -1448,6 +1726,8 @@ class Worker(threading.Thread):
             # Toggle the correct property
             if callback.data == "toggle_edit_products":
                 admin.edit_products = not admin.edit_products
+            elif callback.data == "toggle_edit_categories":
+                admin.edit_categories = not admin.edit_categories
             elif callback.data == "toggle_receive_orders":
                 admin.receive_orders = not admin.receive_orders
             elif callback.data == "toggle_create_transactions":
@@ -1535,5 +1815,6 @@ class Worker(threading.Thread):
         # If a restart has been requested...
         # Do nothing.
         # Close the database session
+        self.session.close();
         # End the process
         sys.exit(0)
