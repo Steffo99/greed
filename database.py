@@ -92,6 +92,8 @@ class Product(DeferredReflection, TableDeclarativeBase):
 
     # Product id
     id = Column(Integer, primary_key=True)
+    # Category id
+    category_id = Column(Integer, ForeignKey("categories.id"))
     # Product name
     name = Column(String)
     # Product description
@@ -150,6 +152,18 @@ class Product(DeferredReflection, TableDeclarativeBase):
         # Store the photo in the database record
         self.image = r.content
 
+class Category(DeferredReflection, TableDeclarativeBase):
+    """A purchasable product."""
+
+    # Category id
+    id = Column(Integer, primary_key=True)
+    # Category name
+    name = Column(String)
+    # Category has been deleted
+    deleted = Column(Boolean, nullable=False)
+
+    # Extra table parameters
+    __tablename__ = "categories"
 
 class Transaction(DeferredReflection, TableDeclarativeBase):
     """A greed wallet transaction.
@@ -209,6 +223,7 @@ class Admin(DeferredReflection, TableDeclarativeBase):
     user = relationship("User")
     # Permissions
     edit_products = Column(Boolean, default=False)
+    edit_categories = Column(Boolean, default=False)
     receive_orders = Column(Boolean, default=False)
     create_transactions = Column(Boolean, default=False)
     display_on_help = Column(Boolean, default=False)
