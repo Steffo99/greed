@@ -197,7 +197,6 @@ class Worker(threading.Thread):
         self.__create_localization()
         # Capture exceptions that occour during the conversation
         # noinspection PyBroadException
-        log.debug("TEST")
         log.debug(self.admin)
         try:
             # Welcome the user to the bot
@@ -1020,12 +1019,12 @@ class Worker(threading.Thread):
         while True:
             # Create a keyboard with the admin main menu based on the admin permissions specified in the db
             keyboard = []
-            if self.admin.edit_products and self.admin.edit_categories:
+            if self.admin.edit_products and self.admin.edit_categories and CategoryMode:
                 keyboard.append([self.loc.get("menu_products"), self.loc.get("menu_categories")])
             else:
                 if self.admin.edit_products:
                     keyboard.append([self.loc.get("menu_products")])
-                if self.admin.edit_categories:
+                if self.admin.edit_categories and CategoryMode:
                     keyboard.append([self.loc.get("menu_categories")])
             if self.admin.receive_orders:
                 keyboard.append([self.loc.get("menu_orders")])
