@@ -153,7 +153,7 @@ class Product(DeferredReflection, TableDeclarativeBase):
         self.image = r.content
 
 class Category(DeferredReflection, TableDeclarativeBase):
-    """A purchasable product."""
+    """A category for products."""
 
     # Category id
     id = Column(Integer, primary_key=True)
