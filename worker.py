@@ -1814,6 +1814,6 @@ class Worker(threading.Thread):
         # If a restart has been requested...
         # Do nothing.
         # Close the database session
-        self.session.close();
+        self.session.close()
         # End the process
         sys.exit(0)

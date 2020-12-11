@@ -181,7 +181,7 @@ Users will be able to add credit to their wallet, place orders and contact you i
 
 ## Documentation and help
 
-If you find a bug, have an idea for a new feature or just require help with `greed`, please [post an issue](https://github.com/Steffo99/greed/issues/new) on GitHub, or, if GitHub is blocked in your country, join [the Telegram group](https://t.me/greed_project) and send a message there.
+If you find a bug, have an idea for a new feature or just require help with `greed`, please [post an issue](https://github.com/Steffo99/greed/issues/new) or [open a discussion](https://github.com/Steffo99/greed/discussions/new) on GitHub, or, if GitHub is blocked in your country, send me an email at [ste.pigozzi@gmail.com](mailto:ste.pigozzi@gmail.com)!
 
 If you can read Italian, you can try to read the [paper](https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/edit?usp=sharing) I wrote about greed for my final High School exam.
 

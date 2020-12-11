@@ -88,9 +88,8 @@ def main():
 
     # Test the specified token
     log.debug("Testing bot token...")
-    try:
-        me = bot.get_me()
-    except telegram.error.Unauthorized:
+    me = bot.get_me()
+    if me is None:
         logging.fatal("The token you have entered in the config file is invalid. Fix it, then restart greed.")
         sys.exit(1)
     log.debug("Bot token is valid!")
