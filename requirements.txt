@@ -1,6 +1,0 @@
-python-telegram-bot
-sqlalchemy
-requests
-raven
-flask
-gunicorn

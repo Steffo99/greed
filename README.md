@@ -1,91 +1,84 @@
-# greed
+# Fr4udshop_bot - chat bot
+It is repository for chat bot: [@Fr4udshop_bot](https://t.me/Fr4udshop_bot)
 
-A customizable Telegram shop bot that accepts bitcoin payments. Demo at https://t.me/TgShopDemoBot
+## What it is?
+This repository can be imported to [Bots.Business](https://bots.business) as a worked chat bot.
 
-![](https://img.shields.io/badge/version-beta-blue.svg)
+[Bots.Business](https://bots.business) - it is probably the first CBPaaS - Chat Bot Platform as a Service.
 
-## Requirements
+A CBPaaS is a cloud-based platform that enables developers to create chatbots without needing to build backend infrastructure.
 
-* [Python 3.6 (or higher)](https://www.python.org/)
-* The packages specified in `requirements.txt` (install with `pip3 install -r requirements.txt`)
-* An Internet connection
-* A Telegram bot token (obtainable at [@Botfather](https://t.me/Botfather))
-* A payment provider token (obtainable by [connecting a provider with your bot](https://t.me/Botfather))
-* _Optional: a [git client](https://git-scm.com/)_
-* _Optional: a [sentry.io](https://sentry.io) token_
+## Create your own bot for Telegram from this Git repo
 
-## Installation
+How to create bot?
+1. Create bot with [@BotFather](https://telegram.me/BotFather) and take Secret Token
+2. Create bot in App and add Secret Token
+3. Add Public Key from App as [Deploy key](https://developer.github.com/v3/guides/managing-deploy-keys/#deploy-keys) with read access (and write access for bot exporting if you need it)
+4. Do import for this git repo
 
-1. Download the project files through `git clone https://github.com/DarrenWestwood/greed.git` or [this link](https://github.com/DarrenWestwood/greed/archive/master.zip).
-2. Install the project requirements with `pip3 install -r requirements.txt`
-3. _Optional: run `pip3 install coloredlogs` to have colored logging output._
-3. Run `python3 -OO core.py` to generate the configuration file.
-4. Open the config folder and edit the `config.ini` file following the contained instructions.  
-   - Ensure the `is_template` field is set to `no`.
-   - Select your preferred language, example `language = en_US`.
-   - Set your Telegram bot token obtained from the Telegram [Botfather](https://t.me/Botfather).
-5. Run `python3 -OO database.py` to generate the database tables. 
-6. _Optional: customize the `strings.py` file_
-7. Run `python3 -OO core.py` again to run the bot.
-8. Open Telegram, and send a `/start` command to your bot to be promoted to administrator.
+Now you can talk with yours new Telegram Bot
 
-## Usage
+See [more](https://help.bots.business/getting-started)
 
-All the bot features are available through Telegram.
-As the administrator, you can add new products, check the placed orders, create new transactions and generate .csv log files.  
-Users will be able to add credit to their wallet, place orders and contact you in case they require assistance.
+## Commands - in commands folder
+File name - it is command name (Bot it can be rewritten in command description)
 
-## Updating
+Command can have: `name`, `help`, `aliases` (second names), `answer`, `keyboard`, `scnarios` (for simple logic) and other options.
 
-### Through `git`
+### Command description
+It is file header:
 
-If you downloaded `greed` through `git`, you can update it by running:
+    /*CMD
+      command: /test
+      help: this is help for ccommand
+      need_reply: [ true or false here ]
+      auto_retry_time: [ time in sec ]
+      answer: it is example answer for /test command
+      keyboard: button1, button2
+      aliases: /test2, /test3
+    CMD*/
 
-```
-git stash
-git pull
-git stash pop
-```
+See [more](https://help.bots.business/commands)
 
-### By redownloading the zip file
+### Command body
+It is command code in JavaScript.
+Use Bot Java Script for logic in command.
 
-If you downloaded `greed` through the zip archive, you can update it by redownloading [the latest version](https://github.com/DarrenWestwood/greed/archive/master.zip) and by moving your `config.ini` and `database.sqlite` (if applicable) files to the new folder.
+For example:
+> Bot.sendMessage(2+2);
 
-## Integrating Bitcoin
+See [more](https://help.bots.business/scenarios-and-bjs)
 
-1. You will require a Blockonomics API Key - Complete merchant setup wizard by clicking on Get Started for Free on [Blockonomics Merchants Page](https://www.blockonomics.co/merchants#/).
 
-2. Edit the config.ini file to set your Blockonomics api_key 
+## Libraries - in libs folder
+You can store common code in the libs folder. File name - it is library name.
 
-3. Set the HTTP Callback URL on the Blockonomics Merchants Page
+For example code in myLib.js:
 
-	Below are instructions on how to deploy your bot to obtain a Callback URL for your bot using ngrok or Heroku.
+    function hello(){ Bot.sendMessage("Hello from lib!") }
+    function goodbye(name){ Bot.sendMessage("Goodbye, " + name) }
 
-	### Deploy using ngrok
-	* In a new terminal/cmd prompt run `python3 -OO callback.py` to run the bitcoin callback listener.
-	* Download ngrok and follow the setup instructions: https://ngrok.com/download
-	* In a separate terminal/cmd prompt run ngrok on the same port as the callback `./ngrok http 5000` or `~/ngrok http 5000`
-	* Copy the Forwarding URL from ngrok.
-	![](assets/images/ngrok.png) 
-	* To set the HTTP Callback URL on the Blockonomics Merchants Page, combine the Forwarding URL with `/callback?secret=YOUR_SECRET` 
-	   eg.  http://c7f7ecb92ht5.ngrok.io/callback?secret=YOUR_SECRET
-	* Run `python3 -OO core.py` again to relaunch the bot.
+    publish({
+      sayHello: hello,
+      sayGoodbyeTo: goodbye
+    })
 
-	### Deploy using Heroku
-	* Test using heroku cli command: `heroku local`
-	* You will also be able to login to heroku and push your bot to heroku master to launch it into production using the following commands:
-	```
-	git init .
-	git add .
-	git commit -m "Deploy to Heroku"
-	heroku login -i
-	heroku git:remote -a {your-heroku-project-name}
-	git push heroku master
-	```
-	* You can now start the greed bot and blockonomics callback from the Heroku Dashboard > Resources.
-	![](assets/images/heroku.png) 
-	* To set the HTTP Callback URL on the Blockonomics Merchants Page, combine the Heroku App URL with `/callback?secret=YOUR_SECRET`
-		eg. https://greed.herokuapp.com/callback?secret=YOUR_SECRET
+then you can run in any bot's command:
 
-## Credits
-This project is a fork of [greed project](https://github.com/Steffo99/greed) by @Steffo99. We would like to thank @Steffo99 for putting this in public domain. 
+    Libs.myLib.hello()
+    Libs.myLib.sayGoodbyeTo("Alice")
+
+See [more](https://help.bots.business/git/library)
+
+## Other bots example
+See other bots examples in the [github](https://github.com/bots-business?utf8=✓&tab=repositories&q=&type=public&language=javascript) or in the [Bot Store](https://bots.business/)
+
+
+## Other help
+[Help.bots.business](https://help.bots.business)
+
+## API
+See [API](https://api.bots.business/docs#/docs/summary)
+
+
+![](https://bots.business/images/web-logo.png)

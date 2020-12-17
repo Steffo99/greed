@@ -1,0 +1,6 @@
+{
+  "bb_sync_version":"1.0",
+  "name":"Fr4udshop_bot",
+  "csv_url":"https://docs.google.com/spreadsheets/d/1v6LpZuHUNyNk1lGeQ1j4II8pnLqWNA8qK01dwmI3E-c/edit?usp=drivesdk",
+  "git_remote":"git@github.com:realyrichpesoo/greed.git"
+}
