@@ -114,7 +114,8 @@ conversation_open_help_menu = "Чем могу Вам помочь?"
 # Conversation: confirm promotion to admin
 conversation_confirm_admin_promotion = "Вы уверены, что хотите повысить этого пользователя до 💼 Менеджера?\n" \
                                        "Это действие невозможно отменить!"
-
+# Conversation: language select menu header
+conversation_language_select = "Выберите язык:"
 # Conversation: switching to user mode
 conversation_switch_to_user_mode = " Вы перешли в режим 👤 Покупателя.\n" \
                                    "Если хотите вернутся в режим 💼 Менеджера, рестартуйте с помощью команды /start."
@@ -210,6 +211,9 @@ menu_csv = "📄 .csv"
 
 # Menu: edit admins list
 menu_edit_admins = "🏵 Изменить менеджеров"
+
+# Menu: language
+menu_language = "🇷🇺 Русский"
 
 # Emoji: unprocessed order
 emoji_not_processed = "*️⃣"
@@ -386,7 +390,9 @@ error_nonprivate_chat = "⚠️ Этот бот работает только в
 # Suggest the creation of a new worker with /start
 error_no_worker_for_chat = "⚠️ Общение с ботом было прервано.\n" \
                            "Чтобы начать снова, воспользуйтесь командой /start "
-
+# Error: a message was sent in a chat, but the worker for that chat is not ready.
+error_worker_not_ready = "🕒 Общение с ботом вот-вот начнется.\n" \
+                         "Пожалуйста, подождите немного перед отправкой следующей команды!"
 # Error: add funds amount over max
 error_payment_amount_over_max = "⚠️ Максимальная сумма одной транзакции {max_amount}."
 
