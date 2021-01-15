@@ -173,6 +173,12 @@ menu_delete_product = "❌ Elimina prodotto"
 # Menu: cancel
 menu_cancel = "🔙 Annulla"
 
+# Menu: cancel
+menu_cancel = "🔙 Annulla"
+
+# Menu: go back
+menu_go_back = "🔙 Ritornare"
+
 # Menu: skip
 menu_skip = "⏭ Salta"
 
@@ -245,6 +251,9 @@ text_completed = "completato"
 # Text: refunded order
 text_refunded = "rimborsato"
 
+# Add product: category?
+ask_product_category = "Quale deve essere la categoria del prodotto?"
+
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
 
@@ -255,11 +264,17 @@ ask_product_description = "Quale deve essere la descrizione del prodotto?"
 ask_product_price = "Quanto deve costare il prodotto?\n" \
                     "Scrivi <code>X</code> se vuoi che il prodotto non sia ancora in vendita."
 
+# Add product: Not for sale yet (Non in vendita) text
+not_for_sale_yet = "Non in vendita"
+
 # Add product: image?
 ask_product_image = "🖼 Che immagine vuoi che abbia il prodotto?\n" \
                     "\n" \
                     "<i>Invia la foto, o se preferisci lasciare il prodotto senza immagine premi il tasto Salta qui" \
                     " sotto.</i>"
+
+# Add category: name?
+ask_category_name = "Quale deve essere il nome della categoria?"
 
 # Order product: notes?
 ask_order_notes = "Vuoi lasciare una nota insieme all'ordine?\n" \
@@ -289,6 +304,9 @@ admin_properties = "<b>Permessi di {name}:</b>"
 
 # Edit admin: can edit products?
 prop_edit_products = "Modifica prodotti"
+
+# Edit admin: can edit categories?
+prop_edit_categories = "Modifica categoria"
 
 # Edit admin: can receive orders?
 prop_receive_orders = "Ricevi ordini"

@@ -86,6 +86,12 @@ conversation_admin_select_product = "✏️ What product do you want to edit?"
 # Conversation: select a product to delete
 conversation_admin_select_product_to_delete = "❌ What product do you want to delete?"
 
+# Conversation: select a category to edit
+conversation_admin_select_category = "✏️ What category do you want to edit?"
+
+# Conversation: select a category to delete
+conversation_admin_select_category_to_delete = "❌ What category do you want to delete?"
+
 # Conversation: select a user to edit
 conversation_admin_select_user = "Select an user to edit."
 
@@ -93,6 +99,9 @@ conversation_admin_select_user = "Select an user to edit."
 conversation_cart_actions = "<i>Add products to cart by scrolling up and pressing the Add button below" \
                             " the products you want to add to the cart. When you're done, go back to this message and" \
                             " press the Done button below.</i>"
+
+# Conversation: select category
+conversation_select_category = "Select a category"
 
 # Conversation: confirm the cart contents
 conversation_confirm_cart = "🛒 Your cart contains the following products:\n" \
@@ -131,6 +140,12 @@ conversation_expired = "🕐  I haven't received any messages in a while, so I c
                        " resources.\n" \
                        "If you want to start a new one, send a new /start command."
 
+# Menu: all products
+menu_all_products = "All products"
+
+# Menu: uncategorized
+menu_uncategorized = "Uncategorized"
+
 # User menu: order
 menu_order = "🛒 Order products"
 
@@ -152,6 +167,9 @@ menu_credit_card = "💳 By credit card"
 # Admin menu: products
 menu_products = "📝️ Products"
 
+# Admin menu: categories
+menu_categories = "📝️ Categories"
+
 # Admin menu: orders
 menu_orders = "📦 Orders"
 
@@ -170,8 +188,17 @@ menu_add_product = "✨ New product"
 # Admin menu: delete product
 menu_delete_product = "❌ Delete product"
 
+# Admin menu: add category
+menu_add_category = "✨ New category"
+
+# Admin menu: delete category
+menu_delete_category = "❌ Delete category"
+
 # Menu: cancel
 menu_cancel = "🔙 Cancel"
+
+# Menu: go back
+menu_go_back = "🔙 Go back"
 
 # Menu: skip
 menu_skip = "⏭ Skip"
@@ -245,6 +272,9 @@ text_completed = "completed"
 # Text: refunded order
 text_refunded = "refunded"
 
+# Add product: category?
+ask_product_category = "What should the product category be?"
+
 # Add product: name?
 ask_product_name = "What should the product name be?"
 
@@ -255,10 +285,16 @@ ask_product_description = "What should the product description be?"
 ask_product_price = "What should the product price be?\n" \
                     "Enter <code>X</code> if don't want the product to be for sale yet."
 
+# Add product: Not for sale yet (Non in vendita) text
+not_for_sale_yet = "Not for sale yet"
+
 # Add product: image?
 ask_product_image = "🖼 What image do you want the product to have?\n" \
                     "\n" \
                     "<i>Send the photo, or Skip this phase and don't add any image.</i>"
+
+# Add category: name?
+ask_category_name = "What should the category name be?"
 
 # Order product: notes?
 ask_order_notes = "Would you like to leave a note along with the order?\n" \
@@ -288,6 +324,9 @@ admin_properties = "<b>Permissions of {name}:</b>"
 
 # Edit admin: can edit products?
 prop_edit_products = "Edit products"
+
+# Edit admin: can edit categories?
+prop_edit_categories = "Edit categories"
 
 # Edit admin: can receive orders?
 prop_receive_orders = "Receive orders"
@@ -371,6 +410,12 @@ success_product_edited = "✅ The product has been successfully added/modified!"
 
 # Success: product has been added/edited to the database
 success_product_deleted = "✅ The product has been successfully deleted!"
+
+# Success: category has been added/edited to the database
+success_category_edited = "✅ The category has been successfully added/modified!"
+
+# Success: category has been added/edited to the database
+success_category_deleted = "✅ The category has been successfully deleted!"
 
 # Success: order has been created
 success_order_created = "✅ The order was sent successfully!\n" \
