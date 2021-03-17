@@ -1040,6 +1040,8 @@ class Worker(threading.Thread):
             price = None
         else:
             price = self.Price(price)
+        if not isinstance(price, CancelSignal) and price is not None:
+            price = int(price)
         # Ask for the product image
         self.bot.send_message(self.chat.id, self.loc.get("ask_product_image"), reply_markup=cancel)
         # Wait for an answer
@@ -1050,7 +1052,7 @@ class Worker(threading.Thread):
             # noinspection PyTypeChecker
             product = db.Product(name=name,
                                  description=description,
-                                 price=int(price) if price is not None else None,
+                                 price=price,
                                  deleted=False)
             # Add the record to the database
             self.session.add(product)
@@ -1059,7 +1061,7 @@ class Worker(threading.Thread):
             # Edit the record with the new values
             product.name = name if not isinstance(name, CancelSignal) else product.name
             product.description = description if not isinstance(description, CancelSignal) else product.description
-            product.price = int(price) if not isinstance(price, CancelSignal) else product.price
+            product.price = price if not isinstance(price, CancelSignal) else product.price
         # If a photo has been sent...
         if isinstance(photo_list, list):
             # Find the largest photo id
