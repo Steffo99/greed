@@ -307,7 +307,7 @@ class Worker(threading.Thread):
             if update.message.text is None:
                 continue
             # Try to match the regex with the received message
-            match = re.search(regex, update.message.text)
+            match = re.search(regex, update.message.text, re.DOTALL)
             # Ensure there is a match
             if match is None:
                 continue
