@@ -157,7 +157,19 @@ Assuming you downloaded `greed` in `/srv/greed`:
    ```bash
    systemctl enable bot-greed   
    ```
-   
+### Running in Docker
+   1. Clone repo in your local machine
+   2. Enter the newly created folder
+   3. Edit `config/config.toml`  
+   4. Build Docker images
+      ```bash
+      docker build -t greed .
+      ```
+   5. Run Docker container
+      ```bash
+      docker run -itd greed:latest
+      ```
+
 ### Updating
 
 To update the bot, run the following commands:
