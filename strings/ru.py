@@ -391,9 +391,9 @@ error_nonprivate_chat = "⚠️ Этот бот работает только в
 # Suggest the creation of a new worker with /start
 error_no_worker_for_chat = "⚠️ Общение с ботом было прервано.\n" \
                            "Чтобы начать снова, воспользуйтесь командой /start "
+
 # Error: a message was sent in a chat, but the worker for that chat is not ready.
 error_worker_not_ready = "🕒 Общение с ботом вот-вот начнется.\n" \
-
                          "Пожалуйста, подождите немного перед отправкой следующей команды!"
                          
 # Error: add funds amount over max
