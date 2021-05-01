@@ -181,7 +181,6 @@ class Transaction(DeferredReflection, TableDeclarativeBase):
 
     # Order ID
     order_id = Column(Integer, ForeignKey("orders.order_id"))
-    order = relationship("Order")
 
     # Extra table parameters
     __tablename__ = "transactions"
@@ -245,7 +244,7 @@ class Order(DeferredReflection, TableDeclarativeBase):
     # Extra details specified by the purchasing user
     notes = Column(Text)
     # Linked transaction
-    transaction = relationship("Transaction", uselist=False)
+    transaction = relationship("Transaction", backref="order", uselist=False)
 
     # Extra table parameters
     __tablename__ = "orders"
