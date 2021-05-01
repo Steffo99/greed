@@ -1222,7 +1222,7 @@ class Worker(threading.Thread):
         # Request from the user the amount of money to be credited manually
         self.bot.send_message(self.chat.id, self.loc.get("ask_credit"), reply_markup=cancel)
         # Wait for an answer
-        reply = self.__wait_for_regex(r"(-? ?[0-9]{1,3}(?:[.,][0-9]{1,2})?)", cancellable=True)
+        reply = self.__wait_for_regex(r"(-? ?[0-9]+(?:[.,][0-9]{1,2})?)", cancellable=True)
         # Allow the cancellation of the operation
         if isinstance(reply, CancelSignal):
             return
