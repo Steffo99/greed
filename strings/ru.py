@@ -308,7 +308,7 @@ edit_current_value = "Текущее значение:\n" \
 
 # Payment: cash payment info
 payment_cash = "Вы можете пополнить счет наличными в торговых точках.\n" \
-               "Рассчитайтесь и сообщение Менеджеру следующее значение:\n" \
+               "Рассчитайтесь и сообщите Менеджеру следующее значение:\n" \
                "<b>{user_cash_id}</b>"
 
 # Payment: invoice amount
@@ -333,7 +333,7 @@ notification_order_placed = "Получен новый заказ:\n" \
                             "{order}"
 
 # Notification: order has been completed
-notification_order_completed = "Выш заказ успешно выполнен!\n" \
+notification_order_completed = "Ваш заказ успешно выполнен!\n" \
                                "{order}"
 
 # Notification: order has been refunded
