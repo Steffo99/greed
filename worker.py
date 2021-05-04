@@ -173,8 +173,6 @@ class Worker(threading.Thread):
             self.user = db.User(w=self)
             # Add the new record to the db
             self.session.add(self.user)
-            # Flush the session to get an userid
-            self.session.flush()
             # If the will be owner flag is set
             if will_be_owner:
                 # Become owner
@@ -649,7 +647,6 @@ class Worker(threading.Thread):
                          notes=notes if not isinstance(notes, CancelSignal) else "")
         # Add the record to the session and get an ID
         self.session.add(order)
-        self.session.flush()
         # For each product added to the cart, create a new OrderItem
         for product in cart:
             # Create {quantity} new OrderItems
