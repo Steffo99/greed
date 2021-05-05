@@ -652,7 +652,7 @@ class Worker(threading.Thread):
             # Create {quantity} new OrderItems
             for i in range(0, cart[product][1]):
                 order_item = db.OrderItem(product=cart[product][0],
-                                          order_id=order.order_id)
+                                          order=order)
                 self.session.add(order_item)
         # Ensure the user has enough credit to make the purchase
         credit_required = self.__get_cart_value(cart) - self.user.credit
