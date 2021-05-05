@@ -297,6 +297,7 @@ class OrderItem(DeferredReflection, TableDeclarativeBase):
     product = relationship("Product")
     # The order in which this item is being purchased
     order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
+    order = relationship("Order")
 
     # Extra table parameters
     __tablename__ = "orderitems"
