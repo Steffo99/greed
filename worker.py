@@ -846,7 +846,10 @@ class Worker(threading.Thread):
                               need_name=self.cfg["Payments"]["CreditCard"]["name_required"],
                               need_email=self.cfg["Payments"]["CreditCard"]["email_required"],
                               need_phone_number=self.cfg["Payments"]["CreditCard"]["phone_required"],
-                              reply_markup=inline_keyboard)
+                              reply_markup=inline_keyboard,
+                              max_tip_amount=self.cfg["Payments"]["CreditCard"]["max_tip_amount"],
+                              suggested_tip_amounts=self.cfg["Payments"]["CreditCard"]["tip_presets"],
+                              )
         # Wait for the precheckout query
         precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
         # Check if the user has cancelled the invoice
@@ -859,7 +862,7 @@ class Worker(threading.Thread):
         successfulpayment = self.__wait_for_successfulpayment(cancellable=False)
         # Create a new database transaction
         transaction = db.Transaction(user=self.user,
-                                     value=int(successfulpayment.total_amount) - fee,
+                                     value=int(amount),
                                      provider="Credit Card",
                                      telegram_charge_id=successfulpayment.telegram_payment_charge_id,
                                      provider_charge_id=successfulpayment.provider_payment_charge_id)
