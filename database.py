@@ -241,7 +241,7 @@ class Order(DeferredReflection, TableDeclarativeBase):
     # Refund reason: if null, product hasn't been refunded
     refund_reason = Column(Text)
     # List of items in the order
-    items: typing.List["OrderItem"] = relationship("OrderItem")
+    items: typing.List["OrderItem"] = relationship("OrderItem", back_populates="order")
     # Extra details specified by the purchasing user
     notes = Column(Text)
     # Linked transaction
@@ -297,7 +297,7 @@ class OrderItem(DeferredReflection, TableDeclarativeBase):
     product = relationship("Product")
     # The order in which this item is being purchased
     order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
-    order = relationship("Order")
+    order = relationship("Order", back_populates="items")
 
     # Extra table parameters
     __tablename__ = "orderitems"
