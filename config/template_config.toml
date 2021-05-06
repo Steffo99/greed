@@ -68,6 +68,14 @@ max_amount = 10000
 # The preset selections that can be made when adding credit to the wallet with a credit card
 # Presets are pipe-separated |, and should never be outside the bounds provided by the min_amount and max_amount options
 payment_presets = [10.00, 25.00, 50.00, 100.00]
+# Suggested tip amounts in minimum currency units
+# Maximum 4 values; if the array is empty, the feature is disabled
+# Enabling this feature is not recommended, as it may be confusing for the users
+# tip_presets = [100, 250, 500, 1000]  # €1.00 €2.50 €5.00 €10.00
+tip_presets = []
+# Maximum tip amount in minimum currency units
+# max_tip_amount = 1000
+max_tip_amount = 0
 # Make the user pay a extra fee when adding credit to the wallet with a credit card
 # The formula for determining the total cost is:
 # cost = added_funds + added_funds * fee_percentage / 100 + fee_fixed
