@@ -195,6 +195,12 @@ class Transaction(TableDeclarativeBase):
             string += f" | {self.provider}"
         if self.notes:
             string += f" | {self.notes}"
+        if self.payment_name:
+            string += f" | {self.payment_name}"
+        if self.payment_phone:
+            string += f" | {self.payment_phone}"
+        if self.payment_email:
+            string += f" | {self.payment_email}"
         return string
 
     def __repr__(self):
