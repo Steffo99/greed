@@ -1,4 +1,19 @@
-python-telegram-bot
-sqlalchemy
-requests
-toml
+# Main requirements
+python-telegram-bot==13.5
+SQLAlchemy==1.4.14
+requests==2.25.1
+toml==0.10.2
+
+# Sub-dependencies
+APScheduler==3.6.3
+certifi==2020.12.5
+chardet==4.0.0
+coloredlogs==15.0
+greenlet==1.1.0
+humanfriendly==9.1
+idna==2.10
+pytz==2021.1
+six==1.16.0
+tornado==6.1
+tzlocal==2.1
+urllib3==1.26.4
