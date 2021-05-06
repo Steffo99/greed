@@ -52,6 +52,7 @@ class Worker(threading.Thread):
         self.telegram_user: telegram.User = telegram_user
         self.cfg = cfg
         self.loc = None
+        self.order_info = telegram.OrderInfo()
         # Open a new database session
         log.debug(f"Opening new database session for {self.name}")
         self.session = sqlalchemy.orm.sessionmaker(bind=engine)()
@@ -695,6 +696,9 @@ class Worker(threading.Thread):
         # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
                                      value=value,
+                                     payment_name=(self.order_info.name if self.order_info.name else None),
+                                     payment_phone=(self.order_info.phone_number if self.order_info.phone_number else None),
+                                     payment_email=(self.order_info.email if self.order_info.email else None),
                                      order=order)
         self.session.add(transaction)
         # Commit all the changes
@@ -857,17 +861,20 @@ class Worker(threading.Thread):
         self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=True)
         # Wait for the payment
         successfulpayment = self.__wait_for_successfulpayment(cancellable=False)
+        # Save order info
+        self.order_info = successfulpayment.order_info
         # Create a new database transaction
-        transaction = db.Transaction(user=self.user,
-                                     value=int(successfulpayment.total_amount) - fee,
-                                     provider="Credit Card",
-                                     telegram_charge_id=successfulpayment.telegram_payment_charge_id,
-                                     provider_charge_id=successfulpayment.provider_payment_charge_id)
-
-        if successfulpayment.order_info is not None:
-            transaction.payment_name = successfulpayment.order_info.name
-            transaction.payment_email = successfulpayment.order_info.email
-            transaction.payment_phone = successfulpayment.order_info.phone_number
+        transaction = db.Transaction(
+            user=self.user,
+            value=int(successfulpayment.total_amount) - fee,
+            provider="Credit Card",
+            payment_name=successfulpayment.order_info.name if successfulpayment.order_info else None,
+            payment_email=successfulpayment.order_info.email if successfulpayment.order_info else None,
+            payment_phone=successfulpayment.order_info.phone_number if successfulpayment.order_info else None,
+            telegram_charge_id=successfulpayment.telegram_payment_charge_id,
+            provider_charge_id=successfulpayment.provider_payment_charge_id
+        )
+        self.session.add(transaction)
         # Update the user's credit
         self.user.recalculate_credit()
         # Commit all the changes

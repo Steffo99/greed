@@ -29,16 +29,18 @@ order_format_string = "Користувач {user}\n" \
                       "Створено {date}\n" \
                       "\n" \
                       "{items}\n" \
-                      "ЗАГАЛОМ: <b>{value}</b>\n" \
-                      "\n" \
-                      "Нотатка: {notes}\n"
+                      "ЗАГАЛОМ: <b>{value}</b>\n"
 
 # Order info string, shown to the user
 user_order_format_string = "{status_emoji} <b>Замовлення {status_text}</b>\n" \
                            "{items}\n" \
-                           "Загалом: <b>{value}</b>\n" \
-                           "\n" \
-                           "Нотатка: {notes}\n"
+                           "Загалом: <b>{value}</b>\n"
+
+order_notes_string = "Нотатка: {notes}\n"
+
+order_info_name = "ім'я: {name}\n"
+order_info_phone = "Телефон: {phone}\n"
+order_info_email = "E-mail: {email}\n"
 
 # Transaction page is loading
 loading_transactions = "<i>Завантажую транзакції...\n" \
