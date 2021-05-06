@@ -20,7 +20,7 @@ TableDeclarativeBase = declarative_base()
 
 
 # Define all the database tables using the sqlalchemy declarative base
-class User(DeferredReflection, TableDeclarativeBase):
+class User(TableDeclarativeBase):
     """A Telegram user who used the bot at least once."""
 
     # Telegram data
@@ -87,7 +87,7 @@ class User(DeferredReflection, TableDeclarativeBase):
         return f"<User {self.mention()} having {self.credit} credit>"
 
 
-class Product(DeferredReflection, TableDeclarativeBase):
+class Product(TableDeclarativeBase):
     """A purchasable product."""
 
     # Product id
@@ -151,7 +151,7 @@ class Product(DeferredReflection, TableDeclarativeBase):
         self.image = r.content
 
 
-class Transaction(DeferredReflection, TableDeclarativeBase):
+class Transaction(TableDeclarativeBase):
     """A greed wallet transaction.
     Wallet credit ISN'T calculated from these, but they can be used to recalculate it."""
     # TODO: split this into multiple tables
@@ -201,7 +201,7 @@ class Transaction(DeferredReflection, TableDeclarativeBase):
         return f"<Transaction {self.transaction_id} for User {self.user_id}>"
 
 
-class Admin(DeferredReflection, TableDeclarativeBase):
+class Admin(TableDeclarativeBase):
     """A greed administrator with his permissions."""
 
     # The telegram id
@@ -223,7 +223,7 @@ class Admin(DeferredReflection, TableDeclarativeBase):
         return f"<Admin {self.user_id}>"
 
 
-class Order(DeferredReflection, TableDeclarativeBase):
+class Order(TableDeclarativeBase):
     """An order which has been placed by an user.
     It may include multiple products, available in the OrderItem table."""
 
@@ -286,7 +286,7 @@ class Order(DeferredReflection, TableDeclarativeBase):
                    (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
 
 
-class OrderItem(DeferredReflection, TableDeclarativeBase):
+class OrderItem(TableDeclarativeBase):
     """A product that has been purchased as part of an order."""
 
     # The unique item id

@@ -176,7 +176,7 @@ class Worker(threading.Thread):
             # If the will be owner flag is set
             if will_be_owner:
                 # Become owner
-                self.admin = db.Admin(user_id=self.user.user_id,
+                self.admin = db.Admin(user=self.user.user,
                                       edit_products=True,
                                       receive_orders=True,
                                       create_transactions=True,
@@ -695,7 +695,7 @@ class Worker(threading.Thread):
         # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
                                      value=value,
-                                     order_id=order.order_id)
+                                     order=order)
         self.session.add(transaction)
         # Commit all the changes
         self.session.commit()
@@ -1151,7 +1151,7 @@ class Worker(threading.Thread):
                 break
             # Find the order
             order_id = re.search(self.loc.get("order_number").replace("{id}", "([0-9]+)"), update.message.text).group(1)
-            order = self.session.query(db.Order).filter(db.Order.order_id == order_id).one()
+            order = self.session.query(db.Order).get(order_id)
             # Check if the order hasn't been already cleared
             if order.delivery_date is not None or order.refund_date is not None:
                 # Notify the admin and skip that order
@@ -1337,7 +1337,7 @@ class Worker(threading.Thread):
         """Generate a .csv file containing the list of all transactions."""
         log.debug("Generating __transaction_file")
         # Retrieve all the transactions
-        transactions = self.session.query(db.Transaction).order_by(db.Transaction.transaction_id.asc()).all()
+        transactions = self.session.query(db.Transaction).order_by(db.Transaction.transaction_id).all()
         # Create the file if it doesn't exists
         try:
             with open(f"transactions_{self.chat.id}.csv", "x"):
@@ -1388,7 +1388,7 @@ class Worker(threading.Thread):
         if isinstance(user, CancelSignal):
             return
         # Check if the user is already an administrator
-        admin = self.session.query(db.Admin).filter_by(user_id=user.user_id).one_or_none()
+        admin = self.session.query(db.Admin).filter_by(user=user).one_or_none()
         if admin is None:
             # Create the keyboard to be sent
             keyboard = telegram.ReplyKeyboardMarkup([[self.loc.get("emoji_yes"), self.loc.get("emoji_no")]],
