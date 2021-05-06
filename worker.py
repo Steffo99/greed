@@ -883,6 +883,44 @@ class Worker(threading.Thread):
         # Commit all the changes
         self.session.commit()
 
+    def fast_checkout_process(self):
+        precheckoutquery = self.__wait_for_precheckoutquery(cancellable=True)
+        # Check if the user has cancelled the invoice
+        if isinstance(precheckoutquery, CancelSignal):
+            # Exit the function
+            return
+        id = precheckoutquery.invoice_payload.split('-', 1)[1]
+        if not id.isnumeric():
+            self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=False, error_message="Invalid Invoice")
+            return
+        product = self.session.query(db.Product).filter_by(id=id, deleted=False).one_or_none()
+        if product is None:
+            self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=False, error_message="Invoice was expired")
+            return
+        # Check correct amount
+        amount = self.Price(product.price)
+        fee = int(self.__get_total_fee(amount))
+        if precheckoutquery.total_amount != amount + fee:
+            self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=False, error_message="The price was expired")
+            return
+        
+        # Create a new Order
+        order = db.Order(user=self.user,
+                         creation_date=datetime.datetime.now(),
+                         notes="")
+        # Add the record to the session and get an ID
+        self.session.add(order)
+        order_item = db.OrderItem(product=product, order=order)
+        self.session.add(order_item)
+        self.__success_payment_processing(precheckoutquery, fee)
+
+        if self.user.credit < amount + fee:
+            # Rollback all the changes
+            self.session.rollback()
+        else:
+            # User has credit and valid order, perform transaction now
+            self.__order_transaction(order=order, value=-int(amount + fee))
+
     def __get_total_fee(self, amount):
         # Calculate a fee for the required amount
         fee_percentage = self.cfg["Payments"]["CreditCard"]["fee_percentage"] / 100
@@ -907,7 +945,7 @@ class Worker(threading.Thread):
             # Create a keyboard with the admin main menu based on the admin permissions specified in the db
             keyboard = []
             if self.admin.edit_products:
-                keyboard.append([self.loc.get("menu_products")])
+                keyboard.append([self.loc.get("menu_products"), "Payments 2.0"])
             if self.admin.receive_orders:
                 keyboard.append([self.loc.get("menu_orders")])
             if self.admin.create_transactions:
@@ -921,6 +959,7 @@ class Worker(threading.Thread):
                                   reply_markup=telegram.ReplyKeyboardMarkup(keyboard, one_time_keyboard=True))
             # Wait for a reply from the user
             selection = self.__wait_for_specific_message([self.loc.get("menu_products"),
+                                                          "Payments 2.0",
                                                           self.loc.get("menu_orders"),
                                                           self.loc.get("menu_user_mode"),
                                                           self.loc.get("menu_edit_credit"),
@@ -931,6 +970,9 @@ class Worker(threading.Thread):
             if selection == self.loc.get("menu_products"):
                 # Open the products menu
                 self.__products_menu()
+            elif selection == "Payments 2.0":
+                # Open the Payments2.0 menu
+                self.__payments20_menu()
             # If the user has selected the Orders option...
             elif selection == self.loc.get("menu_orders"):
                 # Open the orders menu
@@ -957,6 +999,35 @@ class Worker(threading.Thread):
             elif selection == self.loc.get("menu_csv"):
                 # Generate the .csv file
                 self.__transactions_file()
+
+    def __payments20_menu(self):
+        """Display the admin menu to select a product to edit."""
+        log.debug("Displaying __payments2.0_menu")
+
+        # Get the products list from the db
+        products = self.session.query(db.Product).filter_by(deleted=False).all()
+        # Create a list of product names
+
+        self.bot.send_message(self.chat.id, "Forward invoices for buzz")
+        # Payments 2.0 invoices for forwarding
+        for product in products:
+            amount = self.Price(product.price)
+            prices = [telegram.LabeledPrice(label=self.loc.get("payment_invoice_label"), amount=int(amount))]
+            # If the user has to pay a fee when using the credit card, add it to the prices list
+            fee = int(self.__get_total_fee(amount))
+            if fee > 0:
+                prices.append(telegram.LabeledPrice(label=self.loc.get("payment_invoice_fee_label"),
+                                                    amount=fee))
+            self.bot.send_invoice(self.chat.id,
+                                title=product.name,
+                                description=product.description,
+                                payload="prod-" + str(product.id),
+                                provider_token=self.cfg["Payments"]["CreditCard"]["credit_card_token"],
+                                currency=self.cfg["Payments"]["currency"],
+                                prices=prices,
+                                need_name=self.cfg["Payments"]["CreditCard"]["name_required"],
+                                need_email=self.cfg["Payments"]["CreditCard"]["email_required"],
+                                need_phone_number=self.cfg["Payments"]["CreditCard"]["phone_required"])
 
     def __products_menu(self):
         """Display the admin menu to select a product to edit."""
