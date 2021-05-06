@@ -709,7 +709,6 @@ class Worker(threading.Thread):
     def __order_notify_admins(self, order):
         # Notify the user of the order result
         self.bot.send_message(self.chat.id, self.loc.get("success_order_created", order=order.text(w=self,
-                                                                                                   session=self.session,
                                                                                                    user=True)))
         # Notify the admins (in Live Orders mode) of the new order
         admins = self.session.query(db.Admin).filter_by(live_mode=True).all()
@@ -723,7 +722,7 @@ class Worker(threading.Thread):
         for admin in admins:
             self.bot.send_message(admin.user_id,
                                   self.loc.get('notification_order_placed',
-                                               order=order.text(w=self, session=self.session)),
+                                               order=order.text(w=self)),
                                   reply_markup=order_keyboard)
 
     def __order_status(self):
@@ -740,7 +739,7 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, self.loc.get("error_no_orders"))
         # Display the order status to the user
         for order in orders:
-            self.bot.send_message(self.chat.id, order.text(w=self, session=self.session, user=True))
+            self.bot.send_message(self.chat.id, order.text(w=self, user=True))
         # TODO: maybe add a page displayer instead of showing the latest 5 orders
 
     def __add_credit_menu(self):
@@ -1136,7 +1135,7 @@ class Worker(threading.Thread):
         # Create a message for every one of them
         for order in orders:
             # Send the created message
-            self.bot.send_message(self.chat.id, order.text(w=self, session=self.session),
+            self.bot.send_message(self.chat.id, order.text(w=self),
                                   reply_markup=order_keyboard)
         # Set the Live mode flag to True
         self.admin.live_mode = True
@@ -1165,12 +1164,12 @@ class Worker(threading.Thread):
                 # Commit the transaction
                 self.session.commit()
                 # Update order message
-                self.bot.edit_message_text(order.text(w=self, session=self.session), chat_id=self.chat.id,
+                self.bot.edit_message_text(order.text(w=self), chat_id=self.chat.id,
                                            message_id=update.message.message_id)
                 # Notify the user of the completition
                 self.bot.send_message(order.user_id,
                                       self.loc.get("notification_order_completed",
-                                                   order=order.text(w=self, session=self.session, user=True)))
+                                                   order=order.text(w=self, user=True)))
             # If the user pressed the refund order button, refund the order...
             elif update.data == "order_refund":
                 # Ask for a refund reason
@@ -1194,13 +1193,12 @@ class Worker(threading.Thread):
                 # Commit the changes
                 self.session.commit()
                 # Update the order message
-                self.bot.edit_message_text(order.text(w=self, session=self.session),
+                self.bot.edit_message_text(order.text(w=self),
                                            chat_id=self.chat.id,
                                            message_id=update.message.message_id)
                 # Notify the user of the refund
                 self.bot.send_message(order.user_id,
                                       self.loc.get("notification_order_refunded", order=order.text(w=self,
-                                                                                                   session=self.session,
                                                                                                    user=True)))
                 # Notify the admin of the refund
                 self.bot.send_message(self.chat.id, self.loc.get("success_order_refunded", order_id=order.order_id))

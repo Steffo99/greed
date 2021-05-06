@@ -253,8 +253,7 @@ class Order(DeferredReflection, TableDeclarativeBase):
     def __repr__(self):
         return f"<Order {self.order_id} placed by User {self.user_id}>"
 
-    def text(self, w: "worker.Worker", session, user=False):
-        joined_self = session.query(Order).filter_by(order_id=self.order_id).join(Transaction).one()
+    def text(self, w: "worker.Worker", user=False):
         items = ""
         for item in self.items:
             items += item.text(w) + "\n"
@@ -273,7 +272,7 @@ class Order(DeferredReflection, TableDeclarativeBase):
                              status_text=status_text,
                              items=items,
                              notes=self.notes,
-                             value=str(w.Price(-joined_self.transaction.value))) + \
+                             value=str(w.Price(-self.transaction.value))) + \
                    (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
         else:
             return status_emoji + " " + \
@@ -283,7 +282,7 @@ class Order(DeferredReflection, TableDeclarativeBase):
                              date=self.creation_date.isoformat(),
                              items=items,
                              notes=self.notes if self.notes is not None else "",
-                             value=str(w.Price(-joined_self.transaction.value))) + \
+                             value=str(w.Price(-self.transaction.value))) + \
                    (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
 
 
