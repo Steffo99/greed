@@ -36,12 +36,6 @@ user_order_format_string = "{status_emoji} <b>Order {status_text}</b>\n" \
                            "{items}\n" \
                            "TOTAL: <b>{value}</b>\n"
 
-order_notes_string = "Notes: {notes}\n"
-
-order_info_name = "Name: {name}\n"
-order_info_phone = "Phone: {phone}\n"
-order_info_email = "E-mail: {email}\n"
-
 # Transaction page is loading
 loading_transactions = "<i>Loading transactions...\n" \
                        "Please wait a few seconds.</i>"

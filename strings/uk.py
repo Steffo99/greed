@@ -36,12 +36,6 @@ user_order_format_string = "{status_emoji} <b>Замовлення {status_text}
                            "{items}\n" \
                            "Загалом: <b>{value}</b>\n"
 
-order_notes_string = "Нотатка: {notes}\n"
-
-order_info_name = "ім'я: {name}\n"
-order_info_phone = "Телефон: {phone}\n"
-order_info_email = "E-mail: {email}\n"
-
 # Transaction page is loading
 loading_transactions = "<i>Завантажую транзакції...\n" \
                        "Зачекайте кілька секунд.</i>"

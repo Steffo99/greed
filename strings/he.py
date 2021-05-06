@@ -34,8 +34,6 @@ user_order_format_string = "{status_emoji} <b>הזמנה {status_text}</b>\n" \
                            "{items}\n" \
                            "סך הכל: <b>{value}</b>\n"
 
-order_notes_string = "הערות: {notes}\n"
-
 # Transaction page is loading
 loading_transactions = "<i>טוען הזמנות...\n" \
                        "פעולה זו יכולה לקחת כמה דקות</i>"

@@ -36,12 +36,6 @@ user_order_format_string = "{status_emoji} <b>Заказ {status_text}</b>\n" \
                            "{items}\n" \
                            "Итого: <b>{value}</b>\n"
 
-order_notes_string = "Сообщение: {notes}\n"
-
-order_info_name = "Имя: {name}\n"
-order_info_phone = "Телефон: {phone}\n"
-order_info_email = "E-mail: {email}\n"
-
 # Transaction page is loading
 loading_transactions = "<i>Загружаю транзакции...\n" \
                        "Это займет несколько секунд.</i>"

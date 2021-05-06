@@ -36,8 +36,6 @@ user_order_format_string = "{status_emoji} <b>订单 {status_text}</b>\n" \
                            "{items}\n" \
                            "总计: <b>{value}</b>\n"
 
-order_notes_string = "注释: {notes}\n"
-
 # Transaction page is loading
 loading_transactions = "<i>正在载入交易中...\n" \
                        "请稍等片刻.....</i>"

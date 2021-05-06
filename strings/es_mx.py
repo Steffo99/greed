@@ -36,8 +36,6 @@ user_order_format_string = "{status_emoji} <b>Orden {status_text}</b>\n" \
                            "{items}\n" \
                            "TOTAL: <b>{value}</b>\n"
 
-order_notes_string = "Notas: {notes}\n"
-
 # Transaction page is loading
 loading_transactions = "<i>Cargando transacciones...\n" \
                        "Por favor espera unos segundos.</i>"
