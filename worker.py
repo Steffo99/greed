@@ -695,10 +695,7 @@ class Worker(threading.Thread):
         # Create a new transaction and add it to the session
         transaction = db.Transaction(user=self.user,
                                      value=value,
-                                     payment_name=(self.order_info.name if self.order_info.name else None),
-                                     payment_phone=(self.order_info.phone_number if self.order_info.phone_number else None),
-                                     payment_email=(self.order_info.email if self.order_info.email else None),
-                                     order=order)
+                                     order_id=order.order_id)
         self.session.add(transaction)
         # Commit all the changes
         self.session.commit()
