@@ -193,6 +193,12 @@ class Transaction(TableDeclarativeBase):
             string += f" | {w.loc.get('emoji_refunded')}"
         if self.provider:
             string += f" | {self.provider}"
+        if self.payment_name:
+            string += f" | {self.payment_name}"
+        if self.payment_phone:
+            string += f" | {self.payment_phone}"
+        if self.payment_email:
+            string += f" | {self.payment_email}"
         if self.notes:
             string += f" | {self.notes}"
         return string
@@ -273,13 +279,10 @@ class Order(TableDeclarativeBase):
                              items=items,
                              notes=self.notes,
                              value=str(w.Price(-self.transaction.value))) + \
-                   (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
+                   w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else ""
         else:
             return status_emoji + " " + \
                    w.loc.get("order_number", id=self.order_id) + "\n\n" + \
-                   w.loc.get("order_info_name", name=self.transaction.payment_name) if self.transaction.payment_name else "" + \
-                   w.loc.get("order_info_phone", phone=self.transaction.payment_phone) if self.transaction.payment_phone else "" + \
-                   w.loc.get("order_info_email", email=self.transaction.payment_email) if self.transaction.payment_email else "" + \
                    w.loc.get("order_format_string",
                              user=self.user.mention(),
                              date=self.creation_date.isoformat(),
