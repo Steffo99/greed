@@ -334,14 +334,17 @@ payment_invoice_fee_label = "交易费"
 
 # Notification: order has been placed
 notification_order_placed = "新订单是:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "您的订单已完成\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "您的订单已退款\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied

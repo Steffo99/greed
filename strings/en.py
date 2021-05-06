@@ -333,14 +333,17 @@ payment_invoice_fee_label = "Transaction fee"
 
 # Notification: order has been placed
 notification_order_placed = "A new order was placed:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "Your order has been completed!\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "Your order has been refunded!\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied

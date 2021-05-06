@@ -330,14 +330,17 @@ payment_invoice_fee_label = "Сбор за пополнение"
 
 # Notification: order has been placed
 notification_order_placed = "Получен новый заказ:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "Ваш заказ успешно выполнен!\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "Ваш заказ отменен. Средства возвращены в Ваш кошелек!\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied

@@ -325,14 +325,17 @@ payment_invoice_fee_label = "Оплата за поповнення"
 
 # Notification: order has been placed
 notification_order_placed = "Отримано нове замовлення:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "Ваше замовнення успішно завершено!\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "Ваше замовлення відмінено. Кошти повернуто!\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied

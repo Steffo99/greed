@@ -327,14 +327,17 @@ payment_invoice_fee_label = "עמלת העברה"
 
 # Notification: order has been placed
 notification_order_placed = "נוצרה הזמנה חדשה:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "ההזמנה הוצרה בהצלחה\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "הכסף על ההזמנה הבא הוחזר בהצלחה\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied

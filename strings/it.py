@@ -335,14 +335,17 @@ payment_invoice_fee_label = "Supplemento carta"
 
 # Notification: order has been placed
 notification_order_placed = "E' stato piazzato un nuovo ordine:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "Un tuo ordine è stato completato!\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "Un tuo ordine è stato rimborsato!\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied

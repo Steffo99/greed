@@ -332,14 +332,17 @@ payment_invoice_fee_label = "Comisión de la transacción"
 
 # Notification: order has been placed
 notification_order_placed = "Se realizó una nueva orden:\n" \
+                            "\n" \
                             "{order}"
 
 # Notification: order has been completed
 notification_order_completed = "¡Tu orden ha sido completada!\n" \
+                               "\n" \
                                "{order}"
 
 # Notification: order has been refunded
 notification_order_refunded = "¡Tu orden ha sido reembolsada!\n" \
+                              "\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied
