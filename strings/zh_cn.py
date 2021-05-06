@@ -363,7 +363,7 @@ bot_info = '此机器人正在使用 <a href="https://github.com/Steffo99/greed"
 
 # Help: guide
 help_msg = "greed的指南可在此地址获得(未翻译):\n" \
-           "https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/"
+           "https://github.com/Steffo99/greed/wiki"
 
 # Help: contact shopkeeper
 contact_shopkeeper = "目前可提供帮助和支持的人员包括:\n" \

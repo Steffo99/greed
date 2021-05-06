@@ -364,7 +364,7 @@ bot_info = 'Questo bot utilizza <a href="https://github.com/Steffo99/greed">gree
 
 # Help: guide
 help_msg = "La guida del bot è disponibile a questo indirizzo:\n" \
-           "https://docs.google.com/document/d/1f4MKVr0B7RSQfWTSa_6ZO0LM4nPpky_GX_qdls3EHtQ/"
+           "https://github.com/Steffo99/greed/wiki"
 
 # Help: contact shopkeeper
 contact_shopkeeper = "Attualmente, il personale disponibile ad offrire assistenza agli utenti è composto da:\n" \
