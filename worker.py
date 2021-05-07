@@ -176,7 +176,7 @@ class Worker(threading.Thread):
             # If the will be owner flag is set
             if will_be_owner:
                 # Become owner
-                self.admin = db.Admin(user=self.user.user,
+                self.admin = db.Admin(user=self.user,
                                       edit_products=True,
                                       receive_orders=True,
                                       create_transactions=True,
