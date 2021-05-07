@@ -859,6 +859,10 @@ class Worker(threading.Thread):
         if isinstance(precheckoutquery, CancelSignal):
             # Exit the function
             return
+            
+        self.__success_payment_processing(precheckoutquery, fee)
+
+    def __success_payment_processing(self, precheckoutquery, fee):
         # Accept the checkout
         self.bot.answer_pre_checkout_query(precheckoutquery.id, ok=True)
         # Wait for the payment
