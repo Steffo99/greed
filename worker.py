@@ -52,6 +52,8 @@ class Worker(threading.Thread):
         self.telegram_user: telegram.User = telegram_user
         self.cfg = cfg
         self.loc = None
+        # Let define start point from outside
+        self.start_point = None
         # Open a new database session
         log.debug(f"Opening new database session for {self.name}")
         self.session = sqlalchemy.orm.sessionmaker(bind=engine)()
@@ -195,6 +197,10 @@ class Worker(threading.Thread):
         # Capture exceptions that occour during the conversation
         # noinspection PyBroadException
         try:
+            # Go to start point if exists
+            if self.start_point:
+                self.start_point()
+                return
             # Welcome the user to the bot
             if self.cfg["Appearance"]["display_welcome_message"] == "yes":
                 self.bot.send_message(self.chat.id, self.loc.get("conversation_after_start"))
