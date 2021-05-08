@@ -205,7 +205,28 @@ def main():
                 # Forward the update to the corresponding worker
                 receiving_worker = chat_workers.get(update.pre_checkout_query.from_user.id)
                 # Check if it's the active invoice for this chat
-                if receiving_worker is None or \
+                if update.pre_checkout_query.invoice_payload.startswith("prod-"):
+                    log.info(f"Received payment2.0")
+                    # Check if a worker already exists for that chat
+                    if receiving_worker is not None:
+                        receiving_worker.stop("request")
+                    # Initialize a new worker for the payment2.0
+                    chat = telegram.Chat(id=update.pre_checkout_query.from_user.id, type='private')
+                    new_worker = worker.Worker(bot=bot,
+                                            chat=chat,
+                                            telegram_user=update.pre_checkout_query.from_user,
+                                            cfg=user_cfg,
+                                            engine=engine,
+                                            daemon=True)
+                    # Set start_point to checkout process
+                    new_worker.start_point=new_worker.fast_checkout_process
+                    # Start the worker
+                    log.debug(f"Starting {new_worker.name} for Payments2.0")
+                    new_worker.start()
+                    # Store the worker in the dictionary
+                    chat_workers[update.pre_checkout_query.from_user.id] = new_worker
+                    receiving_worker = new_worker
+                elif receiving_worker is None or \
                         update.pre_checkout_query.invoice_payload != receiving_worker.invoice_payload:
                     # Notify the user that the invoice has expired
                     log.debug(f"Received a pre-checkout query for an expired invoice in: {update.pre_checkout_query.from_user.id}")
