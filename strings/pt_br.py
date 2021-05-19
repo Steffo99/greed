@@ -355,8 +355,8 @@ refund_reason = "Devolução razão:\n" \
                 "{reason}"
 
 # Info: informazioni sul bot
-bot_info = 'This bot is using <a href="https://github.com/Steffo99/greed">greed</a>,' \
-           ' a framework by @Steffo for Telegram payments released under the' \
+bot_info = 'Este bot esta usando <a href="https://github.com/Steffo99/greed">greed</a>,' \
+           ' um framework criado por @Steffo para pagamentos no Telegram usando ' \
            ' <a href="https://github.com/Steffo99/greed/blob/master/LICENSE.txt">' \
            'Affero General Public License 3.0</a>.\n'
 
