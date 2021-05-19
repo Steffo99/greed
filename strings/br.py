@@ -13,7 +13,7 @@ currency_format_string = "{symbol} {value}"
 in_stock_format_string = "{quantity} disponível"
 
 # Copies of a product in cart
-in_cart_format_string = "{quantity} no Carrinho"
+in_cart_format_string = "{quantity} no carrinho"
 
 # Product information
 product_format_string = "<b>{name}</b>\n" \
