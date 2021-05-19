@@ -10,7 +10,7 @@ currency_symbol = "R$"
 currency_format_string = "{symbol} {value}"
 
 # Quantity of a product in stock
-in_stock_format_string = "{quantity} Disponível"
+in_stock_format_string = "{quantity} disponível"
 
 # Copies of a product in cart
 in_cart_format_string = "{quantity} no Carrinho"
