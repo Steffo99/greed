@@ -337,7 +337,7 @@ notification_order_placed = "Um novo pedido foi feito:\n" \
                             "{order}"
 
 # Notification: order has been completed
-notification_order_completed = "Seu Pedido foi completado!\n" \
+notification_order_completed = "Seu pedido foi completado!\n" \
                                "\n" \
                                "{order}"
 
