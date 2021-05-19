@@ -274,7 +274,7 @@ ask_refund_reason = " Anexe um motivo para este reembolso.\n" \
 # Edit credit: notes?
 ask_transaction_notes = " Anexe uma nota a esta transação.\n" \
                         "👤 Será visível para o cliente após o crédito / débito" \
-                        " e para 💼 Admins no log de transações."
+                        " e para 💼 Gerentes no log de transações."
 
 # Edit credit: amount?
 ask_credit = "Como você deseja alterar o crédito do cliente?\n" \
