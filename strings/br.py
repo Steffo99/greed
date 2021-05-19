@@ -430,4 +430,4 @@ error_user_does_not_exist = "⚠️  O usuário selecionado não existe."
 # Fatal: conversation raised an exception
 fatal_conversation_exception = "☢️ Oh no! Um <b>error</b> interrompeu esta conversa\n" \
                                "O erro foi relatado ao proprietário do bot para que ele pudesse corrigi-lo.\n" \
-                               "Para reiniciar a conversa, envie o comando / start novamente."
+                               "Para reiniciar a conversa, envie o comando /start novamente."
