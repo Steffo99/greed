@@ -347,7 +347,7 @@ notification_order_refunded = "Seu pedido foi reembolsado!\n" \
                               "{order}"
 
 # Notification: a manual transaction was applied
-notification_transaction_created = "ℹ️  Uma nova transação foi aplicada à sua carteira:\n" \
+notification_transaction_created = "ℹ️ Uma nova transação foi aplicada à sua carteira:\n" \
                                    "{transaction}"
 
 # Refund reason
