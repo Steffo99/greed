@@ -22,10 +22,10 @@ product_format_string = "<b>{name}</b>\n" \
                         "<b>{cart}</b>"
 
 # Order number, displayed in the order info
-order_number = "Order #{id}"
+order_number = "Pedido #{id}"
 
 # Order info string, shown to the admins
-order_format_string = "by {user}\n" \
+order_format_string = "por  {user}\n" \
                       "Criado em {date}\n" \
                       "\n" \
                       "{items}\n" \
@@ -34,7 +34,7 @@ order_format_string = "by {user}\n" \
                       "Cliente notas: {notes}\n"
 
 # Order info string, shown to the user
-user_order_format_string = "{status_emoji} <b>Order {status_text}</b>\n" \
+user_order_format_string = "{status_emoji} <b>Pedido {status_text}</b>\n" \
                            "{items}\n" \
                            "TOTAL: <b>{value}</b>\n" \
                            "\n" \
@@ -59,7 +59,7 @@ conversation_after_start = "Olá!\n" \
                            "Bem Vindo ao greed!\n" \
                            "Isto é uma versão  🅱️ <b>Beta</b> do software.\n" \
                            "É completamente usavel, mas pode haver bugs ainda presente.\n" \
-                           "If you find any, please report them at https://github.com/Steffo99/greed/issues."
+                           "Se você encontrar algum, por favor, relate-o em https://github.com/Steffo99/greed/issues."
 
 # Conversation: to send an inline keyboard you need to send a message with it
 conversation_open_user_menu = "O que você gostaria de fazer?\n" \
@@ -103,7 +103,7 @@ conversation_confirm_cart = "🛒 Seu carrinho contém os seguintes produtos:\n"
                             "Para cancelar, pressione o botão Cancelar.</i>"
 
 # Live orders mode: start
-conversation_live_orders_start = "Você esta no modo <b>Live Orders</b> \n" \
+conversation_live_orders_start = "Você esta no modo <b>Live Pedidos</b> \n" \
                                  "Todos os novos pedidos feitos pelos clientes aparecerão em tempo real neste chat, e você" \
                                  " poderá marcá-los como ✅ Concluídos" \
                                  " ou ✴️ Reembolsar o crédito ao cliente."
@@ -132,10 +132,10 @@ conversation_expired = "🕐  Faz um tempo que não recebo nenhuma mensagem, ent
                        "Se você deseja iniciar um novo, envie um novo comando / start."
 
 # User menu: order
-menu_order = "🛒 Order de Produtos"
+menu_order = "🛒 Pedido de Produtos"
 
 # User menu: order status
-menu_order_status = "🛍 Minhas orders"
+menu_order_status = "🛍 Meus Pedidos"
 
 # User menu: add credit
 menu_add_credit = "💵 Adicionar fundos"
@@ -153,7 +153,7 @@ menu_credit_card = "💳 Com Cartão de Crédito"
 menu_products = "📝️ Produtos"
 
 # Admin menu: orders
-menu_orders = "📦 Orders"
+menu_orders = "📦 Pedidos"
 
 # Menu: transactions
 menu_transactions = "💳 Lista de Transações"
