@@ -1492,6 +1492,10 @@ class Worker(threading.Thread):
             lang = "🇲🇽 Español"
             keyboard.append([telegram.KeyboardButton(lang)])
             options[lang] = "es_mx"
+        if "pt_br" in self.cfg["Language"]["enabled_languages"]:
+            lang = "🇧🇷 Português"
+            keyboard.append([telegram.KeyboardButton(lang)])
+            options[lang] = "pt_br"
         # Send the previously created keyboard to the user (ensuring it can be clicked only 1 time)
         self.bot.send_message(self.chat.id,
                               self.loc.get("conversation_language_select"),
