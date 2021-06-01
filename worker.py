@@ -804,12 +804,12 @@ class Worker(threading.Thread):
             if value > self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
                 self.bot.send_message(self.chat.id,
                                       self.loc.get("error_payment_amount_over_max",
-                                                   max_amount=self.Price(self.cfg["Credit Card"]["max_amount"])))
+                                                   max_amount=self.Price(self.cfg["CreditCard"]["max_amount"])))
                 continue
             elif value < self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]):
                 self.bot.send_message(self.chat.id,
                                       self.loc.get("error_payment_amount_under_min",
-                                                   min_amount=self.Price(self.cfg["Credit Card"]["min_amount"])))
+                                                   min_amount=self.Price(self.cfg["CreditCard"]["min_amount"])))
                 continue
             break
         # If the user cancelled the action...
