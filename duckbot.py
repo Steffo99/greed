@@ -1,6 +1,5 @@
 import logging
-import sys
-import time
+import sys, time
 import traceback
 
 import telegram.error
