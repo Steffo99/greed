@@ -30,7 +30,7 @@ engine = "sqlite:///database.sqlite"
 # Telegram bot parameters
 [Telegram]
 # Your bot token goes here. Get one from https://t.me/BotFather!
-token = "123456789:YOUR_TOKEN_GOES_HERE_______________"
+token = "1929795899:AAFr3oN9oDHh8vitZFXhrd-x7FyldRQMy0c"
 # Time in seconds before a conversation (thread) with no new messages expires
 # A lower value reduces memory usage, but can be inconvenient for the users
 conversation_timeout = 7200
@@ -47,13 +47,13 @@ con_pool_size = 10
 # General payment settings
 [Payments]
 # ISO currency code
-currency = "EUR"
+currency = "INR"
 # Currency exp parameter. You can find that on https://core.telegram.org/bots/payments/currencies.json.
 # It has a value of 2 in most currencies (EUR, USD, GBP...)
 currency_exp = 2
 # Currency symbol which is show to the client users when displaying prices and transaction values
 # If not defined here, default language specific currency symbol from strings would be used
-currency_symbol = "€"
+currency_symbol = "₹"
 
 
 # Credit card payment settings
@@ -61,9 +61,9 @@ currency_symbol = "€"
 # Telegram Payments provider token obtainable at https://t.me/BotFather in the bot's Payments menu
 # If empty, credit card payments are disabled.
 # credit_card_token =
-credit_card_token = "123456789:YOUR_TOKEN_HERE_"
+credit_card_token = "284685063:TEST:ZGRmYmQzMTdkNTc2"
 # Minimum wallet payment accepted (in miniumum currency units, $1.00 = 100 units)
-min_amount = 1000
+min_amount = 100
 # Maximum wallet payment accepted (in miniumum currency units, $1.00 = 100 units)
 max_amount = 10000
 # The preset selections that can be made when adding credit to the wallet with a credit card
@@ -81,15 +81,15 @@ max_tip_amount = 0
 # The formula for determining the total cost is:
 # cost = added_funds + added_funds * fee_percentage / 100 + fee_fixed
 # Set these values to 0 to disable the feature.
-fee_percentage = 2.9
-fee_fixed = 30
+fee_percentage = 0
+fee_fixed = 0
 # "Shipping" information
 # Telegram can ask for extra information when charging the user for a credit card transaction
 # Set to yes the data you want to be required
 # This data will be stored in the database
 name_required = true
 email_required = true
-phone_required = true
+phone_required = false
 
 
 # Bot appearance settings
