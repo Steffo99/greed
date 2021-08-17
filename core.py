@@ -1,11 +1,9 @@
 import logging
-import os
-import sys
+import os, sys
 import threading
 
 import sqlalchemy
 import sqlalchemy.ext.declarative as sed
-import sqlalchemy.orm
 import telegram
 
 import database
