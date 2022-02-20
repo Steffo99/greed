@@ -1,7 +1,18 @@
-FROM python:3.9-slim-buster
-LABEL maintainer="ste.pigozzi@gmail.com" \
-      description="A customizable, multilanguage Telegram shop bot"
-COPY . /app
-WORKDIR "./app"
+FROM python:3.10 AS labels
+LABEL maintainer="Stefano Pigozzi <me@steffo.eu>"
+LABEL description="A customizable, multilanguage Telegram shop bot"
+
+FROM labels AS dependencies
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
-ENTRYPOINT ["python3", "-OO", "core.py"]
+
+FROM dependencies AS greed
+COPY . /usr/src/app
+WORKDIR /usr/src/app
+
+FROM greed AS entry
+ENTRYPOINT ["python", "-OO"]
+CMD ["core.py"]
+
+FROM entry AS environment
+ENV PYTHONUNBUFFERED=1
