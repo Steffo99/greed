@@ -1,0 +1,44 @@
+name: "Build Docker image"
+
+on:
+  release:
+    types:
+      - published
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-docker:
+    name: "🐳 Build and publish Docker image"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v2
+
+      - name: "❓ Find the release semantic version"
+        id: semver
+        uses: Steffo99/actions-semver@v0.1.0
+
+      - name: "🔨 Setup Buildx"
+        uses: docker/setup-buildx-action@v1
+
+      - name: "🔑 Login to GitHub Containers"
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: RYGhub
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "🏗 Build and push the Docker image"
+        uses: docker/build-push-action@v2
+        with:
+          tags: >-
+            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.full }},
+            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.patch }},
+            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.minor }},
+            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.major }},
+            ghcr.io/Steffo99/greed:latest
+          push: true
