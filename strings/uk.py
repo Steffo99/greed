@@ -208,6 +208,9 @@ menu_contact_shopkeeper = "👨‍💼 Контакти магазину"
 # Menu: generate transactions .csv file
 menu_csv = "📄 .csv"
 
+# Menu: language
+menu_language = "🇺🇦 Мова"
+
 # Menu: edit admins list
 menu_edit_admins = "🏵 Редагувати менеджерів"
 
