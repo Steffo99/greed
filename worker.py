@@ -1341,12 +1341,6 @@ class Worker(threading.Thread):
         log.debug("Generating __transaction_file")
         # Retrieve all the transactions
         transactions = self.session.query(db.Transaction).order_by(db.Transaction.transaction_id).all()
-        # Create the file if it doesn't exists
-        try:
-            with open(f"transactions_{self.chat.id}.csv", "x"):
-                pass
-        except IOError:
-            pass
         # Write on the previously created file
         with open(f"transactions_{self.chat.id}.csv", "w") as file:
             # Write an header line
