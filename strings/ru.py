@@ -1,8 +1,6 @@
 # Strings / localization file for greed
 # Can be edited, but DON'T REMOVE THE REPLACEMENT FIELDS (words surrounded by {curly braces})
 
-# Part of the translation by https://github.com/pzhuk
-
 # Currency symbol
 currency_symbol = "₽"
 

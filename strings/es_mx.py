@@ -1,7 +1,5 @@
-﻿#Strings / localization file for greed
+﻿# Strings / localization file for greed
 # Can be edited, but DON'T REMOVE THE REPLACEMENT FIELDS (words surrounded by {curly braces})
-
-# Translation by https://github.com/mastersuv
 
 # Currency symbol
 currency_symbol = "$"
