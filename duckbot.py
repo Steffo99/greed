@@ -22,34 +22,39 @@ def factory(cfg: nuconfig.NuConfig):
                 # Bot was blocked by the user
                 except telegram.error.Unauthorized:
                     log.debug(f"Unauthorized to call {func.__name__}(), skipping.")
-                    break
+                    return None
                 # Telegram API didn't answer in time
                 except telegram.error.TimedOut:
                     log.warning(f"Timed out while calling {func.__name__}(),"
                                 f" retrying in {cfg['Telegram']['timed_out_pause']} secs...")
                     time.sleep(cfg["Telegram"]["timed_out_pause"])
+                    continue
                 # Telegram is not reachable
                 except telegram.error.NetworkError as error:
                     log.error(f"Network error while calling {func.__name__}(),"
                               f" retrying in {cfg['Telegram']['error_pause']} secs...\n"
                               f"Full error: {error.message}")
                     time.sleep(cfg["Telegram"]["error_pause"])
+                    continue
                 # Unknown error
                 except telegram.error.TelegramError as error:
                     if error.message.lower() in ["bad gateway", "invalid server response"]:
                         log.warning(f"Bad Gateway while calling {func.__name__}(),"
                                     f" retrying in {cfg['Telegram']['error_pause']} secs...")
                         time.sleep(cfg["Telegram"]["error_pause"])
+                        continue
                     elif error.message.lower() == "timed out":
                         log.warning(f"Timed out while calling {func.__name__}(),"
                                     f" retrying in {cfg['Telegram']['timed_out_pause']} secs...")
                         time.sleep(cfg["Telegram"]["timed_out_pause"])
+                        continue
                     else:
                         log.error(f"Telegram error while calling {func.__name__}(),"
                                   f" retrying in {cfg['Telegram']['error_pause']} secs...\n"
                                   f"Full error: {error.message}")
                         traceback.print_exception(*sys.exc_info())
                         time.sleep(cfg["Telegram"]["error_pause"])
+                        continue
 
         return result_func
 
