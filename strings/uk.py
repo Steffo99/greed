@@ -109,6 +109,9 @@ conversation_live_orders_stop = "<i>Натисніть кнопку Стоп в 
 # Conversation: help menu has been opened
 conversation_open_help_menu = "Як можемо Вам допомогти?"
 
+# Conversation: language select menu header
+conversation_language_select = "Оберіть мову:"
+
 # Conversation: confirm promotion to admin
 conversation_confirm_admin_promotion = "Ви впевнені, що хочете підвищити цього користувача до 💼 Менеджера?\n" \
                                        "Цю дію неможливо відмінити!"
