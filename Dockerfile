@@ -7,8 +7,8 @@ COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 FROM dependencies AS greed
-COPY . /usr/src/app
-WORKDIR /usr/src/app
+COPY . /usr/src/greed
+WORKDIR /usr/src/greed
 
 FROM greed AS entry
 ENTRYPOINT ["python", "-OO"]
@@ -16,3 +16,4 @@ CMD ["core.py"]
 
 FROM entry AS environment
 ENV PYTHONUNBUFFERED=1
+ENV CONFIG_PATH="/etc/greed/config.toml"
