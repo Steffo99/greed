@@ -24,6 +24,7 @@ fallback_language = "en"
 [Database]
 # The database engine you want to use.
 # Refer to http://docs.sqlalchemy.org/en/latest/core/engines.html for the possible settings.
+# This value is ignored if you're running greed via Docker, or if the DB_ENGINE environment variable is set.
 engine = "sqlite:///database.sqlite"
 
 

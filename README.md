@@ -31,7 +31,7 @@ This installation procedure assumes you are on a system with `docker` installed,
 
 1. Run a container using the project's Docker image:
    ```console
-   # docker run --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   # docker run --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" --volume "$(pwd)/data:/var/lib/greed" ghcr.io/steffo99/greed
    ```
 
 2. Edit the configuration file `config.toml` that was created in the `strings` directory, adding your bot and payment tokens to it:
@@ -57,7 +57,7 @@ After the installation, to run the bot, you'll need to:
 
 1. Run its Docker container from the same directory you installed it from:
    ```console
-   # docker run --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   # docker run --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" --volume "$(pwd)/data:/var/lib/greed" ghcr.io/steffo99/greed
    ```
 
 ### Keep the bot running
@@ -66,7 +66,7 @@ If you want to keep the bot open even after you closed your terminal window, you
 
 1. Set the Docker container to always restart and to detach on successful start:
    ```console
-   # docker run --detach --restart always --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   # docker run --detach --restart always --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" --volume "$(pwd)/data:/var/lib/greed" ghcr.io/steffo99/greed
    ```
 
 ### Updating
@@ -97,7 +97,7 @@ To update the bot, run the following commands:
 
 5. Restart the bot with the newly downloaded image:
    ```console
-   # docker run --detach --restart always --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   # docker run --detach --restart always --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" --volume "$(pwd)/data:/var/lib/greed" ghcr.io/steffo99/greed
    ```
 
 ## Installation from source

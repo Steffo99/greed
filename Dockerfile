@@ -17,3 +17,4 @@ CMD ["core.py"]
 FROM entry AS environment
 ENV PYTHONUNBUFFERED=1
 ENV CONFIG_PATH="/etc/greed/config.toml"
+ENV DB_ENGINE="sqlite:////var/lib/greed/database.sqlite"
