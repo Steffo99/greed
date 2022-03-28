@@ -33,26 +33,29 @@ def main():
         log.fatal("config/template_config.toml does not exist!")
         exit(254)
 
+    # Check where the config path is located from the CONFIG_PATH environment variable
+    config_path = os.environ.get("CONFIG_PATH", "config/config.toml")
+
     # If the config file does not exist, clone the template and exit
-    if not os.path.isfile("config/config.toml"):
+    if not os.path.isfile(config_path):
         log.debug("config/config.toml does not exist.")
 
         with open("config/template_config.toml", encoding="utf8") as template_cfg_file, \
-                open("config/config.toml", "w", encoding="utf8") as user_cfg_file:
+                open(config_path, "w", encoding="utf8") as user_cfg_file:
             # Copy the template file to the config file
             user_cfg_file.write(template_cfg_file.read())
 
-        log.fatal("A config file has been created in config/config.toml."
+        log.fatal("A config file has been created."
                   " Customize it, then restart greed!")
         exit(1)
 
     # Compare the template config with the user-made one
     with open("config/template_config.toml", encoding="utf8") as template_cfg_file, \
-            open("config/config.toml", encoding="utf8") as user_cfg_file:
+            open(config_path, encoding="utf8") as user_cfg_file:
         template_cfg = nuconfig.NuConfig(template_cfg_file)
         user_cfg = nuconfig.NuConfig(user_cfg_file)
         if not template_cfg.cmplog(user_cfg):
-            log.fatal("There were errors while parsing the config.toml file. Please fix them and restart greed!")
+            log.fatal("There were errors while parsing the config file. Please fix them and restart greed!")
             exit(2)
         else:
             log.debug("Configuration parsed successfully!")
@@ -71,9 +74,18 @@ def main():
     # Ignore most python-telegram-bot logs, as they are useless most of the time
     logging.getLogger("telegram").setLevel("ERROR")
 
+    # Find the database URI
+    # Through environment variables first
+    if db_engine := os.environ.get("DB_ENGINE"):
+        log.debug("Sqlalchemy engine overridden by the DB_ENGINE envvar.")
+    # Then via the config file
+    else:
+        db_engine = user_cfg["Database"]["engine"]
+        log.debug("Using sqlalchemy engine set in the configuration file.")
+
     # Create the database engine
     log.debug("Creating the sqlalchemy engine...")
-    engine = sqlalchemy.create_engine(user_cfg["Database"]["engine"])
+    engine = sqlalchemy.create_engine(db_engine)
     log.debug("Binding metadata to the engine...")
     database.TableDeclarativeBase.metadata.bind = engine
     log.debug("Creating all missing tables...")
