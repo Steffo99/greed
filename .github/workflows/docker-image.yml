@@ -36,9 +36,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           tags: >-
-            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.full }},
-            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.patch }},
-            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.minor }},
-            ghcr.io/Steffo99/greed:${{ steps.semver.outputs.major }},
-            ghcr.io/Steffo99/greed:latest
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.full }},
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.patch }},
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.minor }},
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.major }},
+            ghcr.io/steffo99/greed:latest
           push: true
