@@ -16,7 +16,91 @@ Use the special credit card number `4242 4242 4242 4242` to add unlimited credit
 
 ![](https://i.imgur.com/9plMzO6.png)
 
-## Installation
+## Installation via Docker
+
+This installation procedure assumes you are on a system with `docker` installed, with a supported CPU architecture.
+
+### Requirements
+
+* [Docker Engine](https://docs.docker.com/get-docker/)
+* An Internet connection
+* A Telegram bot token (obtainable at [@Botfather](https://t.me/Botfather))
+* A payment provider token (obtainable by [connecting a provider with your bot](https://t.me/Botfather))
+
+### Steps
+
+1. Run a container using the project's Docker image:
+   ```console
+   # docker run --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   ```
+
+2. Edit the configuration file `config.toml` that was created in the `strings` directory, adding your bot and payment tokens to it:
+   ```console
+   # nano config/config.toml
+   ```
+   (Press **Ctrl+X** and then two times **Enter** to save and quit `nano`.)
+
+3. _Optional:_ customize the files in the `strings` folder for custom messages.
+
+4. Start the bot:
+    ```console
+    python -OO core.py
+    ```
+
+5. Open Telegram, and send a `/start` command to your bot to be automatically promoted to 💼 Manager.
+
+6. Stop the bot by pressing **Ctrl+C**.
+
+### Running the bot
+
+After the installation, to run the bot, you'll need to:
+
+1. Run its Docker container from the same directory you installed it from:
+   ```console
+   # docker run --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   ```
+
+### Keep the bot running
+
+If you want to keep the bot open even after you closed your terminal window, you'll need to pass the appropriate arguments to the docker command:
+
+1. Set the Docker container to always restart and to detach on successful start:
+   ```console
+   # docker run --detach --restart always --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   ```
+
+### Updating
+
+To update the bot, run the following commands:
+
+1. Find the ID of the Docker container of the bot:
+   ```console
+   # docker container ls
+   CONTAINER ID   IMAGE                    COMMAND                CREATED         STATUS                  PORTS     NAMES
+   abcdefabcdef   ghcr.io/steffo99/greed   "python -OO core.py"   6 seconds ago   Up Less than a second             relaxed_hypatia
+   ```
+
+2. Stop the Docker container of the bot:
+   ```console
+   # docker container stop abcdefabcdef
+   ```
+
+3. Remove the Docker container of the bot:
+   ```console
+   # docker container rm abcdefabcdef
+   ```
+
+4. Pull the latest Docker image of the bot:
+   ```console
+   # docker pull ghcr.io/steffo99/greed:latest
+   ```
+
+5. Restart the bot with the newly downloaded image:
+   ```console
+   # docker run --detach --restart always --volume "$(pwd)/config:/etc/greed" --volume "$(pwd)/strings:/usr/src/greed/strings" ghcr.io/steffo99/greed
+   ```
+
+## Installation from source
 
 This installation procedure assumes you are on a Linux system, using `bash` and have `python3.8` installed. 
 
@@ -33,42 +117,42 @@ Consider renting a VPS to host the bot on; a cheap one should do, as greed is pr
 ### Steps
 
 1. Download the project files by running:
-   ```bash
+   ```console
    git clone https://github.com/Steffo99/greed.git
    ```
    
 2. Enter the newly created folder:
-   ```bash
+   ```console
    cd greed
    ```
 
 3. Create a new virtualenv:
-   ```bash
+   ```console
    python3.8 -m venv venv
    ```
 
 4. Activate the virtualenv:
-   ```bash
+   ```console
    source venv/bin/activate
    ```
 
 5. Install the project requirements:
-   ```bash
+   ```console
    pip install -r requirements.txt
    ```
    
 6. _Optional:_ For colored console output, install [coloredlogs](https://pypi.org/project/coloredlogs/):
-   ```bash
+   ```console
    pip install coloredlogs
    ```
 
 7. Generate the configuration file:
-   ```bash
+   ```console
    python -OO core.py
    ```
 
-8. Edit the configuration file, adding your bot and payment tokens to it:
-   ```bash
+8. Edit the configuration file `config.toml`, adding your bot and payment tokens to it:
+   ```console
    nano config/config.toml
    ```
    (Press **Ctrl+X** and then two times **Enter** to save and quit `nano`.)
@@ -76,7 +160,7 @@ Consider renting a VPS to host the bot on; a cheap one should do, as greed is pr
 9. _Optional:_ customize the files in the `strings` folder for custom messages.
 
 10. Start the bot:
-    ```bash
+    ```console
     python -OO core.py
     ```
 
