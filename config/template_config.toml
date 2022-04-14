@@ -61,7 +61,7 @@ currency_symbol = "€"
 [Payments.CreditCard]
 # Telegram Payments provider token obtainable at https://t.me/BotFather in the bot's Payments menu
 # If empty, credit card payments are disabled.
-# credit_card_token =
+# credit_card_token = ""
 credit_card_token = "123456789:YOUR_TOKEN_HERE_"
 # Minimum wallet payment accepted (in miniumum currency units, $1.00 = 100 units)
 min_amount = 1000
