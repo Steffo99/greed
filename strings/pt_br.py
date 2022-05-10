@@ -370,7 +370,7 @@ contact_shopkeeper = "Atualmente, a equipe disponível para prestar atendimento 
 # Success: product has been added/edited to the database
 success_product_edited = "✅ O produto foi adicionado / modificado com sucesso!"
 
-# Success: product has been added/edited to the database
+# Success: product has been marked as deleted in the database
 success_product_deleted = "✅ O produto foi excluído com sucesso!"
 
 # Success: order has been created
