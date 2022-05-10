@@ -371,7 +371,7 @@ contact_shopkeeper = "目前可提供帮助和支持的人员包括:\n" \
 # Success: product has been added/edited to the database
 success_product_edited = "✅ 产品已成功添加/修改"
 
-# Success: product has been added/edited to the database
+# Success: product has been marked as deleted in the database
 success_product_deleted = "✅ 该产品已成功删除!"
 
 # Success: order has been created
