@@ -239,6 +239,9 @@ text_completed = "הסתיים"
 # Text: refunded order
 text_refunded = "כסף הוחזר"
 
+# Text: product not for sale
+text_not_for_sale = "לא למכירה"
+
 # Add product: name?
 ask_product_name = "איזה שם תרצה לתת למוצר?"
 
