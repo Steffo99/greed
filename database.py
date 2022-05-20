@@ -130,17 +130,10 @@ class Product(TableDeclarativeBase):
     def send_as_message(self, w: "worker.Worker", chat_id: int) -> dict:
         """Send a message containing the product data."""
         if self.image is None:
-            r = requests.get(f"https://api.telegram.org/bot{w.cfg['Telegram']['token']}/sendMessage",
-                             params={"chat_id": chat_id,
-                                     "text": self.text(w),
-                                     "parse_mode": "HTML"})
+            msg = w.bot.send_message(chat_id, self.text(w))
         else:
-            r = requests.post(f"https://api.telegram.org/bot{w.cfg['Telegram']['token']}/sendPhoto",
-                              files={"photo": self.image},
-                              params={"chat_id": chat_id,
-                                      "caption": self.text(w),
-                                      "parse_mode": "HTML"})
-        return r.json()
+            msg = w.bot.send_photo(chat_id, self.image, caption=self.text(w))
+        return msg.to_dict()
 
     def set_image(self, file: telegram.File):
         """Download an image from Telegram and store it in the image column.

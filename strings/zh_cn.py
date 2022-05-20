@@ -244,6 +244,9 @@ text_completed = "已完成"
 # Text: refunded order
 text_refunded = "已退还"
 
+# Text: product not for sale
+text_not_for_sale = "不出售"
+
 # Add product: name?
 ask_product_name = "产品名称应为?"
 

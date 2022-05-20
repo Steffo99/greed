@@ -238,6 +238,9 @@ text_completed = "выполнен"
 # Text: refunded order
 text_refunded = "возмещен"
 
+# Text: product not for sale
+text_not_for_sale = "Не продаётся"
+
 # Add product: name?
 ask_product_name = "Как назовем продукт?"
 

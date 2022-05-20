@@ -507,7 +507,7 @@ class Worker(threading.Thread):
             # Send the message without the keyboard to get the message id
             message = product.send_as_message(w=self, chat_id=self.chat.id)
             # Add the product to the cart
-            cart[message['result']['message_id']] = [product, 0]
+            cart[message['message_id']] = [product, 0]
             # Create the inline keyboard to add the product to the cart
             inline_keyboard = telegram.InlineKeyboardMarkup(
                 [[telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"), callback_data="cart_add")]]
@@ -515,12 +515,12 @@ class Worker(threading.Thread):
             # Edit the sent message and add the inline keyboard
             if product.image is None:
                 self.bot.edit_message_text(chat_id=self.chat.id,
-                                           message_id=message['result']['message_id'],
+                                           message_id=message['message_id'],
                                            text=product.text(w=self),
                                            reply_markup=inline_keyboard)
             else:
                 self.bot.edit_message_caption(chat_id=self.chat.id,
-                                              message_id=message['result']['message_id'],
+                                              message_id=message['message_id'],
                                               caption=product.text(w=self),
                                               reply_markup=inline_keyboard)
         # Create the keyboard with the cancel button
@@ -1024,11 +1024,15 @@ class Worker(threading.Thread):
                               self.loc.get("ask_product_price"))
         # Display the current name if you're editing an existing product
         if product:
-            self.bot.send_message(self.chat.id,
-                                  self.loc.get("edit_current_value",
-                                               value=(str(self.Price(product.price))
-                                                      if product.price is not None else 'Non in vendita')),
-                                  reply_markup=cancel)
+            if product.price is not None:
+                value_text = str(self.Price(product.price))
+            else:
+                value_text = self.loc.get("text_not_for_sale")
+            self.bot.send_message(
+                self.chat.id,
+                self.loc.get("edit_current_value", value=value_text),
+                reply_markup=cancel
+            )
         # Wait for an answer
         price = self.__wait_for_regex(r"([0-9]+(?:[.,][0-9]{1,2})?|[Xx])",
                                       cancellable=True)

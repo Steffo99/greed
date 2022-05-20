@@ -244,6 +244,9 @@ text_completed = "completato"
 # Text: refunded order
 text_refunded = "rimborsato"
 
+# Text: product not for sale
+text_not_for_sale = "Non in vendita"
+
 # Add product: name?
 ask_product_name = "Come si deve chiamare il prodotto?"
 
