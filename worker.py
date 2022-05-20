@@ -507,7 +507,7 @@ class Worker(threading.Thread):
             # Send the message without the keyboard to get the message id
             message = product.send_as_message(w=self, chat_id=self.chat.id)
             # Add the product to the cart
-            cart[message['result']['message_id']] = [product, 0]
+            cart[message['message_id']] = [product, 0]
             # Create the inline keyboard to add the product to the cart
             inline_keyboard = telegram.InlineKeyboardMarkup(
                 [[telegram.InlineKeyboardButton(self.loc.get("menu_add_to_cart"), callback_data="cart_add")]]
@@ -515,12 +515,12 @@ class Worker(threading.Thread):
             # Edit the sent message and add the inline keyboard
             if product.image is None:
                 self.bot.edit_message_text(chat_id=self.chat.id,
-                                           message_id=message['result']['message_id'],
+                                           message_id=message['message_id'],
                                            text=product.text(w=self),
                                            reply_markup=inline_keyboard)
             else:
                 self.bot.edit_message_caption(chat_id=self.chat.id,
-                                              message_id=message['result']['message_id'],
+                                              message_id=message['message_id'],
                                               caption=product.text(w=self),
                                               reply_markup=inline_keyboard)
         # Create the keyboard with the cancel button
