@@ -764,12 +764,12 @@ class Worker(threading.Thread):
             [self.loc.get("menu_cash"), self.loc.get("menu_credit_card"), self.loc.get("menu_cancel")],
             cancellable=True)
         # If the user has selected the Cash option...
-        if selection == self.loc.get("menu_cash"):
+        if selection == self.loc.get("menu_cash") and self.cfg["Payments"]["Cash"]["enable_pay_with_cash"]:
             # Go to the pay with cash function
             self.bot.send_message(self.chat.id,
                                   self.loc.get("payment_cash", user_cash_id=self.user.identifiable_str()))
         # If the user has selected the Credit Card option...
-        elif selection == self.loc.get("menu_credit_card"):
+        elif selection == self.loc.get("menu_credit_card") and self.cfg["Payments"]["CreditCard"]["credit_card_token"]:
             # Go to the pay with credit card function
             self.__add_credit_cc()
         # If the user has selected the Cancel option...
@@ -922,34 +922,34 @@ class Worker(threading.Thread):
                                                           self.loc.get("menu_transactions"),
                                                           self.loc.get("menu_csv"),
                                                           self.loc.get("menu_edit_admins")])
-            # If the user has selected the Products option...
-            if selection == self.loc.get("menu_products"):
+            # If the user has selected the Products option and has the privileges to perform the action...
+            if selection == self.loc.get("menu_products") and self.admin.edit_products:
                 # Open the products menu
                 self.__products_menu()
-            # If the user has selected the Orders option...
-            elif selection == self.loc.get("menu_orders"):
+            # If the user has selected the Orders option and has the privileges to perform the action...
+            elif selection == self.loc.get("menu_orders") and self.admin.receive_orders:
                 # Open the orders menu
                 self.__orders_menu()
-            # If the user has selected the Transactions option...
-            elif selection == self.loc.get("menu_edit_credit"):
+            # If the user has selected the Transactions option and has the privileges to perform the action...
+            elif selection == self.loc.get("menu_edit_credit") and self.admin.create_transactions:
                 # Open the edit credit menu
                 self.__create_transaction()
-            # If the user has selected the User mode option...
+            # If the user has selected the User mode option and has the privileges to perform the action...
             elif selection == self.loc.get("menu_user_mode"):
                 # Tell the user how to go back to admin menu
                 self.bot.send_message(self.chat.id, self.loc.get("conversation_switch_to_user_mode"))
                 # Start the bot in user mode
                 self.__user_menu()
-            # If the user has selected the Add Admin option...
-            elif selection == self.loc.get("menu_edit_admins"):
+            # If the user has selected the Add Admin option and has the privileges to perform the action...
+            elif selection == self.loc.get("menu_edit_admins") and self.admin.is_owner:
                 # Open the edit admin menu
                 self.__add_admin()
-            # If the user has selected the Transactions option...
-            elif selection == self.loc.get("menu_transactions"):
+            # If the user has selected the Transactions option and has the privileges to perform the action...
+            elif selection == self.loc.get("menu_transactions") and self.admin.create_transactions:
                 # Open the transaction pages
                 self.__transaction_pages()
-            # If the user has selected the .csv option...
-            elif selection == self.loc.get("menu_csv"):
+            # If the user has selected the .csv option and has the privileges to perform the action...
+            elif selection == self.loc.get("menu_csv") and self.admin.create_transactions:
                 # Generate the .csv file
                 self.__transactions_file()
 
