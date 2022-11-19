@@ -57,6 +57,15 @@ currency_exp = 2
 currency_symbol = "€"
 
 
+# Cash payment settings
+[Payments.Cash]
+# Display the "With cash" option in the Add Credit menu
+enable_pay_with_cash = true
+# Display the "Create transaction" option in the Manager menu
+enable_create_transaction = true
+# Customize the cash payment text in the strings files!
+
+
 # Credit card payment settings
 [Payments.CreditCard]
 # Telegram Payments provider token obtainable at https://t.me/BotFather in the bot's Payments menu
