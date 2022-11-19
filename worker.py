@@ -749,7 +749,8 @@ class Worker(threading.Thread):
         keyboard = list()
         # Add the supported payment methods to the keyboard
         # Cash
-        keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cash"))])
+        if self.cfg["Payments"]["Cash"]["enable_pay_with_cash"]:
+            keyboard.append([telegram.KeyboardButton(self.loc.get("menu_cash"))])
         # Telegram Payments
         if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "":
             keyboard.append([telegram.KeyboardButton(self.loc.get("menu_credit_card"))])
@@ -904,7 +905,8 @@ class Worker(threading.Thread):
             if self.admin.receive_orders:
                 keyboard.append([self.loc.get("menu_orders")])
             if self.admin.create_transactions:
-                keyboard.append([self.loc.get("menu_edit_credit")])
+                if self.cfg["Payments"]["Cash"]["enable_create_transaction"]:
+                    keyboard.append([self.loc.get("menu_edit_credit")])
                 keyboard.append([self.loc.get("menu_transactions"), self.loc.get("menu_csv")])
             if self.admin.is_owner:
                 keyboard.append([self.loc.get("menu_edit_admins")])
