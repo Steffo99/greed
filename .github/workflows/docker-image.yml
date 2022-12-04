@@ -39,8 +39,9 @@ jobs:
         with:
           tags: >-
             ghcr.io/steffo99/greed:${{ steps.semver.outputs.full }},
-            ghcr.io/steffo99/greed:${{ steps.semver.outputs.patch }},
-            ghcr.io/steffo99/greed:${{ steps.semver.outputs.minor }},
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.precedence }},
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.core }},
+            ghcr.io/steffo99/greed:${{ steps.semver.outputs.pair }},
             ghcr.io/steffo99/greed:${{ steps.semver.outputs.major }},
             ghcr.io/steffo99/greed:latest
           platforms: >-
