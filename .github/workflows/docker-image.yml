@@ -44,6 +44,5 @@ jobs:
             ghcr.io/steffo99/greed:${{ steps.semver.outputs.major }},
             ghcr.io/steffo99/greed:latest
           platforms: >-
-            linux/amd64,
-            linux/arm64/v8
+            linux/amd64
           push: true
