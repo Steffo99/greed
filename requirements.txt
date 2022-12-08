@@ -6,7 +6,7 @@ toml==0.10.2
 
 # Sub-dependencies
 APScheduler==3.6.3
-certifi==2020.12.5
+certifi==2022.12.7
 chardet==4.0.0
 coloredlogs==15.0
 greenlet==1.1.0
