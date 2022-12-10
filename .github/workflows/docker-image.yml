@@ -31,18 +31,18 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: RYGhub
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "🏗 Build and push the Docker image"
         uses: docker/build-push-action@v3.2.0
         with:
           tags: >-
-            ghcr.io/steffo99/greed:${{ steps.semver.outputs.precedence }},
-            ghcr.io/steffo99/greed:${{ steps.semver.outputs.core }},
-            ghcr.io/steffo99/greed:${{ steps.semver.outputs.pair }},
-            ghcr.io/steffo99/greed:${{ steps.semver.outputs.major }},
-            ghcr.io/steffo99/greed:latest
+            ghcr.io/${{ github.actor }}/greed:${{ steps.semver.outputs.precedence }},
+            ghcr.io/${{ github.actor }}/greed:${{ steps.semver.outputs.core }},
+            ghcr.io/${{ github.actor }}/greed:${{ steps.semver.outputs.pair }},
+            ghcr.io/${{ github.actor }}/greed:${{ steps.semver.outputs.major }},
+            ghcr.io/${{ github.actor }}/greed:latest
           platforms: >-
             linux/amd64
           push: true
