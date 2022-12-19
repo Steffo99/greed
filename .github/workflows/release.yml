@@ -1,0 +1,52 @@
+name: "Build Docker image"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-docker:
+    name: "🐳 Build and publish Docker image"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v2
+
+      - name: "❓ Find the release semantic version"
+        id: semver
+        uses: Steffo99/actions-semver@v0.3.5
+        with:
+          string: ${{ github.ref_name }}
+
+      - name: "🔨 Setup Buildx"
+        uses: docker/setup-buildx-action@v1
+
+      - name: "🔑 Login to GitHub Containers"
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "🔽 Find the lowercase name of the repository"
+        id: reponame
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.repository }}
+
+      - name: "🏗 Build and push the Docker image"
+        uses: docker/build-push-action@v3
+        with:
+          tags: >-
+            ghcr.io/${{ steps.reponame.outputs.lowercase }}:${{ steps.semver.outputs.precedence }},
+            ghcr.io/${{ steps.reponame.outputs.lowercase }}:${{ steps.semver.outputs.core }},
+            ghcr.io/${{ steps.reponame.outputs.lowercase }}:${{ steps.semver.outputs.pair }},
+            ghcr.io/${{ steps.reponame.outputs.lowercase }}:${{ steps.semver.outputs.major }},
+            ghcr.io/${{ steps.reponame.outputs.lowercase }}:latest
+          push: true

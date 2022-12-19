@@ -17,7 +17,7 @@ on:
     branches: [ master ]
 
 jobs:
-  analyze:
+  codeql-analyze:
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
