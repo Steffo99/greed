@@ -1,0 +1,17 @@
+name: "Test suite"
+
+on:
+  # Modification of a project file in the main branch
+  push:
+    branches:
+      - main
+  # Pull request to the main branch modifying a project file
+  pull_request:
+    branches:
+      - main
+  # Triggered by a new release
+  workflow_call:
+
+jobs:
+  test:
+    uses: Steffo99/.github/.github/workflows/test-poetry-compileall.yml@main
