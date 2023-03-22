@@ -1,0 +1,15 @@
+name: "Periodic quality and security analysis"
+
+on:
+  # Every monday at 09:48 UTC
+  schedule:
+    - cron: "48 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  codeql:
+    uses: Steffo99/.github/.github/workflows/quality-python-codeql.yml@main
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
