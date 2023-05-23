@@ -1,7 +1,7 @@
 # Main requirements
 python-telegram-bot==13.5
 SQLAlchemy==1.4.14
-requests==2.25.1
+requests==2.31.0
 toml==0.10.2
 
 # Sub-dependencies
