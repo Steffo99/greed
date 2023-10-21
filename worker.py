@@ -690,6 +690,7 @@ class Worker(threading.Thread):
         return value
 
     def __get_cart_summary(self, cart):
+        # Create the cart summary
         return "".join(
             cart[product_id][0].text(
                 w=self, style="short", cart_qty=cart[product_id][1]
@@ -890,6 +891,7 @@ class Worker(threading.Thread):
         fee_percentage = self.cfg["Payments"]["CreditCard"]["fee_percentage"] / 100
         fee_fixed = self.cfg["Payments"]["CreditCard"]["fee_fixed"]
         total_fee = amount * fee_percentage + fee_fixed
+        # Set the fee to 0 if is less than 0 to ensure no accidental discounts are applied
         return max(total_fee, 0)
 
     def __bot_info(self):
