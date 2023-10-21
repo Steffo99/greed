@@ -69,7 +69,10 @@ class Worker(threading.Thread):
         return f"<{self.__class__.__qualname__} {self.chat.id}>"
 
     # noinspection PyMethodParameters
-    def price_factory(worker):
+    def price_factory(self):
+
+
+
         class Price:
             """The base class for the prices in greed.
             Its int value is in minimum units, while its float and str values are in decimal format."""
@@ -80,10 +83,13 @@ class Worker(threading.Thread):
                     self.value = int(value)
                 elif isinstance(value, float):
                     # Convert the value to minimum units
-                    self.value = int(value * (10 ** worker.cfg["Payments"]["currency_exp"]))
+                    self.value = int(value * 10**self.cfg["Payments"]["currency_exp"])
                 elif isinstance(value, str):
                     # Remove decimal points, then cast to int
-                    self.value = int(float(value.replace(",", ".")) * (10 ** worker.cfg["Payments"]["currency_exp"]))
+                    self.value = int(
+                        float(value.replace(",", "."))
+                        * 10 ** self.cfg["Payments"]["currency_exp"]
+                    )
                 elif isinstance(value, Price):
                     # Copy self
                     self.value = value.value
@@ -92,17 +98,19 @@ class Worker(threading.Thread):
                 return f"<{self.__class__.__qualname__} of value {self.value}>"
 
             def __str__(self):
-                return worker.loc.get(
+                return self.loc.get(
                     "currency_format_string",
-                    symbol=worker.cfg["Payments"]["currency_symbol"],
-                    value="{0:.2f}".format(self.value / (10 ** worker.cfg["Payments"]["currency_exp"]))
+                    symbol=self.cfg["Payments"]["currency_symbol"],
+                    value="{0:.2f}".format(
+                        self.value / 10 ** self.cfg["Payments"]["currency_exp"]
+                    ),
                 )
 
             def __int__(self):
                 return self.value
 
             def __float__(self):
-                return self.value / (10 ** worker.cfg["Payments"]["currency_exp"])
+                return self.value / 10**self.cfg["Payments"]["currency_exp"]
 
             def __ge__(self, other):
                 return self.value >= Price(other).value
@@ -156,6 +164,7 @@ class Worker(threading.Thread):
             def __ifloordiv__(self, other):
                 self.value //= other
                 return self
+
 
         return Price
 
@@ -416,8 +425,7 @@ class Worker(threading.Thread):
         # Create a list containing all the keyboard button strings
         keyboard_buttons = [[self.loc.get("menu_cancel")]]
         # Add to the list all the users
-        for user in users:
-            keyboard_buttons.append([user.identifiable_str()])
+        keyboard_buttons.extend([user.identifiable_str()] for user in users)
         # Create the keyboard
         keyboard = telegram.ReplyKeyboardMarkup(keyboard_buttons, one_time_keyboard=True)
         # Keep asking until a result is returned
@@ -650,7 +658,7 @@ class Worker(threading.Thread):
         # For each product added to the cart, create a new OrderItem
         for product in cart:
             # Create {quantity} new OrderItems
-            for i in range(0, cart[product][1]):
+            for _ in range(0, cart[product][1]):
                 order_item = db.OrderItem(product=cart[product][0],
                                           order=order)
                 self.session.add(order_item)
@@ -661,10 +669,10 @@ class Worker(threading.Thread):
             self.bot.send_message(self.chat.id, self.loc.get("error_not_enough_credit"))
             # Suggest payment for missing credit value if configuration allows refill
             if self.cfg["Payments"]["CreditCard"]["credit_card_token"] != "" \
-                    and self.cfg["Appearance"]["refill_on_checkout"] \
-                    and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
-                    credit_required <= \
-                    self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
+                        and self.cfg["Appearance"]["refill_on_checkout"] \
+                        and self.Price(self.cfg["Payments"]["CreditCard"]["min_amount"]) <= \
+                        credit_required <= \
+                        self.Price(self.cfg["Payments"]["CreditCard"]["max_amount"]):
                 self.__make_payment(self.Price(credit_required))
         # If afer requested payment credit is still insufficient (either payment failure or cancel)
         if self.user.credit < self.__get_cart_value(cart):
@@ -682,14 +690,14 @@ class Worker(threading.Thread):
         return value
 
     def __get_cart_summary(self, cart):
-        # Create the cart summary
-        product_list = ""
-        for product_id in cart:
-            if cart[product_id][1] > 0:
-                product_list += cart[product_id][0].text(w=self,
-                                                         style="short",
-                                                         cart_qty=cart[product_id][1]) + "\n"
-        return product_list
+        return "".join(
+            cart[product_id][0].text(
+                w=self, style="short", cart_qty=cart[product_id][1]
+            )
+            + "\n"
+            for product_id in cart
+            if cart[product_id][1] > 0
+        )
 
     def __order_transaction(self, order, value):
         # Create a new transaction and add it to the session
@@ -746,7 +754,7 @@ class Worker(threading.Thread):
         """Add more credit to the account."""
         log.debug("Displaying __add_credit_menu")
         # Create a payment methods keyboard
-        keyboard = list()
+        keyboard = []
         # Add the supported payment methods to the keyboard
         # Cash
         if self.cfg["Payments"]["Cash"]["enable_pay_with_cash"]:
@@ -882,10 +890,7 @@ class Worker(threading.Thread):
         fee_percentage = self.cfg["Payments"]["CreditCard"]["fee_percentage"] / 100
         fee_fixed = self.cfg["Payments"]["CreditCard"]["fee_fixed"]
         total_fee = amount * fee_percentage + fee_fixed
-        if total_fee > 0:
-            return total_fee
-        # Set the fee to 0 to ensure no accidental discounts are applied
-        return 0
+        return max(total_fee, 0)
 
     def __bot_info(self):
         """Send information about the bot."""
@@ -1104,14 +1109,13 @@ class Worker(threading.Thread):
         if isinstance(selection, CancelSignal):
             # Exit the menu
             return
-        else:
-            # Find the selected product
-            product = self.session.query(db.Product).filter_by(name=selection, deleted=False).one()
-            # "Delete" the product by setting the deleted flag to true
-            product.deleted = True
-            self.session.commit()
-            # Notify the user
-            self.bot.send_message(self.chat.id, self.loc.get("success_product_deleted"))
+        # Find the selected product
+        product = self.session.query(db.Product).filter_by(name=selection, deleted=False).one()
+        # "Delete" the product by setting the deleted flag to true
+        product.deleted = True
+        self.session.commit()
+        # Notify the user
+        self.bot.send_message(self.chat.id, self.loc.get("success_product_deleted"))
 
     def __orders_menu(self):
         """Display a live flow of orders."""

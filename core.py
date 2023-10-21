@@ -140,10 +140,7 @@ def main():
                 # If the message is a start command...
                 if isinstance(update.message.text, str) and update.message.text.startswith("/start"):
                     log.info(f"Received /start from: {update.message.chat.id}")
-                    # Check if a worker already exists for that chat
-                    old_worker = chat_workers.get(update.message.chat.id)
-                    # If it exists, gracefully stop the worker
-                    if old_worker:
+                    if old_worker := chat_workers.get(update.message.chat.id):
                         log.debug(f"Received request to stop {old_worker.name}")
                         old_worker.stop("request")
                     # Initialize a new worker for the chat

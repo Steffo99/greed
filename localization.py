@@ -51,9 +51,10 @@ class Localization:
 def create_json_localization_file_from_strings(language: str):
     module: types.ModuleType = importlib.import_module(f"strings.{language}")
     raw = module.__dict__
-    clean = {}
-    for key in raw:
-        if not (key.startswith("__") and key.endswith("__")):
-            clean[key] = raw[key]
+    clean = {
+        key: raw[key]
+        for key in raw
+        if not (key.startswith("__") and key.endswith("__"))
+    }
     with open(f"locale/{language}.json", "w") as file:
         json.dump(clean, file)

@@ -110,17 +110,18 @@ class Product(TableDeclarativeBase):
 
     def text(self, w: "worker.Worker", *, style: str = "full", cart_qty: int = None):
         """Return the product details formatted with Telegram HTML. The image is omitted."""
-        if style == "short":
-            return f"{cart_qty}x {utils.telegram_html_escape(self.name)} - {str(w.Price(self.price) * cart_qty)}"
-        elif style == "full":
-            if cart_qty is not None:
-                cart = w.loc.get("in_cart_format_string", quantity=cart_qty)
-            else:
-                cart = ''
+        if style == "full":
+            cart = (
+                w.loc.get("in_cart_format_string", quantity=cart_qty)
+                if cart_qty is not None
+                else ''
+            )
             return w.loc.get("product_format_string", name=utils.telegram_html_escape(self.name),
                              description=utils.telegram_html_escape(self.description),
                              price=str(w.Price(self.price)),
                              cart=cart)
+        elif style == "short":
+            return f"{cart_qty}x {utils.telegram_html_escape(self.name)} - {str(w.Price(self.price) * cart_qty)}"
         else:
             raise ValueError("style is not an accepted value")
 
@@ -253,9 +254,7 @@ class Order(TableDeclarativeBase):
         return f"<Order {self.order_id} placed by User {self.user_id}>"
 
     def text(self, w: "worker.Worker", user=False):
-        items = ""
-        for item in self.items:
-            items += item.text(w) + "\n"
+        items = "".join(item.text(w) + "\n" for item in self.items)
         if self.delivery_date is not None:
             status_emoji = w.loc.get("emoji_completed")
             status_text = w.loc.get("text_completed")
@@ -272,17 +271,26 @@ class Order(TableDeclarativeBase):
                              items=items,
                              notes=self.notes,
                              value=str(w.Price(-self.transaction.value))) + \
-                   (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
+                       (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
         else:
-            return status_emoji + " " + \
-                   w.loc.get("order_number", id=self.order_id) + "\n" + \
-                   w.loc.get("order_format_string",
-                             user=self.user.mention(),
-                             date=self.creation_date.isoformat(),
-                             items=items,
-                             notes=self.notes if self.notes is not None else "",
-                             value=str(w.Price(-self.transaction.value))) + \
-                   (w.loc.get("refund_reason", reason=self.refund_reason) if self.refund_date is not None else "")
+            return (
+                f"{status_emoji} "
+                + w.loc.get("order_number", id=self.order_id)
+                + "\n"
+                + w.loc.get(
+                    "order_format_string",
+                    user=self.user.mention(),
+                    date=self.creation_date.isoformat(),
+                    items=items,
+                    notes=self.notes if self.notes is not None else "",
+                    value=str(w.Price(-self.transaction.value)),
+                )
+                + (
+                    w.loc.get("refund_reason", reason=self.refund_reason)
+                    if self.refund_date is not None
+                    else ""
+                )
+            )
 
 
 class OrderItem(TableDeclarativeBase):

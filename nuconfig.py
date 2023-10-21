@@ -31,7 +31,7 @@ class NuConfig:
             log.error(f"Key has an invalid type: {root}{item}")
 
         for key, value in compare_report.items():
-            if key == "__missing__" or key == "__invalid__":
+            if key in ["__missing__", "__invalid__"]:
                 continue
             NuConfig.__cmplog_log(value, root=f"{root}{key}.")
 
