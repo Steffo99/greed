@@ -1464,6 +1464,10 @@ class Worker(threading.Thread):
         keyboard = []
         options: Dict[str, str] = {}
         # https://en.wikipedia.org/wiki/List_of_language_names
+        if "hi" in self.cfg["Language"]["enabled_languages"]:
+            lang = "🇮🇳 हिन्दी"
+            keyboard.append([telegram.KeyboardButton(lang)])
+            options[lang] = "hi"
         if "it" in self.cfg["Language"]["enabled_languages"]:
             lang = "🇮🇹 Italiano"
             keyboard.append([telegram.KeyboardButton(lang)])
