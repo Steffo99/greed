@@ -18,6 +18,7 @@ except ImportError:
     coloredlogs = None
 
 
+
 def main():
     """The core code of the program. Should be run only in the main process!"""
     # Rename the main thread for presentation purposes

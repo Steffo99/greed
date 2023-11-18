@@ -9,7 +9,7 @@ APScheduler==3.6.3
 certifi==2023.7.22
 chardet==4.0.0
 coloredlogs==15.0
-greenlet==1.1.0
+greenlet==3.0.1
 humanfriendly==9.1
 idna==2.10
 pytz==2021.1

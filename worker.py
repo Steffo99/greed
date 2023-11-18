@@ -209,6 +209,20 @@ class Worker(threading.Thread):
                 self.session.commit()
                 # Open the admin menu
                 self.__admin_menu()
+            
+            #Handle file upload
+            if self.update.message.document:
+                # Get the file ID
+                file_id = self.update.message.document.file_id
+                # Download the file
+                file = self.bot.get_file(file_id)
+                # Get the file path
+                file_path = file.file_path
+                # Post the file to your channel
+                channel_id = "@easy_purchase_ghana"
+                file_caption = "New file added!"
+                self.bot.send_document(channel_id, file_path, caption=file_caption)
+
         except Exception as e:
             # Try to notify the user of the exception
             # noinspection PyBroadException
