@@ -106,3 +106,4 @@ config/config.toml
 *.sqlite
 *.sqlite-journal
 data/
+.directory
