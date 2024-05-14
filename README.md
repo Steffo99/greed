@@ -1,11 +1,21 @@
+<div align="center"> 
+
+![](.media/icon-128x128_round.png) 
+
 # Greed
 
-A [customizable](/config/template_config.toml), [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)!  
+[Customizable](/config/template_config.toml) and [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)
 
-\[ [**Documentation**](https://github.com/Steffo99/greed/wiki) | [Support](https://github.com/Steffo99/greed/issues/new/choose) \]
+</div>
 
-![](https://i.imgur.com/FdT2tRV.png)
+## Links
+ 
+[![Documentation](https://img.shields.io/badge/docs-wiki-blue)](/docs/README.md)
 
-![](https://i.imgur.com/rDYWdUB.png)
+## Screenshots
 
-![](https://i.imgur.com/9plMzO6.png)
+![](.media/screenshot-1.png)
+
+![](.media/screenshot-2.png)
+
+![](.media/screenshot-3.png)
