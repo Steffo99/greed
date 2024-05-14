@@ -4,13 +4,13 @@
 
 # Greed
 
-[Customizable](/config/template_config.toml) and [multilanguage](/strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)
+[Customizable](config/template_config.toml) and [multilanguage](strings) Telegram shop bot with [Telegram Payments support](https://core.telegram.org/bots/payments)
 
 </div>
 
 ## Links
  
-[![Documentation](https://img.shields.io/badge/docs-wiki-blue)](/docs/README.md)
+[![Documentation](https://img.shields.io/badge/docs-available-blue)](docs/README.md)
 
 ## Screenshots
 
