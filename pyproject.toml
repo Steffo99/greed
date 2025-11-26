@@ -1,7 +1,7 @@
 [project]
 name = "greed"
 version = "0.19.0"
-description = "Customizable, multilanguage Telegram shop bot with Payments support"
+description = "Customizable, multilanguage Telegram shop bot"
 authors = [
     {name = "Stefano Pigozzi", email = "me@steffo.eu"}
 ]
