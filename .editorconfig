@@ -1,0 +1,19 @@
+# https://editorconfig.org
+
+root = true
+
+
+[*]
+
+# Enforce lf line endings
+end_of_line = lf
+
+# Enforce newline at end of files
+insert_final_newline = true
+
+# Python (sadly) strongly recommends the usage of 4 spaces as indentation.
+indent_style = space
+indent_size = 4
+
+[*.yml]
+indent_size = 2
