@@ -51,3 +51,9 @@
 <a href="https://forge.steffo.eu/steffo/greed/pulls">
 	<img alt="Pull requests" title="Pull requests" src="https://img.shields.io/gitea/pull-requests/open/steffo/greed?gitea_url=https%3A%2F%2Fforge.steffo.eu&color=374351" height="30px">
 </a>
+
+## Screenshots
+
+![](.media/screenshot-1.png)
+![](.media/screenshot-2.png)
+![](.media/screenshot-3.png)
