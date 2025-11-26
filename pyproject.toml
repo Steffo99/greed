@@ -1,0 +1,57 @@
+[project]
+name = "greed"
+version = "0.19.0"
+description = "Customizable, multilanguage Telegram shop bot with Payments support"
+authors = [
+    {name = "Stefano Pigozzi", email = "me@steffo.eu"}
+]
+maintainers = [
+    {name = "Stefano Pigozzi", email = "me@steffo.eu"}
+]
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE.md"]
+readme = "README.md"
+keywords = [
+	"telegram",
+	"shop",
+	"telegram-bot",
+	"store",
+	"payments",
+]
+classifiers = [
+	"Development Status :: 4 - Beta",
+	"Environment :: Other Environment",
+	"Intended Audience :: Other Audience",
+	"License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+	"Natural Language :: English",
+	"Natural Language :: Spanish",
+	"Natural Language :: Hebrew",
+	"Natural Language :: Hindi",
+	"Natural Language :: Italian",
+	"Natural Language :: Portuguese (Brazilian)",
+	"Natural Language :: Russian",
+	"Natural Language :: Ukrainian",
+	"Natural Language :: Chinese (Simplified)",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3",
+	# Which versions specifically?
+	"Topic :: Communications",
+	"Topic :: Communications :: Chat",
+	"Topic :: Internet",
+	"Topic :: Office/Business",
+	"Topic :: Office/Business :: Financial",
+	"Topic :: Office/Business :: Financial :: Point-Of-Sale",
+]
+
+requires-python = ">=3.7,<4.0"
+dependencies = [
+	"python-telegram-bot (==13.5)",
+	"SQLAlchemy (==1.4.14)",
+	"requests (==2.31.0)",
+	"toml (==0.10.2)",
+]
+
+[project.urls]
+Source = "https://forge.steffo.eu/steffo/greed"
+Issues = "https://forge.steffo.eu/steffo/greed/issues"
+Documentation = "https://forge.steffo.eu/steffo/greed/wiki"
