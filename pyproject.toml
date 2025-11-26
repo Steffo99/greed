@@ -45,10 +45,10 @@ classifiers = [
 
 requires-python = ">=3.7,<4.0"
 dependencies = [
-	"python-telegram-bot (==13.5)",
-	"SQLAlchemy (==1.4.14)",
-	"requests (==2.31.0)",
-	"toml (==0.10.2)",
+	"python-telegram-bot (>=13.5,<13.6)",
+	"SQLAlchemy (>=1.4.14,<2.0.0)",
+	"requests (>=2.31.0,<3.0.0)",
+	"toml (>=0.10,<0.11)",
 ]
 
 [project.urls]

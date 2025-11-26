@@ -186,10 +186,10 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "python-telegram-bot", specifier = "==13.5" },
-    { name = "requests", specifier = "==2.31.0" },
-    { name = "sqlalchemy", specifier = "==1.4.14" },
-    { name = "toml", specifier = "==0.10.2" },
+    { name = "python-telegram-bot", specifier = ">=13.5,<13.6" },
+    { name = "requests", specifier = ">=2.31.0,<3.0.0" },
+    { name = "sqlalchemy", specifier = ">=1.4.14,<2.0.0" },
+    { name = "toml", specifier = ">=0.10,<0.11" },
 ]
 
 [[package]]
