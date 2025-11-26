@@ -1,0 +1,44 @@
+name: "Build and push container image via docker buildx"
+
+on: 
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  explain:
+    name: "Build and push container image via docker buildx"
+    runs-on: rookframe
+
+    steps:
+      -
+        name: "Checkout repository"
+        uses: https://code.forgejo.org/actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          path: deploy/site
+      -
+        id: semver
+        name: "Determine semantic version numbers"
+        uses: https://forge.steffo.eu/steffo/actions-semver@71f3c07e57ba8d5191d405042f0c656093e4583b
+        with:
+          string: ${{ github.ref_name }}
+      -
+        name: "Login to Forgejo Packages"
+        uses: https://github.com/docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+        with:
+          registry: ${{ vars.FORGEJO_DOMAIN_NAME }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.FORGEJO_PACKAGES_TOKEN }}
+      -
+        name: "Build and push with Buildx"
+        uses: https://github.com/docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+        with:
+          file: "./Containerfile"
+          push: true
+          tags: >-
+            ${{ vars.FORGEJO_DOMAIN_NAME }}/${{ github.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:${{ steps.semver.outputs.full }},
+            ${{ vars.FORGEJO_DOMAIN_NAME }}/${{ github.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:${{ steps.semver.outputs.precedence }},
+            ${{ vars.FORGEJO_DOMAIN_NAME }}/${{ github.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:${{ steps.semver.outputs.core }},
+            ${{ vars.FORGEJO_DOMAIN_NAME }}/${{ github.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:${{ steps.semver.outputs.pair }},
+            ${{ vars.FORGEJO_DOMAIN_NAME }}/${{ github.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:${{ steps.semver.outputs.major }},
+            ${{ vars.FORGEJO_DOMAIN_NAME }}/${{ github.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:latest
