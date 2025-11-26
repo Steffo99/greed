@@ -18,8 +18,8 @@
 
 ### Use
 
-<a href="https://t.me/the_threadkiller_bot?startgroup=yes">
-    <img alt="Usable on Telegram" title="Usable on Telegram" src="https://img.shields.io/badge/telegram-@the__threadkiller__bot-27a7e7" height="30px">
+<a href="https://t.me/greed_demo_bot?startgroup=yes">
+    <img alt="Usable on Telegram" title="Usable on Telegram" src="https://img.shields.io/badge/telegram-@greed__demo__bot-27a7e7" height="30px">
 </a>
 
 ### Tools
