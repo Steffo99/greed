@@ -43,7 +43,7 @@ classifiers = [
 	"Topic :: Office/Business :: Financial :: Point-Of-Sale",
 ]
 
-requires-python = ">=3.7,<4.0"
+requires-python = ">=3.7,<3.13"  # https://docs.python.org/3/library/imghdr.html
 dependencies = [
 	"python-telegram-bot (>=13.5,<13.6)",
 	"SQLAlchemy (>=1.4.14,<2.0.0)",
