@@ -1,0 +1,9 @@
+.media/
+.vscode/
+config/config.toml
+strings/README.md
+.dockerignore
+.editorconfig
+.gitignore
+.python-version
+Containerfile
