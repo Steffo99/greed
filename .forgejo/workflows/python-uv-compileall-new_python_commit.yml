@@ -1,0 +1,29 @@
+name: "Test with Compileall the Python package using UV"
+
+on:
+  push:
+    branches:
+    - "main"
+    paths:
+    - "**/*.py"
+    - "pyproject.toml"
+    - "uv.lock"
+    - ".forgejo/workflows/python-poetry-pytest-new_python_commit.yml"
+  pull_request:
+    types:
+    - opened
+    - synchronize
+
+jobs:
+  test:
+    name: "Try compiling the Python code"
+    runs-on: rookframe
+    
+    steps:
+    -
+      name: "Checkout repository"
+      uses: https://code.forgejo.org/actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+    -
+      name: "Run compileall"
+      run: |-
+        uv run python -m compileall
