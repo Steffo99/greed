@@ -6,6 +6,14 @@
 </hgroup>
 </div>
 
+> [!Caution]
+>
+> If you are here to complain about a store using this software, you're in the wrong place.
+>
+> I (Steffo) don't operate nor support any store using Greed.
+>
+> This was my high school finals project and is provided here for showcase purposes.
+
 ## Links
 
 ### Tools
