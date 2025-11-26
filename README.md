@@ -16,6 +16,12 @@
 
 ## Links
 
+### Use
+
+<a href="https://t.me/the_threadkiller_bot?startgroup=yes">
+    <img alt="Usable on Telegram" title="Usable on Telegram" src="https://img.shields.io/badge/telegram-@the__threadkiller__bot-27a7e7" height="30px">
+</a>
+
 ### Tools
 
 <a href="https://www.python.org/">
@@ -36,6 +42,8 @@
 
 ### Development
 
+#### Forgejo main repository
+
 <a href="https://forge.steffo.eu/steffo/greed">
 	<img alt="Code repository" title="Code repository" src="https://img.shields.io/gitea/last-commit/steffo/greed?gitea_url=https%3A%2F%2Fforge.steffo.eu&color=374351" height="30px">
 </a>
@@ -51,6 +59,33 @@
 <a href="https://forge.steffo.eu/steffo/greed/pulls">
 	<img alt="Pull requests" title="Pull requests" src="https://img.shields.io/gitea/pull-requests/open/steffo/greed?gitea_url=https%3A%2F%2Fforge.steffo.eu&color=374351" height="30px">
 </a>
+
+#### GitHub mirror
+
+<a href="https://github.com/Steffo99/greed">
+	<img alt="GitHub mirror" title="GitHub mirror" src="https://img.shields.io/github/last-commit/Steffo99/greed?color=f0f6fc&style=flat" height="30px">
+</a>
+&hairsp;
+<a href="https://github.com/Steffo99/greed/releases">
+	<img alt="Releases" title="Releases" src="https://img.shields.io/github/v/release/Steffo99/greed?color=f0f6fc&style=flat&label=last+release" height="30px">
+</a>
+&hairsp;
+<a href="https://github.com/Steffo99/greed/issues">
+	<img alt="Issues" title="Issues" src="https://img.shields.io/github/issues/Steffo99/greed?color=f0f6fc" height="30px">
+</a>
+&hairsp;
+<a href="https://github.com/Steffo99/greed/pulls">
+	<img alt="Pull requests" title="Pull requests" src="https://img.shields.io/github/issues-pr/Steffo99/greed?color=f0f6fc" height="30px">
+</a>
+&hairsp;
+<a href="https://github.com/Steffo99/greed/stargazers">
+	<img alt="Stars" title="Stars" src="https://img.shields.io/github/stars/Steffo99/greed?color=f0f6fc&style=flat" height="30px">
+</a>
+&hairsp;
+<a href="https://github.com/Steffo99/greed/network">
+	<img alt="Forks" title="Forks" src="https://img.shields.io/github/forks/Steffo99/greed?color=f0f6fc&style=flat" height="30px">
+</a>
+
 
 ## Screenshots
 
