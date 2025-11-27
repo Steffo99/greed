@@ -58,6 +58,12 @@ dependencies = [
 	"urllib3 (>=1.26,<2.0)", # Required by python-telegram-bot, which incorrectly specified dependencies
 ]
 
+
+[project.optional-dependencies]
+postgres = [
+	"psycopg2 (>=2.9.9,<3.0.0)",
+]
+
 [project.urls]
 Source = "https://forge.steffo.eu/steffo/greed"
 Issues = "https://forge.steffo.eu/steffo/greed/issues"

@@ -6,7 +6,7 @@ COPY . /usr/src/greed
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ENV UV_FROZEN=1
 ENV UV_NO_DEV=1
-RUN uv sync
+RUN uv sync --extra postgres
 
 ENV PYTHONUNBUFFERED=1
 ENV CONFIG_PATH="/etc/greed/config.toml"
