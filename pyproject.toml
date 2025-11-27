@@ -62,6 +62,9 @@ dependencies = [
 
 
 [project.optional-dependencies]
+color = [
+	"coloredlogs (>=15.0.1,<16.0.0)",
+]
 postgres = [
 	"psycopg2 (>=2.9.9,<3.0.0)",
 ]
