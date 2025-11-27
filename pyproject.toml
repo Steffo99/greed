@@ -1,6 +1,6 @@
 [project]
 name = "greed"
-version = "0.19.1"
+version = "0.19.2"
 description = "Customizable, multilanguage Telegram shop bot"
 authors = [
     {name = "Stefano Pigozzi", email = "me@steffo.eu"}
@@ -48,7 +48,9 @@ classifiers = [
 	"Topic :: Office/Business :: Financial :: Point-Of-Sale",
 ]
 
-requires-python = ">=3.7,<3.13"  # https://docs.python.org/3/library/imghdr.html
+# https://docs.python.org/3/library/imghdr.html
+# https://github.com/jupyter-book/jupyter-book/issues/2146
+requires-python = ">=3.7,<3.12"  
 dependencies = [
 	"python-telegram-bot (>=13.5,<13.6)",
 	"SQLAlchemy (>=1.4.14,<2.0.0)",
