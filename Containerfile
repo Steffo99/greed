@@ -21,5 +21,5 @@ LABEL org.opencontainers.image.description="Customizable, multilanguage Telegram
 LABEL org.opencontainers.image.authors="Stefano Pigozzi <me@steffo.eu>"
 LABEL org.opencontainers.image.version="0.19.3"
 LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
-LABEL org.opencontainers.image.url="https://forge.steffo.eu/steffo/-/packages/container/greed/latest"
-LABEL org.opencontainers.image.source="https://forge.steffo.eu/steffo/greed"
+LABEL org.opencontainers.image.url="https://g.starshard.space/steffo/-/packages/container/greed/latest"
+LABEL org.opencontainers.image.source="https://g.starshard.space/steffo/greed"

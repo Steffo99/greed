@@ -1,5 +1,5 @@
 <div align="center">
-<img alt="" src="https://forge.steffo.eu/steffo/greed/raw/branch/main/.media/icon-512.png" height="128" style="border-radius: 100%;">
+<img alt="" src="https://g.starshard.space/steffo/greed/raw/branch/main/.media/icon-512.png" height="128" style="border-radius: 100%;">
 <hgroup>
 <h1>Greed</h1>
 <p>Customizable, multilanguage Telegram shop bot</p>

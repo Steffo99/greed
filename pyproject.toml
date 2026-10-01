@@ -70,6 +70,6 @@ postgres = [
 ]
 
 [project.urls]
-Source = "https://forge.steffo.eu/steffo/greed"
-Issues = "https://forge.steffo.eu/steffo/greed/issues"
-Documentation = "https://forge.steffo.eu/steffo/greed/wiki"
+Source = "https://g.starshard.space/steffo/greed"
+Issues = "https://g.starshard.space/steffo/greed/issues"
+Documentation = "https://g.starshard.space/steffo/greed/wiki"

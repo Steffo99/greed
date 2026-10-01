@@ -19,7 +19,7 @@ jobs:
       -
         id: semver
         name: "Determine semantic version numbers"
-        uses: https://forge.steffo.eu/steffo/actions-semver@71f3c07e57ba8d5191d405042f0c656093e4583b
+        uses: https://g.starshard.space/steffo/actions-semver@71f3c07e57ba8d5191d405042f0c656093e4583b
         with:
           string: ${{ github.ref_name }}
       -
