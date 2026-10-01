@@ -70,6 +70,8 @@ postgres = [
 ]
 
 [project.urls]
-Source = "https://g.starshard.space/steffo/greed"
+Repository = "https://g.starshard.space/steffo/greed/"
 Issues = "https://g.starshard.space/steffo/greed/issues"
-Documentation = "https://g.starshard.space/steffo/greed/wiki"
+Documentation = "https://g.starshard.space/steffo/greed/wiki/?action=_pages"
+Funding = "https://liberapay.com/Steffo/"
+"Release Notes" = "https://g.starshard.space/steffo/greed/releases"
