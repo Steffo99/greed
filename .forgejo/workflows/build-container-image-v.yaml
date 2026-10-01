@@ -1,0 +1,49 @@
+%YAML 1.1
+---
+name: "Build and push container image"
+
+"on":
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: "Build and push container image"
+    runs-on: default
+
+    steps:
+      -
+        name: "Set up Docker Buildx"
+        uses: https://github.com/docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5
+      -
+        name: "Checkout repository"
+        uses: https://code.forgejo.org/actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      -
+        name: "Determine semantic version number"
+        id: semver
+        uses: https://g.starshard.space/steffo/actions-semver@v1.1.1
+        with:
+          string: ${{ forgejo.ref_name }}
+      -
+        name: "Login to Forgejo Packages"
+        uses: https://github.com/docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+        with:
+          registry: ${{ vars.FORGE_DOMAIN_NAME }}
+          username: ${{ forgejo.repository_owner }}
+          password: ${{ secrets.FORGE_PACKAGES_TOKEN }}
+      -
+        name: "Build and push with Buildx"
+        uses: https://github.com/docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
+        with:
+          file: "./Containerfile"
+          push: true
+          tags: >-
+            ${{ vars.FORGE_DOMAIN_NAME }}/${{ forgejo.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:v${{ steps.semver.outputs.major }},
+            ${{ vars.FORGE_DOMAIN_NAME }}/${{ forgejo.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:v${{ steps.semver.outputs.pair }},
+            ${{ vars.FORGE_DOMAIN_NAME }}/${{ forgejo.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:v${{ steps.semver.outputs.core }},
+            ${{ vars.FORGE_DOMAIN_NAME }}/${{ forgejo.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:v${{ steps.semver.outputs.precedence }},
+            ${{ vars.FORGE_DOMAIN_NAME }}/${{ forgejo.repository_owner }}/${{ vars.CONTAINER_IMAGE_NAME }}:latest,
+          platforms: >-
+            linux/amd64,
+            linux/arm64
