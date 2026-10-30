@@ -54,7 +54,7 @@ def main():
             open(config_path, encoding="utf8") as user_cfg_file:
         template_cfg = nuconfig.NuConfig(template_cfg_file)
         user_cfg = nuconfig.NuConfig(user_cfg_file)
-        if not template_cfg.cmplog(user_cfg):
+        if not template_cfg.cmplog(user_cfg) or not user_cfg.validate_payment_presets():
             log.fatal("There were errors while parsing the config file. Please fix them and restart greed!")
             exit(2)
         else:
