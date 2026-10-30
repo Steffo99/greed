@@ -21,6 +21,41 @@ class NuConfig:
         self.__cmplog_log(compare_report)
         return compare_report == {}
 
+    def validate_payment_presets(self) -> bool:
+        """Ensure credit card payment_presets fall within min_amount and max_amount.
+        Returns false and logs errors if any preset is out of range."""
+        try:
+            payments = self.data["Payments"]
+            credit_card = payments["CreditCard"]
+        except KeyError:
+            return True
+
+        currency_exp = payments["currency_exp"]
+        min_amount = credit_card["min_amount"]
+        max_amount = credit_card["max_amount"]
+        valid = True
+
+        for preset in credit_card["payment_presets"]:
+            if isinstance(preset, int):
+                amount = preset
+            elif isinstance(preset, float):
+                amount = int(preset * (10 ** currency_exp))
+            else:
+                log.error(f"Invalid payment_preset value (expected int or float): {preset!r}")
+                valid = False
+                continue
+
+            if amount < min_amount or amount > max_amount:
+                log.error(
+                    "payment_preset {preset!r} is outside the min_amount ({min_amount}) / "
+                    "max_amount ({max_amount}) range".format(
+                        preset=preset, min_amount=min_amount, max_amount=max_amount
+                    )
+                )
+                valid = False
+
+        return valid
+
     @staticmethod
     def __cmplog_log(compare_report: CompareReport, root: str = "") -> None:
         """The recursive portion of :meth:`.cmplog`."""
